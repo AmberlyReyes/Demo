@@ -11,18 +11,33 @@
         </div>
         
         <div class="mb-3">
-            <label for="precio" class="form-label">Precio</label>
-            <input type="number" class="form-control" name="precio" id="precio" step="0.01" min="0" required>
+            <label for="cedula" class="form-label">Cedula</label>
+            <input type="text" class="form-control" name="cedula" id="cedula" required>
         </div>
         
         <div class="mb-3">
-            <label for="descripcion" class="form-label">Descripción</label>
-            <textarea class="form-control" name="descripcion" id="descripcion" rows="3"></textarea>
+            <label for="direccion" class="form-label">Direccion</label>
+            <input class="form-control" name="direccion" id="direccion" required></input>
+        </div>
+
+        <div class="mb-3">
+            <label for="telefono" class="form-label">Telefono</label>
+            <input class="form-control" name="telefono" id="telefono" required></input>
+        </div>
+
+        <div class="mb-3">
+            <label for="email" class="form-label">Correo Electronico</label>
+            <input class="form-control" name="email" id="email" required></input>
+        </div>
+
+        <div class="mb-3">
+            <label for="nacimiento" class="form-label">Fecha de Nacimiento</label>
+            <input class="form-control" name="nacimiento" id="nacimiento" required></input>
         </div>
         
         <div class="d-grid gap-2 d-md-flex justify-content-md-end">
             <a href="{{ url_for('index') }}" class="btn btn-secondary me-md-2">Cancelar</a>
-            <button type="submit" class="btn btn-primary">Guardar Producto</button>
+            <button type="submit" class="btn btn-primary">Guardar Paciente</button>
         </div>
     </form>
 </div>

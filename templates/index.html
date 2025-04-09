@@ -3,9 +3,9 @@
 {% block content %}
 <div class="table-container">
     <div class="d-flex justify-content-between mb-4">
-        <h2>Lista de Productos</h2>
+        <h2>Lista de Pacientes</h2>
         <a href="{{ url_for('crear') }}" class="btn btn-success">
-            <i class="bi bi-plus-circle"></i> Nuevo Producto
+            <i class="bi bi-plus-circle"></i> Nuevo Paciente
         </a>
     </div>
     
@@ -13,26 +13,27 @@
         <table class="table table-striped table-hover">
             <thead class="table-dark">
                 <tr>
-                    <th>ID</th>
+                    <th>ID Interno</th>
+                    <th>Cedula</th>
                     <th>Nombre</th>
-                    <th>Precio</th>
-                    <th>Descripción</th>
-                    <th>Acciones</th>
+                    <th>Telefono</th>
+                    <th>Direccion</th>
                 </tr>
             </thead>
             <tbody>
-                {% for producto in productos %}
+                {% for pacientes in pacientes %}
                 <tr>
-                    <td>{{ producto['id'] }}</td>
-                    <td>{{ producto['nombre'] }}</td>
-                    <td>${{ "%.2f"|format(producto['precio']) }}</td>
-                    <td>{{ producto['descripcion'] }}</td>
+                    <td>{{ pacientes['id'] }}</td>
+                    <td>{{ pacientes['cedula'] }}</td>
+                    <td>{{ pacientes['nombre'] }}</td>
+                    <td>{{ pacientes['telefono'] }}</td>
+                    <td>{{ pacientes['direccion'] }}</td>
                     <td class="action-buttons">
-                        <a href="{{ url_for('editar', id=producto['id']) }}" class="btn btn-sm btn-warning">
+                        <a href="{{ url_for('editar', id=pacientes['id']) }}" class="btn btn-sm btn-warning">
                             Editar
                         </a>
-                        <form action="{{ url_for('eliminar', id=producto['id']) }}" method="post" class="d-inline">
-                            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('¿Estás seguro de eliminar este producto?')">
+                        <form action="{{ url_for('eliminar', id=pacientes['id']) }}" method="post" class="d-inline">
+                            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('¿Estás seguro de eliminar este paciente?')">
                                 Eliminar
                             </button>
                         </form>
@@ -40,7 +41,7 @@
                 </tr>
                 {% else %}
                 <tr>
-                    <td colspan="5" class="text-center">No hay productos registrados</td>
+                    <td colspan="5" class="text-center">No hay pacientes registrados</td>
                 </tr>
                 {% endfor %}
             </tbody>
