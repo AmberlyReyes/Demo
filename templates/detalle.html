@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="table-container">
+    <h2 class="mb-4">Detalle del Paciente</h2>
+    
+    <div class="row mb-2">
+        <div class="col-3"><strong>ID:</strong></div>
+        <div class="col-9">{{ paciente.id }}</div>
+    </div>
+
+    <div class="row mb-2">
+        <div class="col-3"><strong>Cédula:</strong></div>
+        <div class="col-9">{{ paciente.cedula }}</div>
+    </div>
+
+    <div class="row mb-2">
+        <div class="col-3"><strong>Nombre:</strong></div>
+        <div class="col-9">{{ paciente.nombre }}</div>
+    </div>
+
+    <div class="row mb-2">
+        <div class="col-3"><strong>Teléfono:</strong></div>
+        <div class="col-9">{{ paciente.telefono }}</div>
+    </div>
+
+    <div class="row mb-2">
+        <div class="col-3"><strong>Dirección:</strong></div>
+        <div class="col-9">{{ paciente.direccion }}</div>
+    </div>
+
+    <div class="row mb-2">
+        <div class="col-3"><strong>Email:</strong></div>
+        <div class="col-9">{{ paciente.email }}</div>
+    </div>
+
+    <div class="row mb-2">
+        <div class="col-3"><strong>Aseguradora:</strong></div>
+        <div class="col-9">{{ paciente.aseguradora }}</div>
+    </div>
+
+    <div class="row mb-2">
+        <div class="col-3"><strong>Núm. Aseguradora:</strong></div>
+        <div class="col-9">{{ paciente.num_aseguradora }}</div>
+    </div>
+
+    <div class="row mb-2">
+        <div class="col-3"><strong>Fecha de Nacimiento:</strong></div>
+        <div class="col-9">{{ paciente.nacimiento }}</div>
+    </div>
+
+    <div class="mt-4">
+        <a href="{{ url_for('index') }}" class="btn btn-secondary">Volver</a>
+    </div>
+</div>
+{% endblock %}

@@ -2,47 +2,63 @@
 
 {% block content %}
 <div class="table-container">
-    <h2 class="mb-4">Editar Producto</h2>
+    <h2 class="mb-4">Editar Paciente</h2>
     
-    <div class="mb-3">
-        <label for="nombre" class="form-label">Nombre</label>
-        <input type="text" class="form-control" name="nombre" id="nombre" required
-        value = "{{ pacientes['nombre']}}">
-    </div>
-    
-    <div class="mb-3">
-        <label for="cedula" class="form-label">Cedula</label>
-        <input type="text" class="form-control" name="cedula" id="cedula" required
-        value = "{{ pacientes['cedula']}}">
-    </div>
-    
-    <div class="mb-3">
-        <label for="direccion" class="form-label">Direccion</label>
-        <input class="form-control" name="direccion" id="direccion"
-        value = "{{ pacientes['direccion']}}"></input>
-    </div>
+    <form method="post">
+        <div class="mb-3">
+            <label for="nombre" class="form-label">Nombre</label>
+            <input type="text" class="form-control" name="nombre" id="nombre" required value="{{ pacientes['nombre'] }}">
+        </div>
+        
+        <div class="mb-3">
+            <label for="cedula" class="form-label">Cédula</label>
+            <input type="text" class="form-control" name="cedula" id="cedula" required value="{{ pacientes['cedula'] }}">
+        </div>
+        
+        <div class="mb-3">
+            <label for="direccion" class="form-label">Dirección</label>
+            <input type="text" class="form-control" name="direccion" id="direccion" value="{{ pacientes['direccion'] }}">
+        </div>
 
-    <div class="mb-3">
-        <label for="telefono" class="form-label">Telefono</label>
-        <input class="form-control" name="telefono" id="telefono"
-        value = "{{ pacientes['telefono']}}"></input>
-    </div>
+        <div class="mb-3">
+            <label for="telefono" class="form-label">Teléfono</label>
+            <input type="text" class="form-control" name="telefono" id="telefono" value="{{ pacientes['telefono'] }}">
+        </div>
 
-    <div class="mb-3">
-        <label for="email" class="form-label">Correo Electronico</label>
-        <input class="form-control" name="email" id="email"
-        value = "{{ pacientes['email']}}"></input>
-    </div>
-    <div class="mb-3">
-        <label for="nacimiento" class="form-label">Fecha de Nacimiento</label>
-        <input class="form-control" name="nacimiento" id="nacimiento"
-        value = "{{ pacientes['nacimiento']}}"></input>
-    </div>
-    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-        <a href="{{ url_for('index') }}" class="btn btn-secondary me-md-2">Cancelar</a>
-        <button type="submit" class="btn btn-primary">Guardar Paciente</button>
-    </div>
+        <div class="mb-3">
+            <label for="email" class="form-label">Correo Electrónico</label>
+            <input type="email" class="form-control" name="email" id="email" value="{{ pacientes['email'] }}">
+        </div>
 
+        <div class="mb-3">
+            <label for="aseguradora" class="form-label">Aseguradora</label>
+            <input type="text" class="form-control" name="aseguradora" id="aseguradora" value="{{ pacientes['aseguradora'] }}">
+        </div>
+
+        <div class="mb-3">
+            <label for="num_aseguradora" class="form-label">Número de Aseguradora</label>
+            <input type="text" class="form-control" name="num_aseguradora" id="num_aseguradora" value="{{ pacientes['num_aseguradora'] }}">
+        </div>
+
+        <div class="mb-3">
+            <label for="nacimiento" class="form-label">Fecha de Nacimiento (dd/mm/yyyy)</label>
+            <input 
+                type="text" 
+                class="form-control" 
+                name="nacimiento" 
+                id="nacimiento" 
+                placeholder="dd/mm/yyyy"
+                pattern="^(0[1-9]|[12]\d|3[01])/(0[1-9]|1[0-2])/\d{4}$" 
+                required
+                title="Ingrese una fecha en el formato dd/mm/yyyy. Por ejemplo: 31/01/2025."
+                value="{{ pacientes['nacimiento'] }}"
+            >
+        </div>        
+
+        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+            <a href="{{ url_for('index') }}" class="btn btn-secondary me-md-2">Cancelar</a>
+            <button type="submit" class="btn btn-primary">Guardar Paciente</button>
+        </div>
     </form>
 </div>
 {% endblock %}

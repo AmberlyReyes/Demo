@@ -3,47 +3,96 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>CRUD Flask</title>
+    <title>{% block title %}SysDental{% endblock %}</title>
+
     <!-- Bootstrap CSS -->
-    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
-    <!-- Estilos adicionales -->
+    <link 
+      href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" 
+      rel="stylesheet"
+    >
+    
+    <!-- Google Fonts: Poppins -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link 
+      href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600&display=swap"
+      rel="stylesheet"
+    >
+
+    <!-- Tus estilos personalizados -->
     <style>
-        body {
-            padding: 20px;
-            background-color: #f8f9fa;
+        /* Colores de marca */
+        :root {
+            --color-primario: #0077A7;   /* Un azul más oscuro que #0089bf */
+            --color-secundario: #40E0D0; /* Turquesa para highlights */
         }
+
+        /* Ajustar el body */
+        body {
+            background-color: #f5f8fb; /* Un gris muy claro, diferente al #f5f5f5 */
+            font-family: 'Poppins', sans-serif;
+        }
+
+        /* Título principal (SysDental) */
+        h1.text-primary {
+            color: var(--color-primario) !important; /* Con !important sobrescribes el .text-primary default */
+        }
+
+        /* Tarjeta contenedora (table-container) */
         .table-container {
-            background: white;
+            background-color: #fff;
             padding: 20px;
             border-radius: 8px;
-            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
         }
-        .action-buttons {
-            white-space: nowrap;
+
+        /* Encabezado de las tablas */
+        .table thead.table-dark th {
+            background-color: var(--color-primario) !important;
+        }
+
+        /* Botón de “Nuevo Paciente” */
+        .btn-success {
+            background-color: var(--color-secundario) !important;
+            border-color: var(--color-secundario) !important;
+        }
+        .btn-success:hover {
+            background-color: #2ad5cf !important; /* Un turquesa un pelín más claro */
+            border-color: #2ad5cf !important;
+        }
+
+        /* Ajustar títulos */
+        h2 {
+            color: #333;
+            font-weight: 600;
+        }
+
+        /* Labels de formulario */
+        .form-label {
+            font-weight: 500;
+            color: var(--color-primario);
+        }
+
+        /* Inputs */
+        .form-control {
+            border-radius: 6px;
+            border: 1px solid #ccc;
+        }
+
+        /* Botones */
+        .btn-primary {
+            background-color: var(--color-primario) !important;
+            border-color: var(--color-primario) !important;
+        }
+        .btn-primary:hover {
+            background-color: #005a7b !important; /* Un tono más oscuro */
+            border-color: #005a7b !important;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <header class="mb-4">
-            <h1 class="text-center text-primary">SysDental</h1>
-            <hr>
-        </header>
-        
-        <main>
-            {% with messages = get_flashed_messages(with_categories=true) %}
-                {% if messages %}
-                    {% for category, message in messages %}
-                        <div class="alert alert-{{ category }} alert-dismissible fade show">
-                            {{ message }}
-                            <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-                        </div>
-                    {% endfor %}
-                {% endif %}
-            {% endwith %}
-            
-            {% block content %}{% endblock %}
-        </main>
+    <div class="container mt-4">
+        {% block content %}{% endblock %}
     </div>
 
     <!-- Bootstrap JS -->

@@ -19,60 +19,90 @@ def init_db():
             cedula TEXT NOT NULL,
             telefono TEXT,
             direccion TEXT,
+            email TEXT,
+            aseguradora TEXT,
+            num_aseguradora TEXT,
             nacimiento TEXT
         )
     ''')
     conn.commit()
     conn.close()
 
+
 # Listar todos los pacientes
 @app.route('/')
+def mainpage():
+    return render_template('mainpage.html')
+
+# Listar todos los pacientes en "index.html"
+@app.route('/pacientes')
 def index():
     conn = get_db_connection()
     pacientes = conn.execute('SELECT * FROM pacientes').fetchall()
     conn.close()
     return render_template('index.html', pacientes=pacientes)
 
+
+
 # crear nuevo paciente
 @app.route('/crear', methods=('GET', 'POST'))
 def crear():
     if request.method == 'POST':
-        nombre = request.form['nombre']
-        cedula = request.form['cedula']
-        telefono = request.form['telefono']
-        direccion = request.form['direccion']
-        nacimiento = request.form['nacimiento']
+        nombre          = request.form['nombre']
+        cedula          = request.form['cedula']
+        telefono        = request.form['telefono']
+        direccion       = request.form['direccion']
+        email           = request.form['email']
+        aseguradora     = request.form['aseguradora']
+        num_aseguradora = request.form['num_aseguradora']
+        nacimiento      = request.form['nacimiento']
         
         conn = get_db_connection()
-        conn.execute('INSERT INTO pacientes (nombre, cedula, telefono,direccion,nacimiento) VALUES (?, ?, ?, ?, ?)',
-                     (nombre, cedula, telefono,direccion,nacimiento))
+        conn.execute('''
+            INSERT INTO pacientes (nombre, cedula, telefono, direccion, email, aseguradora, num_aseguradora, nacimiento)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+        ''', (nombre, cedula, telefono, direccion, email, aseguradora, num_aseguradora, nacimiento))
         conn.commit()
         conn.close()
         return redirect(url_for('index'))
     
     return render_template('crear.html')
 
+
 # editar pacientes
 @app.route('/<int:id>/editar', methods=('GET', 'POST'))
 def editar(id):
     conn = get_db_connection()
-    pacientes = conn.execute('SELECT * FROM pacientes WHERE id = ?', (id,)).fetchone()
+    paciente = conn.execute('SELECT * FROM pacientes WHERE id = ?', (id,)).fetchone()
     
     if request.method == 'POST':
-        nombre = request.form['nombre']
-        cedula = request.form['cedula']
-        telefono = request.form['telefono']
-        direccion = request.form['direccion']
-        nacimiento = request.form['nacimiento']
+        nombre          = request.form['nombre']
+        cedula          = request.form['cedula']
+        telefono        = request.form['telefono']
+        direccion       = request.form['direccion']
+        email           = request.form['email']
+        aseguradora     = request.form['aseguradora']
+        num_aseguradora = request.form['num_aseguradora']
+        nacimiento      = request.form['nacimiento']
         
-        conn.execute('UPDATE pacientes SET nombre = ?, cedula = ?, telefono = ?, direccion = ?, nacimiento = ?,  = ? WHERE id = ?',
-                     (nombre, cedula, telefono,direccion,nacimiento, id))
+        conn.execute('''
+            UPDATE pacientes
+            SET nombre = ?,
+                cedula = ?,
+                telefono = ?,
+                direccion = ?,
+                email = ?,
+                aseguradora = ?,
+                num_aseguradora = ?,
+                nacimiento = ?
+            WHERE id = ?
+        ''', (nombre, cedula, telefono, direccion, email, aseguradora, num_aseguradora, nacimiento, id))
         conn.commit()
         conn.close()
         return redirect(url_for('index'))
     
     conn.close()
-    return render_template('editar.html', pacientes=pacientes)
+    return render_template('editar.html', pacientes=paciente)
 
 # eliminar pacientes
 @app.route('/<int:id>/eliminar', methods=('POST',))
@@ -82,6 +112,19 @@ def eliminar(id):
     conn.commit()
     conn.close()
     return redirect(url_for('index'))
+
+@app.route('/paciente/<int:id>')
+def detalle_paciente(id):
+    conn = get_db_connection()
+    paciente = conn.execute('SELECT * FROM pacientes WHERE id = ?', (id,)).fetchone()
+    conn.close()
+    
+    # Si deseas manejar el caso de paciente inexistente
+    if not paciente:
+        return "Paciente no encontrado", 404
+    
+    return render_template('detalle.html', paciente=paciente)
+
 
 if __name__ == '__main__':
     init_db()

@@ -13,27 +13,40 @@
         <table class="table table-striped table-hover">
             <thead class="table-dark">
                 <tr>
-                    <th>ID Interno</th>
-                    <th>Cedula</th>
+                    <th>ID</th>
+                    <th>Cédula</th>
                     <th>Nombre</th>
-                    <th>Telefono</th>
-                    <th>Direccion</th>
+                    <th>Teléfono</th>
+                    <th>Acciones</th>
                 </tr>
             </thead>
             <tbody>
-                {% for pacientes in pacientes %}
+                {% for p in pacientes %}
                 <tr>
-                    <td>{{ pacientes['id'] }}</td>
-                    <td>{{ pacientes['cedula'] }}</td>
-                    <td>{{ pacientes['nombre'] }}</td>
-                    <td>{{ pacientes['telefono'] }}</td>
-                    <td>{{ pacientes['direccion'] }}</td>
+                    <td>{{ p.id }}</td>
+                    <td>{{ p.cedula }}</td>
+                    <td>{{ p.nombre }}</td>
+                    <td>{{ p.telefono }}</td>
                     <td class="action-buttons">
-                        <a href="{{ url_for('editar', id=pacientes['id']) }}" class="btn btn-sm btn-warning">
+                        
+                        <!-- Botón para ver más detalles -->
+                        <a href="{{ url_for('detalle_paciente', id=p.id) }}" 
+                           class="btn btn-sm btn-info">
+                            Ver Más
+                        </a>
+
+                        <!-- Editar -->
+                        <a href="{{ url_for('editar', id=p.id) }}" 
+                           class="btn btn-sm btn-warning">
                             Editar
                         </a>
-                        <form action="{{ url_for('eliminar', id=pacientes['id']) }}" method="post" class="d-inline">
-                            <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('¿Estás seguro de eliminar este paciente?')">
+
+                        <!-- Eliminar -->
+                        <form action="{{ url_for('eliminar', id=p.id) }}" 
+                              method="post" 
+                              class="d-inline">
+                            <button type="submit" class="btn btn-sm btn-danger" 
+                                    onclick="return confirm('¿Estás seguro de eliminar este paciente?')">
                                 Eliminar
                             </button>
                         </form>
