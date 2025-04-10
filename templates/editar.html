@@ -31,9 +31,19 @@
         </div>
 
         <div class="mb-3">
-            <label for="aseguradora" class="form-label">Aseguradora</label>
-            <input type="text" class="form-control" name="aseguradora" id="aseguradora" value="{{ pacientes['aseguradora'] }}">
+            <label for="aseguradora" class="form-label">Aseguradora:</label>
+            <select class="form-control" name="aseguradora" id="aseguradora" required>
+                <option value=""><<Seleccione>></option>
+                <option value="ARS Primera" {% if pacientes['aseguradora'] == 'ARS Primera' %}selected{% endif %}>ARS Primera</option>
+                <option value="ARS Humano" {% if pacientes['aseguradora'] == 'ARS Humano' %}selected{% endif %}>ARS Humano</option>
+                <option value="MAPFRE SALUD ARS" {% if pacientes['aseguradora'] == 'MAPFRE SALUD ARS' %}selected{% endif %}>MAPFRE SALUD ARS</option>
+                <option value="ARS Universal" {% if pacientes['aseguradora'] == 'ARS Universal' %}selected{% endif %}>ARS Universal</option>
+                <option value="ARS Monumental" {% if pacientes['aseguradora'] == 'ARS Monumental' %}selected{% endif %}>ARS Monumental</option>
+                <option value="ARS Abel González" {% if pacientes['aseguradora'] == 'ARS Abel González' %}selected{% endif %}>ARS Abel González</option>
+                <option value="ARSSENASA :)" {% if pacientes['aseguradora'] == 'ARSSENASA :)' %}selected{% endif %}>ARSSENASA :)</option>
+            </select>
         </div>
+        
 
         <div class="mb-3">
             <label for="num_aseguradora" class="form-label">Número de Aseguradora</label>

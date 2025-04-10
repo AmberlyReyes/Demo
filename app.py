@@ -16,7 +16,7 @@ def init_db():
         CREATE TABLE IF NOT EXISTS pacientes (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             nombre TEXT NOT NULL,
-            cedula TEXT NOT NULL,
+            cedula TEXT NOT NULL UNIQUE,
             telefono TEXT,
             direccion TEXT,
             email TEXT,
@@ -47,6 +47,8 @@ def index():
 # crear nuevo paciente
 @app.route('/crear', methods=('GET', 'POST'))
 def crear():
+    error = None
+
     if request.method == 'POST':
         nombre          = request.form['nombre']
         cedula          = request.form['cedula']
@@ -56,17 +58,33 @@ def crear():
         aseguradora     = request.form['aseguradora']
         num_aseguradora = request.form['num_aseguradora']
         nacimiento      = request.form['nacimiento']
-        
+
         conn = get_db_connection()
-        conn.execute('''
-            INSERT INTO pacientes (nombre, cedula, telefono, direccion, email, aseguradora, num_aseguradora, nacimiento)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
-        ''', (nombre, cedula, telefono, direccion, email, aseguradora, num_aseguradora, nacimiento))
-        conn.commit()
-        conn.close()
+        cedula_existente = conn.execute(
+            'SELECT * FROM pacientes WHERE cedula = ?', (cedula,)
+        ).fetchone()
+
+        if cedula_existente:
+            error = f"La cédula '{cedula}' ya está registrada."
+            conn.close()
+            return render_template('crear.html', error=error)
+
+        try:
+            conn.execute('''
+                INSERT INTO pacientes (nombre, cedula, telefono, direccion, email, aseguradora, num_aseguradora, nacimiento)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            ''', (nombre, cedula, telefono, direccion, email, aseguradora, num_aseguradora, nacimiento))
+            conn.commit()
+        except sqlite3.IntegrityError:
+            error = f"La cédula '{cedula}' ya existe."
+            return render_template('crear.html', error=error)
+        finally:
+            conn.close()
+
         return redirect(url_for('index'))
-    
-    return render_template('crear.html')
+
+    return render_template('crear.html', error=error)
+
 
 
 # editar pacientes
