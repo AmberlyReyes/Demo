@@ -6,7 +6,7 @@ from sisdental.models import init_db  # Importamos init_db para usarlo aquí
 def create_app():
     app = Flask(__name__)
 
-    # Inicializar DB dentro del app_context
+  
     with app.app_context():
         init_db()
 
