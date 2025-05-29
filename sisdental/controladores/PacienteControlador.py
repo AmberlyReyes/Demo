@@ -1,5 +1,5 @@
 from . import db
-from .modelos import Paciente
+from sisdental.modelos import Paciente
 
 class PacienteControlador:
 
@@ -17,6 +17,10 @@ class PacienteControlador:
     @staticmethod
     def obtener_por_id(paciente_id):
         return Paciente.query.get(paciente_id)
+    
+    @staticmethod
+    def obtener_por_cedula(paciente_cedula):
+        return Paciente.query.get(paciente_cedula)
 
     @staticmethod
     def actualizar_paciente(paciente_id, nuevos_datos):
