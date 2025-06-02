@@ -1,4 +1,4 @@
-from . import db
+from sisdental import db
 
 class Paciente(db.Model):
     __tablename__ = "citas"

@@ -1,4 +1,4 @@
-from . import db
+from sisdental import db
 from sisdental.modelos import Cita
 
 class citaControlador:
