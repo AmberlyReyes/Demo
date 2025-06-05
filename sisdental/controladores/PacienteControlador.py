@@ -1,5 +1,6 @@
 from sisdental import db
-from sisdental.modelos import Paciente
+#from sisdental.modelos import Paciente
+from sisdental.modelos.Paciente import Paciente
 
 class PacienteControlador:
 
