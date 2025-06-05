@@ -1,0 +1,31 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="table-container">
+    <h2 class="mb-4">Detalles de la Cita</h2>
+    
+    <div class="row mb-2">
+        <div class="col-3"><strong>Cédula del Doctor:</strong></div>
+        <div class="col-9">{{ paciente.doctorId }}</div>
+    </div>
+
+    <div class="row mb-2">
+        <div class="col-3"><strong>Cédula del paciente:</strong></div>
+        <div class="col-9">{{ paciente.pacienteId }}</div>
+    </div>
+
+    <div class="row mb-2">
+        <div class="col-3"><strong>Fecha:</strong></div>
+        <div class="col-9">{{ paciente.fecha }}</div>
+    </div>
+
+    <div class="row mb-2">
+        <div class="col-3"><strong>Hora:</strong></div>
+        <div class="col-9">{{ paciente.hora }}</div>
+    </div>
+
+    <div class="mt-4">
+        <a href="{{ url_for('index') }}" class="btn btn-secondary">Volver</a>
+    </div>
+</div>
+{% endblock %}

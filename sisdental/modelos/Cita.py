@@ -1,6 +1,6 @@
 from sisdental import db
 
-class Paciente(db.Model):
+class Cita(db.Model):
     __tablename__ = "citas"
 
     id = db.Column(db.Integer, primary_key=True, index=True)
@@ -9,6 +9,6 @@ class Paciente(db.Model):
     #tambien asignarle a ambos ID que sean foreign keys
     doctorId = db.Column(db.Integer, nullable=False)
     pacienteId = db.Column(db.Integer, nullable=False)
-    fecha = db.Column(db.Date(20))
+    fecha = db.Column(db.Date)
     hora = db.Column(db.Time(150))
     

@@ -1,14 +1,19 @@
 from sisdental import db
-from sisdental.modelos import Cita
+from sisdental.modelos.Cita import Cita
 
 class citaControlador:
 
     @staticmethod
     def crear_cita(data):
-        nuevo = Cita(**data)
-        db.session.add(nuevo)
-        db.session.commit()
-        return nuevo
+        try:
+            nuevo = Cita(**data)
+            db.session.add(nuevo)
+            db.session.commit()
+            return nuevo
+        except Exception as e:
+            db.session.rollback()
+            print(f"Error al crear Cita: {e}")
+            return None
 
     @staticmethod
     def obtener_todos():

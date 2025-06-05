@@ -1,6 +1,8 @@
 from flask import render_template, request, redirect, url_for
 from sisdental import db
 from sisdental.controladores.PacienteControlador import PacienteControlador
+from sisdental.controladores.citaControlador import citaControlador
+
 
 def register_routes(app):
     """Registra todas las rutas de la aplicación Flask en el objeto 'app'."""
@@ -16,6 +18,12 @@ def register_routes(app):
     def index():
         pacientes = PacienteControlador.obtener_todos()
         return render_template('index.html', pacientes=pacientes)
+    
+    # Listar Citas
+    @app.route('/citas')
+    def indexCita():
+        pacientes = citaControlador.obtener_todos()
+        return render_template('indexCita.html', pacientes=pacientes)
 
     # Crear nuevo paciente
     @app.route('/crear', methods=('GET', 'POST'))
@@ -49,6 +57,35 @@ def register_routes(app):
 
         return render_template('crear.html', error=error)
 
+    # Crear nuevo Cita
+    @app.route('/crearCita', methods=('GET', 'POST'))
+    def crearCita():
+        error = None
+
+        if request.method == 'POST':
+            data = {
+                'pacienteId': request.form['pacienteId'],
+                'doctorId': request.form['doctorId'],
+                'fecha': request.form['fecha'],
+                'hora': request.form['hora'],
+            }
+
+            # Verificar si la Cita choca con otra TO-DO
+            #if PacienteControlador.obtener_por_cedula(data['cedula']):
+            #    error = f"La cédula '{data['cedula']}' ya está registrada."
+            #    return render_template('crear.html', error=error)
+
+            try:
+                citaControlador.crear_cita(data)
+            except Exception as e:
+                error = f"Error insertando cita: {e}"
+                return render_template('crearCita.html', error=error)
+
+            return redirect(url_for('index'))
+
+        return render_template('crearCita.html', error=error)
+
+
     # Editar pacientes
     @app.route('/<int:id>/editar', methods=('GET', 'POST'))
     def editar(id):
@@ -77,6 +114,12 @@ def register_routes(app):
     def eliminar(id):
         PacienteControlador.eliminar_paciente(id)
         return redirect(url_for('index'))
+    
+    # Eliminar cita
+    @app.route('/<int:id>/eliminar', methods=('POST',))
+    def eliminarCita(id):
+        citaControlador.eliminar_paciente(id)
+        return redirect(url_for('indexCita'))
 
     # Detalle de un paciente
     @app.route('/paciente/<int:id>')
@@ -85,3 +128,11 @@ def register_routes(app):
         if not paciente:
             return "Paciente no encontrado", 404
         return render_template('detalle.html', paciente=paciente)
+    
+    # Detalle de Cita
+    @app.route('/paciente/<int:id>')
+    def detalle_cita(id):
+        paciente = citaControlador.obtener_por_id(id)
+        if not paciente:
+            return "Cita no encontrada", 404
+        return render_template('detalleCita.html', paciente=paciente)

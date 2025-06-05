@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="table-container">
+
+
+    <h2 class="mb-4">Nueva cita</h2>
+    {% if error %}
+    <div class="alert alert-danger">
+        {{ error }}
+    </div>
+    {% endif %}
+
+
+    <form method="post">
+        <div class="mb-3">
+            <label for="pacienteId" class="form-label">ID Paciente</label>
+            <input type="number" class="form-control" name="pacienteId" id="pacienteId" min="0" step="1" required>
+        </div>
+
+        <div class="mb-3">
+            <label for="doctorId" class="form-label">ID Doctor</label>
+            <input type="number" class="form-control" name="doctorId" id="doctorId" min="0" step="1" required>
+        </div>
+
+        <div class="mb-3">
+            <label for="fecha" class="form-label">Fecha (dd/mm/yyyy)</label>
+            <input type="text" class="form-control" name="fecha" id="fecha" placeholder="dd/mm/yyyy"
+                pattern="^(0[1-9]|[12]\d|3[01])/(0[1-9]|1[0-2])/\d{4}$" required
+                title="Ingrese una fecha en el formato dd/mm/yyyy. Por ejemplo: 31/01/2025.">
+        </div>
+        <input type="time" class="form-control" name="hora" id="hora" min="08:00" max="18:00" required>
+
+
+        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+            <a href="{{ url_for('index') }}" class="btn btn-secondary me-md-2">Cancelar</a>
+            <button type="submit" class="btn btn-primary">Guardar Paciente</button>
+        </div>
+    </form>
+</div>
+{% endblock %}
