@@ -6,10 +6,16 @@ class PacienteControlador:
 
     @staticmethod
     def crear_paciente(data):
-        nuevo = Paciente(**data)
-        db.session.add(nuevo)
-        db.session.commit()
-        return nuevo
+        try:
+            nuevo = Paciente(**data)
+            db.session.add(nuevo)
+            db.session.commit()
+            return nuevo
+        except Exception as e:
+            db.session.rollback()
+            print(f"Error al crear paciente: {e}")
+            return None
+
 
     @staticmethod
     def obtener_todos():
@@ -20,8 +26,9 @@ class PacienteControlador:
         return Paciente.query.get(paciente_id)
     
     @staticmethod
+    @staticmethod
     def obtener_por_cedula(paciente_cedula):
-        return Paciente.query.get(paciente_cedula)
+         return Paciente.query.filter_by(cedula=paciente_cedula).first()
 
     @staticmethod
     def actualizar_paciente(paciente_id, nuevos_datos):
