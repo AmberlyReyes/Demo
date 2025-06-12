@@ -13,6 +13,7 @@
         <table class="table table-striped table-hover">
             <thead class="table-dark">
                 <tr>
+                    <th>ID Cita</th>
                     <th>ID Paciente</th>
                     <th>ID Doctor</th>
                     <th>Fecha</th>
@@ -22,6 +23,7 @@
             <tbody>
                 {% for p in pacientes %}
                 <tr>
+                    <td>{{ p.id }}</td>
                     <td>{{ p.pacienteId }}</td>
                     <td>{{ p.doctorId }}</td>
                     <td>{{ p.fecha }}</td>
@@ -34,14 +36,14 @@
                             Ver Más
                         </a>
 
-                        <!-- Editar
-                        <a href="{{ url_for('editar', id=p.id) }}" 
+                        <!-- Editar-->
+                        <a href="{{ url_for('editarCita', id=p.id) }}" 
                            class="btn btn-sm btn-warning">
                             Editar
-                        </a> -->
+                        </a>
 
                         <!-- Eliminar -->
-                        <form action="{{ url_for('eliminar', id=p.id) }}" 
+                        <form action="{{ url_for('eliminarCita', id=p.id) }}" 
                               method="post" 
                               class="d-inline">
                             <button type="submit" class="btn btn-sm btn-danger" 
@@ -53,7 +55,7 @@
                 </tr>
                 {% else %}
                 <tr>
-                    <td colspan="5" class="text-center">No hay pacientes registrados</td>
+                    <td colspan="5" class="text-center">No hay Citas registradas</td>
                 </tr>
                 {% endfor %}
             </tbody>

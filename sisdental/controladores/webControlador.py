@@ -109,6 +109,35 @@ def register_routes(app):
 
         return render_template('editar.html', pacientes=paciente)
 
+# Editar Cita
+    @app.route('/<int:id>/editarCita', methods=('GET', 'POST'))
+    def editarCita(id):
+        paciente = citaControlador.obtener_por_id(id)
+        if not paciente:
+            return "Cita no encontrado", 404
+
+        if request.method == 'POST':
+            fecha_original = request.form['fecha']
+            anio, mes, dia = fecha_original.split('-')
+            fecha_formateada = f"{dia}/{mes}/{anio}"
+
+            hora_python = request.form['hora'].time()  # Convierte a datetime.time
+            hora_formateada = hora_python.strftime("%H:%M")
+
+            print(fecha_formateada)
+            print(hora_formateada)
+            nuevos_datos = {
+                'pacienteId': request.form['pacienteId'],
+                'doctorId': request.form['doctorId'],
+                'fecha': fecha_formateada,
+                'hora': hora_formateada,
+            }
+            citaControlador.actualizar_cita(id, nuevos_datos)
+            return redirect(url_for('index'))
+
+        return render_template('editarCita.html', pacientes=paciente)
+
+
     # Eliminar pacientes
     @app.route('/<int:id>/eliminar', methods=('POST',))
     def eliminar(id):
@@ -116,7 +145,7 @@ def register_routes(app):
         return redirect(url_for('index'))
     
     # Eliminar cita
-    @app.route('/<int:id>/eliminar', methods=('POST',))
+    @app.route('/<int:id>/eliminarCita', methods=('POST',))
     def eliminarCita(id):
         citaControlador.eliminar_paciente(id)
         return redirect(url_for('indexCita'))
@@ -130,7 +159,7 @@ def register_routes(app):
         return render_template('detalle.html', paciente=paciente)
     
     # Detalle de Cita
-    @app.route('/paciente/<int:id>')
+    @app.route('/cita/<int:id>')
     def detalle_cita(id):
         paciente = citaControlador.obtener_por_id(id)
         if not paciente:
