@@ -68,8 +68,8 @@ def register_routes(app):
 
         if request.method == 'POST':
             data = {
-                'pacienteId': request.form['pacienteId'],
-                'doctorId': request.form['doctorId'],
+                'paciente_id': request.form['paciente_id'],
+                'doctor_id': request.form['doctor_id'],
                 'fecha': request.form['fecha'],
                 'hora': request.form['hora'],
             }
