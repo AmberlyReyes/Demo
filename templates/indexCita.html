@@ -26,9 +26,11 @@
                     <td>{{ p.id }}</td>
                     <td>{{ p.paciente_id }}</td>
                     <td>{{ p.doctor_id }}</td>
-                    <td>{{ p.fecha }}</td>
-                    <td>{{ p.hora }}</td>
+                    <td>{{ p.fecha.strftime('%d/%m/%Y') if p.fecha else '' }}</td>
+                    <td>{{ p.hora.strftime('%I:%M %p') }}</td>
                     <td class="action-buttons">
+
+                        
                         
                         <!-- Botón para ver más detalles -->
                         <a href="{{ url_for('detalle_cita', id=p.id) }}" 

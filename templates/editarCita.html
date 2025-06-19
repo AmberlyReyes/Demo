@@ -22,12 +22,14 @@
             <input type="text" class="form-control" name="fecha" id="fecha" placeholder="dd/mm/yyyy"
                 pattern="^(0[1-9]|[12]\d|3[01])/(0[1-9]|1[0-2])/\d{4}$" required
                 title="Ingrese una fecha en el formato dd/mm/yyyy. Por ejemplo: 31/01/2025."
-                value="{{ pacientes['fecha'] }}">
+                value="{{ pacientes['fecha'].strftime('%d/%m/%Y') if pacientes['fecha'] else '' }}">
         </div>
 
         <div class="mb-3">
-            <input type="time" class="form-control" name="hora" id="hora" min="08:00" max="18:00" required value="{{ pacientes['hora'] }}">
+            <input type="time" class="form-control" name="hora" id="hora" min="08:00" max="18:00" required 
+            value="{% if pacientes['hora'] %}{{ pacientes['hora'].strftime('%H:%M') }}{% endif %}">
         </div>
+
         <div class="d-grid gap-2 d-md-flex justify-content-md-end">
             <a href="{{ url_for('indexCita') }}" class="btn btn-secondary me-md-2">Cancelar</a>
             <button type="submit" class="btn btn-primary">Guardar</button>
