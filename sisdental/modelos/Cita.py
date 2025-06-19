@@ -9,6 +9,8 @@ class Cita(db.Model):
     #tambien asignarle a ambos ID que sean foreign keys
     doctorId = db.Column(db.Integer, nullable=False)
     pacienteId = db.Column(db.Integer, nullable=False)
+    #paciente_id = db.Column(db.Integer, db.ForeignKey('pacientes.id'))
+    #doctor_id = db.Column(db.Integer, db.ForeignKey('doctores.id'))
     fecha = db.Column(db.Date)
     hora = db.Column(db.Time(150))
     
