@@ -26,14 +26,8 @@ app = crear_app()
 
 with app.app_context():
    
-<<<<<<< HEAD
-    db.drop_all()
-    db.create_all()
-=======
-    #db.drop_all()
-    #db.create_all()
-    #crearDoc()
->>>>>>> 714cb03b0a4fc8c3c9ea1b7d870a5dfb1f7f13bd
+   # db.drop_all()
+   # db.create_all()
     
     try:
         count = db.session.query(Paciente).count()

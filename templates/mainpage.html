@@ -6,7 +6,7 @@
     <title>Dr Reyes - Centro Odontológico</title>
     <style>
         :root {
-            /* OPCIONAL: Manejar el color principal como variable */
+           
             --color-principal: #0077A7; /* un poco más oscuro que #0089bf */
         }
     
@@ -37,15 +37,24 @@
         .logo img {
             height: 50px;
         }
-        
-        /* Cambiar el color del texto "Dr Reyes" */
+    
         .logo h1 {
-            /* color: #0089bf; */
+        
             color: var(--color-principal); /* Aquí tu nuevo color */
             font-style: italic;
             margin-left: 10px;
             font-size: 24px;
             line-height: 1;
+        }
+
+        
+        .navbar h1 {
+            color: #0077A7; /* Color de "Dr Reyes" */
+        }
+
+      
+        .bienvenido-usuario {
+            color: #0077A7; 
         }
         
         .logo p {
@@ -283,11 +292,10 @@
     </header>
     <div class="contact-bar">
         <div class="Agregar-paciente">
-            <div>
-                <a href="{{ url_for('index') }}">    
-                <strong>Agregar paciente</strong>
-            </div>
-        </div>
+             <a href="{{ url_for('index') }}" style="color: var(--color-principal); text-decoration: none; font-weight: bold;">
+                 <strong>Agregar paciente</strong>
+             </a>
+    </div>
     
         <div class="agendar-cita">
             <div>
@@ -300,11 +308,11 @@
                 <strong>Calendario</strong>
             </div>
         </div>
-    </div> <!-- CIERRE CORRECTO de .contact-bar -->
+    </div> 
     
     <div class="hero">
         <div class="hero-content">
-            <h2>Bienvenido<br>@usuario</h2>
+           <h2 style="color: var(--color-principal);">Bienvenido<br>@usuario</h2>
             <p>Técnicas dentales en manos de profesionales</p>
             <a href="#" class="cta-button">AGENDAR CITA</a>
         </div>
