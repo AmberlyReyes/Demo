@@ -7,6 +7,8 @@ class PacienteControlador:
     @staticmethod
     def crear_paciente(data):
         try:
+            # Obligatorio para que la fila sea de tipo 'paciente'
+            data['tipo'] = 'paciente'
             nuevo = Paciente(**data)
             db.session.add(nuevo)
             db.session.commit()
