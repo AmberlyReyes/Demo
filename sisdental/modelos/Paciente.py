@@ -6,7 +6,6 @@ class Paciente(Persona):
     id = db.Column(db.Integer, db.ForeignKey('personas.id'), primary_key=True)
     aseguradora = db.Column(db.String(100))
     num_aseguradora = db.Column(db.String(50))
-    facturas = db.relationship('Factura', backref='paciente', lazy=True)
     historiales = db.relationship('HistorialClinico', backref='paciente', lazy=True)
     citas = db.relationship('Cita', backref='paciente', lazy=True)
 

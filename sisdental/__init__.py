@@ -1,5 +1,6 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
+
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -18,7 +19,10 @@ def crear_app():
     db.init_app(app)
 
     # Importar modelos aquí para que se registren con SQLAlchemy
-    from sisdental.modelos import Paciente
+    from sisdental.modelos import (
+        Paciente, Persona, Doctor, Asistente, Usuario, Cita,
+        HistorialClinico, Factura, Consulta, Enfermedad, Tratamiento, Pago
+    )
     with app.app_context():
         db.create_all()
 
