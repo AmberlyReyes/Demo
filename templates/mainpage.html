@@ -277,13 +277,14 @@
             <li><a href="#">Inicio</a></li>
             <li><a href="{{ url_for('indexCita') }}">Agendar cita</a></li>
             <li><a href="#">Log in</a></li>
-            <li><a href="{{ url_for('index') }}">Pacientes</a></li>
+            <li><a href="{{ url_for('buscarPaciente') }}">Pacientes</a></li>
         </ul>
         
     </header>
     <div class="contact-bar">
         <div class="Agregar-paciente">
             <div>
+                <a href="{{ url_for('index') }}">    
                 <strong>Agregar paciente</strong>
             </div>
         </div>

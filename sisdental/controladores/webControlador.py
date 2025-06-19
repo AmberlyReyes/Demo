@@ -19,6 +19,10 @@ def register_routes(app):
         pacientes = PacienteControlador.obtener_todos()
         return render_template('index.html', pacientes=pacientes)
     
+    @app.route('/buscarPaciente')
+    def buscarPaciente():
+        return render_template('buscarPaciente.html')
+    
     # Listar Citas
     @app.route('/citas')
     def indexCita():

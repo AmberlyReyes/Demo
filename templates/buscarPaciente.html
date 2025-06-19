@@ -1,0 +1,570 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Buscar Paciente - Dr Reyes</title>
+    <style>
+        :root {
+            --color-principal: #0077A7;
+            --color-coronita: #40E0D0;
+            --color-fondo: #e6f5fb;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: Arial, sans-serif;
+        }
+
+        body {
+            background-color: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        /* Modal Container */
+        .modal {
+            background: linear-gradient(135deg, #ffffff 0%, #f8fcff 100%);
+            border-radius: 15px;
+            width: 90%;
+            max-width: 500px;
+            max-height: 90vh;
+            overflow: hidden;
+            box-shadow: 0 20px 60px rgba(0, 119, 167, 0.3);
+            animation: modalSlideIn 0.3s ease forwards;
+            position: relative;
+        }
+
+        /* Header del Modal */
+        .modal-header {
+            background: linear-gradient(135deg, var(--color-fondo) 0%, #d0ebf6 100%);
+            padding: 20px 25px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            border-bottom: 2px solid #d0ebf6;
+        }
+
+        .modal-title {
+            color: var(--color-principal);
+            font-size: 22px;
+            font-weight: bold;
+            margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .close-btn {
+            background: none;
+            border: none;
+            font-size: 28px;
+            color: #666;
+            cursor: pointer;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.2s ease;
+        }
+
+        .close-btn:hover {
+            background: rgba(255, 255, 255, 0.7);
+            color: var(--color-principal);
+            transform: rotate(90deg);
+        }
+
+        /* Contenido del Modal */
+        .modal-body {
+            padding: 30px 25px;
+        }
+
+        .search-options {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 25px;
+            flex-wrap: wrap;
+        }
+
+        .radio-option {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 25px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .radio-option:hover {
+            border-color: var(--color-coronita);
+            background: rgba(64, 224, 208, 0.05);
+        }
+
+        .radio-option input[type="radio"] {
+            accent-color: var(--color-coronita);
+            margin: 0;
+        }
+
+        .radio-option.selected {
+            border-color: var(--color-coronita);
+            background: rgba(64, 224, 208, 0.1);
+            color: var(--color-principal);
+            font-weight: bold;
+        }
+
+        .radio-option label {
+            color: inherit;
+            font-size: 14px;
+            cursor: pointer;
+            margin: 0;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 10px;
+            color: var(--color-principal);
+            font-weight: bold;
+            font-size: 15px;
+        }
+
+        .search-input-container {
+            position: relative;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 15px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            font-size: 16px;
+            transition: all 0.3s ease;
+            background: white;
+        }
+
+        .form-input:focus {
+            outline: none;
+            border-color: var(--color-coronita);
+            box-shadow: 0 0 0 3px rgba(64, 224, 208, 0.1);
+        }
+
+        .search-icon {
+            position: absolute;
+            right: 15px;
+            top: 50%;
+            transform: translateY(-50%);
+            color: #999;
+            font-size: 18px;
+        }
+
+        /* Resultados de búsqueda */
+        .search-results {
+            margin-top: 20px;
+            max-height: 200px;
+            overflow-y: auto;
+            border: 1px solid #e0e0e0;
+            border-radius: 8px;
+            background: white;
+            display: none;
+        }
+
+        .result-item {
+            padding: 12px 15px;
+            border-bottom: 1px solid #f0f0f0;
+            cursor: pointer;
+            transition: background-color 0.2s ease;
+        }
+
+        .result-item:hover {
+            background-color: rgba(64, 224, 208, 0.05);
+        }
+
+        .result-item:last-child {
+            border-bottom: none;
+        }
+
+        .result-name {
+            font-weight: bold;
+            color: var(--color-principal);
+            margin-bottom: 4px;
+        }
+
+        .result-details {
+            font-size: 12px;
+            color: #666;
+        }
+
+        .no-results {
+            padding: 20px;
+            text-align: center;
+            color: #999;
+            font-style: italic;
+        }
+
+        /* Botones del Modal */
+        .modal-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            padding: 0 25px 25px;
+        }
+
+        .btn-search {
+            background: linear-gradient(135deg, var(--color-coronita) 0%, #2dd4bf 100%);
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-size: 16px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            flex: 1;
+            max-width: 200px;
+        }
+
+        .btn-search:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(64, 224, 208, 0.4);
+        }
+
+        .btn-search:disabled {
+            background: #ccc;
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+
+        .btn-cancel {
+            background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 20px;
+            font-weight: bold;
+            transition: all 0.3s ease;
+            width: 50px;
+            height: 50px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .btn-cancel:hover {
+            transform: translateY(-2px) rotate(90deg);
+            box-shadow: 0 6px 20px rgba(245, 101, 101, 0.4);
+        }
+
+        .loading {
+            display: none;
+            text-align: center;
+            padding: 20px;
+            color: var(--color-principal);
+        }
+
+        .spinner {
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid var(--color-coronita);
+            border-radius: 50%;
+            width: 30px;
+            height: 30px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 10px;
+        }
+
+        /* Animaciones */
+        @keyframes modalSlideIn {
+            from {
+                transform: scale(0.7) translateY(-50px);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1) translateY(0);
+                opacity: 1;
+            }
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .modal {
+                width: 95%;
+                margin: 10px;
+            }
+            
+            .modal-body, .modal-actions {
+                padding-left: 20px;
+                padding-right: 20px;
+            }
+            
+            .search-options {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="modal">
+        <div class="modal-header">
+            <h2 class="modal-title">
+                🔍 Buscar Paciente
+            </h2>
+            <button class="close-btn" onclick="closeModal()" title="Cerrar">&times;</button>
+        </div>
+        
+        <div class="modal-body">
+            <div class="search-options">
+                <div class="radio-option selected" data-type="nombre">
+                    <input type="radio" id="searchNombre" name="searchType" value="nombre" checked>
+                    <label for="searchNombre">👤 Nombre</label>
+                </div>
+                <div class="radio-option" data-type="cedula">
+                    <input type="radio" id="searchCedula" name="searchType" value="cedula">
+                    <label for="searchCedula">🆔 Cédula</label>
+                </div>
+                <div class="radio-option" data-type="telefono">
+                    <input type="radio" id="searchTelefono" name="searchType" value="telefono">
+                    <label for="searchTelefono">📞 Teléfono</label>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="searchInput">Ingrese los datos del paciente:</label>
+                <div class="search-input-container">
+                    <input 
+                        type="text" 
+                        id="searchInput" 
+                        class="form-input" 
+                        placeholder="Ej: Juan Pérez"
+                        autocomplete="off"
+                    >
+                    <span class="search-icon">🔍</span>
+                </div>
+            </div>
+
+            <div class="loading" id="loading">
+                <div class="spinner"></div>
+                <p>Buscando paciente...</p>
+            </div>
+
+            <div class="search-results" id="searchResults">
+                <!-- Los resultados se cargarán aquí dinámicamente -->
+            </div>
+        </div>
+
+        <div class="modal-actions">
+            <button class="btn-search" id="btnSearch" onclick="searchPatient()">
+                Buscar Paciente
+            </button>
+            <button class="btn-cancel" onclick="closeModal()" title="Cerrar">
+                &times;
+            </button>
+        </div>
+    </div>
+
+    <script>
+        // Variables globales
+        let searchTimeout;
+        const placeholders = {
+            nombre: 'Ej: Juan Pérez',
+            cedula: 'Ej: 001-1234567-8',
+            telefono: 'Ej: 809-123-4567'
+        };
+
+        // Inicializar cuando carga la página
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('searchInput').focus();
+            setupEventListeners();
+        });
+
+        function setupEventListeners() {
+            // Manejar cambio de tipo de búsqueda
+            document.querySelectorAll('.radio-option').forEach(option => {
+                option.addEventListener('click', function() {
+                    const radio = this.querySelector('input[type="radio"]');
+                    radio.checked = true;
+                    updateSearchType();
+                });
+            });
+
+            // Búsqueda en tiempo real mientras escribes
+            document.getElementById('searchInput').addEventListener('input', function() {
+                clearTimeout(searchTimeout);
+                const value = this.value.trim();
+                
+                if (value.length >= 2) {
+                    searchTimeout = setTimeout(() => {
+                        performSearch(value, false);
+                    }, 500);
+                } else {
+                    hideResults();
+                }
+            });
+
+            // Buscar con Enter
+            document.getElementById('searchInput').addEventListener('keypress', function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    searchPatient();
+                }
+            });
+
+            // Cerrar con Escape
+            document.addEventListener('keydown', function(e) {
+                if (e.key === 'Escape') {
+                    closeModal();
+                }
+            });
+        }
+
+        function updateSearchType() {
+            // Actualizar estilos visuales
+            document.querySelectorAll('.radio-option').forEach(option => {
+                option.classList.remove('selected');
+            });
+            
+            const selectedOption = document.querySelector('input[name="searchType"]:checked').closest('.radio-option');
+            selectedOption.classList.add('selected');
+
+            // Actualizar placeholder
+            const searchType = document.querySelector('input[name="searchType"]:checked').value;
+            const input = document.getElementById('searchInput');
+            input.placeholder = placeholders[searchType] || 'Escriba aquí para buscar...';
+            
+            // Limpiar resultados anteriores
+            hideResults();
+            input.focus();
+        }
+
+        function searchPatient() {
+            const searchValue = document.getElementById('searchInput').value.trim();
+            if (!searchValue) {
+                alert('Por favor ingrese un valor para buscar');
+                return;
+            }
+            performSearch(searchValue, true);
+        }
+
+        async function performSearch(searchValue, showLoading = false) {
+            const searchType = document.querySelector('input[name="searchType"]:checked').value;
+            
+            if (showLoading) {
+                showLoadingState();
+            }
+
+            try {
+                // Construir la URL de búsqueda según tu estructura Flask
+                const url = `/buscar_paciente?tipo=${searchType}&valor=${encodeURIComponent(searchValue)}`;
+                
+                const response = await fetch(url, {
+                    method: 'GET',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    }
+                });
+
+                if (!response.ok) {
+                    throw new Error('Error en la búsqueda');
+                }
+
+                const data = await response.json();
+                displayResults(data.pacientes || []);
+                
+            } catch (error) {
+                console.error('Error al buscar pacientes:', error);
+                displayError('Error al realizar la búsqueda. Intente nuevamente.');
+            } finally {
+                hideLoadingState();
+            }
+        }
+
+        function displayResults(pacientes) {
+            const resultsContainer = document.getElementById('searchResults');
+            
+            if (pacientes.length === 0) {
+                resultsContainer.innerHTML = '<div class="no-results">No se encontraron pacientes</div>';
+            } else {
+                resultsContainer.innerHTML = pacientes.map(paciente => `
+                    <div class="result-item" onclick="selectPatient(${paciente.id})">
+                        <div class="result-name">${paciente.nombre} ${paciente.apellido}</div>
+                        <div class="result-details">
+                            Cédula: ${paciente.cedula} | Teléfono: ${paciente.telefono || 'N/A'}
+                        </div>
+                    </div>
+                `).join('');
+            }
+            
+            resultsContainer.style.display = 'block';
+        }
+
+        function displayError(message) {
+            const resultsContainer = document.getElementById('searchResults');
+            resultsContainer.innerHTML = `<div class="no-results" style="color: #e53e3e;">${message}</div>`;
+            resultsContainer.style.display = 'block';
+        }
+
+        function hideResults() {
+            document.getElementById('searchResults').style.display = 'none';
+        }
+
+        function showLoadingState() {
+            document.getElementById('loading').style.display = 'block';
+            document.getElementById('btnSearch').disabled = true;
+            hideResults();
+        }
+
+        function hideLoadingState() {
+            document.getElementById('loading').style.display = 'none';
+            document.getElementById('btnSearch').disabled = false;
+        }
+
+        function selectPatient(pacienteId) {
+            // Aquí puedes redirigir al perfil del paciente o hacer lo que necesites
+            // Por ejemplo:
+            window.location.href = `/paciente/${pacienteId}`;
+            
+            // O si quieres pasar el ID al parent window y cerrar el modal:
+            // window.parent.postMessage({action: 'pacienteSeleccionado', pacienteId: pacienteId}, '*');
+            // closeModal();
+        }
+
+        function closeModal() {
+            // Si es una ventana emergente, cerrarla
+            if (window.opener) {
+                window.close();
+            } else {
+                // Si está embebido, redirigir o ocultar
+                window.history.back();
+            }
+        }
+
+        // Funciones auxiliares para integración con Flask
+        function getCsrfToken() {
+            // Si se usa CSRF tokens en Flask
+            const token = document.querySelector('meta[name=csrf-token]');
+            return token ? token.getAttribute('content') : '';
+        }
+    </script>
+</body>
+</html>
