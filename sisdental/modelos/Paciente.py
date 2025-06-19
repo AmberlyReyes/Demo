@@ -13,3 +13,14 @@ class Paciente(Persona):
     __mapper_args__ = {
         'polymorphic_identity': 'paciente',
     }
+
+def configure_relationships():
+    from sisdental.modelos.Factura import Factura
+    from sisdental.modelos.HistorialClinico import HistorialClinico
+    from sisdental.modelos.Cita import Cita
+    
+    Paciente.facturas = db.relationship('Factura', backref='paciente', lazy=True)
+    Paciente.historiales = db.relationship('HistorialClinico', backref='paciente', lazy=True)
+    Paciente.citas = db.relationship('Cita', backref='paciente', lazy=True)
+
+configure_relationships()
