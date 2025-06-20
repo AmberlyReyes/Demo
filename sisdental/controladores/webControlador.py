@@ -2,10 +2,11 @@ from flask import render_template, request, redirect, url_for
 from sisdental import db
 from sisdental.controladores.PacienteControlador import PacienteControlador
 from sisdental.controladores.citaControlador import citaControlador
+from sisdental.modelos import Persona
 
 
 def register_routes(app):
-    """Registra todas las rutas de la aplicación Flask en el objeto 'app'."""
+ 
 
     # Ruta principal
     @app.route('/')
@@ -98,7 +99,10 @@ def register_routes(app):
             return redirect(url_for('indexCita'))
 
         return render_template('crearCita.html', error=error)
-
+    
+    @app.route('/gestionPaciente')
+    def gestion_paciente():
+     return render_template('gestionPaciente.html')
 
     # Editar pacientes
     @app.route('/<int:id>/editar', methods=('GET', 'POST'))
@@ -199,3 +203,5 @@ def register_routes(app):
         ).all()
 
         return render_template('buscarPaciente.html', pacientes=personas)
+    
+  

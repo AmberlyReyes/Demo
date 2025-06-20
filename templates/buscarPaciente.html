@@ -374,19 +374,11 @@
 
         // Función para seleccionar un paciente
         function selectPatient(patientId, patientName) {
-            console.log('Paciente seleccionado:', patientId, patientName);
-            // Aquí puedes agregar la lógica para enviar los datos al servidor
-            // o comunicarte con la ventana padre si es un popup
+            // Opción 1: Abrir en nueva ventana
+            window.open(`/gestionPaciente?patientId=${patientId}&patientName=${encodeURIComponent(patientName)}`, '_blank');
             
-            // Ejemplo de comunicación con ventana padre:
-            if (window.opener) {
-                window.opener.postMessage({
-                    type: 'patientSelected',
-                    patientId: patientId,
-                    patientName: patientName
-                }, '*');
-                window.close();
-            }
+            // Opción 2: Redirigir en la misma ventana
+            // window.location.href = `/gestion-paciente?patientId=${patientId}&patientName=${encodeURIComponent(patientName)}`;
         }
 
         // Cerrar modal al hacer clic fuera de él
@@ -396,7 +388,7 @@
             }
         });
 
-        // Cerrar modal con la tecla Escape
+        
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
                 closeModal();
