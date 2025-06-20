@@ -31,6 +31,10 @@ class citaControlador:
     def obtener_por_doctor(paciente_cedula):
         return Cita.query.get(paciente_cedula)
     
+    @staticmethod
+    def obtener_por_fecha(fecha):
+        return Cita.query.filter_by(fecha=fecha)
+
     #estos 3 podrian ser algo como "obtener_por_dato" 
     #en lugar de tener el mismo codigo repetido varias veces
     #Puede ser mas confuso pero hace este codigo mas limpio
