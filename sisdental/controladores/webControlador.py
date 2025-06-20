@@ -142,7 +142,7 @@ def register_routes(app):
 
         return render_template('editar.html', pacientes=paciente)
 
-# Editar Cita
+    # Editar Cita
     @app.route('/<int:id>/editarCita', methods=('GET', 'POST'))
     def editarCita(id):
         paciente = citaControlador.obtener_por_id(id)
@@ -150,31 +150,35 @@ def register_routes(app):
             return "Cita no encontrado", 404
 
         if request.method == 'POST':
-            fecha_original = request.form['fecha']
-            anio, mes, dia = fecha_original.split('-')
-            fecha_formateada = f"{dia}/{mes}/{anio}"
+            fecha_original = request.form['fecha']  # Ej. "31/01/2025"
+            # Separa por '/'
+            dia, mes, anio = fecha_original.split('/')
 
-            hora_python = request.form['hora'].time()  # Convierte a datetime.time
+            # Ajusta al formato "YYYY-MM-DD" (si es el que usas en DB)
+            fecha_formateada = f"{anio}-{mes}-{dia}"
+
+            # Convierte la hora en objeto time
+            from datetime import datetime
+            hora_str = request.form['hora']  # Ej. "13:30"
+            hora_python = datetime.strptime(hora_str, '%H:%M').time()
             hora_formateada = hora_python.strftime("%H:%M")
 
-            print(fecha_formateada)
-            print(hora_formateada)
             nuevos_datos = {
-                'pacienteId': request.form['pacienteId'],
-                'doctorId': request.form['doctorId'],
-                'fecha': fecha_formateada,
-                'hora': hora_formateada,
+                'paciente_id': request.form['paciente_id'],
+                'doctor_id': request.form['doctor_id'],
+                'fecha': fecha_formateada,  # Ahora en "YYYY-MM-DD"
+                'hora': hora_formateada
             }
             citaControlador.actualizar_cita(id, nuevos_datos)
-            return redirect(url_for('index'))
+            return redirect(url_for('indexCita'))
 
         return render_template('editarCita.html', pacientes=paciente)
-
 
     # Eliminar pacientes
     @app.route('/<int:id>/eliminar', methods=('POST',))
     def eliminar(id):
         PacienteControlador.eliminar_paciente(id)
+        
         return redirect(url_for('index'))
     
     # Eliminar cita
