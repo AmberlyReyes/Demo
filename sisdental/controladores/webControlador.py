@@ -203,5 +203,20 @@ def register_routes(app):
         ).all()
 
         return render_template('buscarPaciente.html', pacientes=personas)
-    
-  
+
+    @app.route('/api/paciente/<int:paciente_id>', methods=['GET'])
+    def get_paciente_api(paciente_id):
+        paciente = PacienteControlador.obtener_por_id(paciente_id)
+        if not paciente:
+            return {"error": "Paciente no encontrado"}, 404
+
+        return {
+            "id": paciente.id,
+            "nombre": paciente.nombre,
+            "cedula": paciente.cedula,
+            "telefono": paciente.telefono,
+            "email": paciente.email,
+            "direccion": paciente.direccion,
+            "aseguradora": paciente.aseguradora,
+            "nacimiento": paciente.nacimiento
+        }, 200

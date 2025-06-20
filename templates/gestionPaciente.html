@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Gestión de Pacientes - Dr. Reyes</title>
     <style>
+        /* Estilos generales */
         * {
             margin: 0;
             padding: 0;
@@ -244,18 +245,18 @@
             .container {
                 padding: 10px;
             }
-            
+
             .header {
                 padding: 15px 20px;
                 flex-direction: column;
                 text-align: center;
                 gap: 10px;
             }
-            
+
             .action-buttons {
                 grid-template-columns: 1fr;
             }
-            
+
             .patient-details {
                 grid-template-columns: 1fr;
             }
@@ -293,9 +294,7 @@
                 <h1>🦷 Gestión de Pacientes</h1>
                 <div class="subtitle">Dr. Reyes - Centro Odontológico</div>
             </div>
-            <button class="exit-btn" onclick="goBack()">
-                ← Salir
-            </button>
+            <button class="exit-btn" onclick="goBack()">← Salir</button>
         </div>
 
         <!-- Panel de información del paciente -->
@@ -351,9 +350,7 @@
                     placeholder="Ingrese cédula o nombre del paciente"
                 >
             </div>
-            <button class="search-btn" onclick="searchPatient()">
-                Buscar Paciente
-            </button>
+            <button class="search-btn" onclick="searchPatient()">Buscar Paciente</button>
         </div>
 
         <!-- Estado sin paciente -->
@@ -370,41 +367,41 @@
 
         // Función para cargar paciente desde URL o localStorage
         function loadPatient() {
-            // Intentar obtener datos del paciente desde URL parameters
             const urlParams = new URLSearchParams(window.location.search);
             const patientId = urlParams.get('patientId');
-            const patientName = urlParams.get('patientName');
 
-            if (patientId && patientName) {
-                // Simular carga de datos del paciente
-                // En una implementación real, harías una llamada al servidor
-                currentPatient = {
-                    id: patientId,
-                    nombre: decodeURIComponent(patientName),
-                    cedula: '056-1234567-8', // Datos de ejemplo
-                    telefono: '829-123-4567',
-                    email: 'paciente@email.com',
-                    direccion: 'Calle Principal #123',
-                    aseguradora: 'ARS Universal',
-                    nacimiento: '15/03/1985'
-                };
-                displayPatient(currentPatient);
+            if (patientId) {
+                fetch(`/api/paciente/${patientId}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            // Maneja error si el paciente no se encuentra
+                            throw new Error('Paciente no encontrado');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        currentPatient = data;  // Recibe datos reales del paciente
+                        displayPatient(currentPatient);
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        alert('Error cargando datos del paciente.');
+                    });
             }
 
-            // Escuchar mensajes desde ventana del buscador
+            // Escuchar mensajes del buscador (si lo usas)
             window.addEventListener('message', function(event) {
                 if (event.data.type === 'patientSelected') {
-                    currentPatient = {
-                        id: event.data.patientId,
-                        nombre: event.data.patientName,
-                        cedula: '056-1234567-8', // En implementación real, obtener del servidor
-                        telefono: '829-123-4567',
-                        email: 'paciente@email.com',
-                        direccion: 'Calle Principal #123',
-                        aseguradora: 'ARS Universal',
-                        nacimiento: '15/03/1985'
-                    };
-                    displayPatient(currentPatient);
+                    fetch(`/api/paciente/${event.data.patientId}`)
+                        .then(response => response.json())
+                        .then(data => {
+                            currentPatient = data;
+                            displayPatient(currentPatient);
+                        })
+                        .catch(err => {
+                            console.error(err);
+                            alert('Error cargando datos del paciente.');
+                        });
                 }
             });
         }
@@ -508,7 +505,7 @@
                 alert('Ingrese un término de búsqueda');
                 return;
             }
-            
+
             // Abrir ventana de búsqueda
             window.open('/buscarPaciente', 'searchWindow', 'width=600,height=700,scrollbars=yes,resizable=yes');
         }
