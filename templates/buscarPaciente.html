@@ -369,11 +369,7 @@
     <script>
         // Función para cerrar el modal
         function closeModal() {
-            document.querySelector('.modal-overlay').style.opacity = '0';
-            setTimeout(() => {
-                window.close(); // Si es una ventana popup
-                // O redirigir a otra página: window.location.href = '/dashboard';
-            }, 300);
+            window.location.href = "{{ url_for('mainpage') }}";
         }
 
         // Función para seleccionar un paciente

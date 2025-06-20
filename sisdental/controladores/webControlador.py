@@ -186,13 +186,13 @@ def register_routes(app):
             # Muestra solo la plantilla vacía
             return render_template('buscarPaciente.html', pacientes=None)
 
-        # Si es POST, se hace la búsqueda
+        
         valor = request.form.get('valor', '').strip()
         if not valor:
-            # Si no se introdujo ningún valor, renderiza con lista vacía
+            
             return render_template('buscarPaciente.html', pacientes=[])
 
-        # Buscar en Persona filtrando tipo='paciente', y comparando cédula O nombre
+       
         personas = Persona.query.filter(
             (Persona.nombre.ilike(f"%{valor}%") | Persona.cedula.ilike(f"%{valor}%")),
             Persona.tipo == 'paciente'
