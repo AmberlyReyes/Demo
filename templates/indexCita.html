@@ -1,112 +1,330 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="table-container">
-    <div class="d-flex justify-content-between mb-4">
-        <h2>Lista de Citas</h2>
-        <a href="{{ url_for('crearCita') }}" class="btn btn-success">
-            <i class="bi bi-plus-circle"></i> Nueva Cita
-        </a>
-        <form id="filtroForm" action="{{ url_for('indexCita') }}" method="get"
-            onsubmit="return validarYConvertirFecha()">
-            <!-- 
-            <input type="text" class="form-control" name="fecha" id="fecha" placeholder="dd/mm/yyyy"
-                pattern="^(0[1-9]|[12]\d|3[01])/(0[1-9]|1[0-2])/\d{4}$" required
-                value="{{ request.args.get('fecha', '') }}">-->
+<style>
+    .citas-header {
+        background: linear-gradient(135deg, #2c5aa0 0%, #4a7bc8 100%);
+        padding: 2rem;
+        border-radius: 15px;
+        margin-bottom: 2rem;
+        color: white;
+        box-shadow: 0 8px 25px rgba(44, 90, 160, 0.3);
+    }
+    
+    .citas-title {
+        font-size: 2.2rem;
+        font-weight: 600;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 15px;
+    }
+    
+    .btn-nueva-cita {
+        background: white;
+        color: #2c5aa0;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 25px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        box-shadow: 0 4px 15px rgba(255, 255, 255, 0.2);
+    }
+    
+    .btn-nueva-cita:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 6px 20px rgba(255, 255, 255, 0.3);
+        color: #1a3d73;
+    }
+    
+    .filtro-container {
+        background: #f8faff;
+        padding: 1.5rem;
+        border-radius: 12px;
+        border: 2px solid #e1ecf7;
+        margin-bottom: 2rem;
+    }
+    
+    .filtro-form {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        flex-wrap: wrap;
+    }
+    
+    .filtro-form input[type="date"] {
+        border: 2px solid #d1e0f0;
+        border-radius: 8px;
+        padding: 10px 15px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+    }
+    
+    .filtro-form input[type="date"]:focus {
+        border-color: #2c5aa0;
+        box-shadow: 0 0 0 3px rgba(44, 90, 160, 0.1);
+        outline: none;
+    }
+    
+    .btn-filtro {
+        background: #2c5aa0;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-filtro:hover {
+        background: #1a3d73;
+        transform: translateY(-1px);
+    }
+    
+    .btn-reiniciar {
+        background: #f39c12;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        border-radius: 8px;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-reiniciar:hover {
+        background: #e67e22;
+        transform: translateY(-1px);
+    }
+    
+    .tabla-citas {
+        background: white;
+        border-radius: 12px;
+        overflow: hidden;
+        box-shadow: 0 4px 20px rgba(44, 90, 160, 0.1);
+        border: 1px solid #e1ecf7;
+    }
+    
+    .tabla-citas table {
+        margin: 0;
+    }
+    
+    .tabla-citas thead th {
+        background: #2c5aa0;
+        color: white;
+        font-weight: 600;
+        padding: 1rem;
+        border: none;
+        font-size: 0.95rem;
+    }
+    
+    .tabla-citas tbody tr {
+        transition: all 0.3s ease;
+        border-bottom: 1px solid #f0f4f8;
+    }
+    
+    .tabla-citas tbody tr:hover {
+        background: #f8faff;
+        transform: scale(1.01);
+    }
+    
+    .tabla-citas tbody td {
+        padding: 1rem;
+        vertical-align: middle;
+        color: #2c3e50;
+        font-weight: 500;
+    }
+    
+    .action-buttons {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+    }
+    
+    .btn-ver {
+        background: #17a2b8;
+        color: white;
+        border: none;
+        padding: 6px 12px;
+        border-radius: 6px;
+        font-size: 0.85rem;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-ver:hover {
+        background: #138496;
+        transform: translateY(-1px);
+    }
+    
+    .btn-editar {
+        background: #ffc107;
+        color: #212529;
+        border: none;
+        padding: 6px 12px;
+        border-radius: 6px;
+        font-size: 0.85rem;
+        font-weight: 500;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-editar:hover {
+        background: #e0a800;
+        transform: translateY(-1px);
+    }
+    
+    .btn-eliminar {
+        background: #dc3545;
+        color: white;
+        border: none;
+        padding: 6px 12px;
+        border-radius: 6px;
+        font-size: 0.85rem;
+        transition: all 0.3s ease;
+    }
+    
+    .btn-eliminar:hover {
+        background: #c82333;
+        transform: translateY(-1px);
+    }
+    
+    .btn-atras {
+        background: #2c5aa0;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 25px;
+        font-weight: 600;
+        margin-top: 2rem;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .btn-atras:hover {
+        background: #1a3d73;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(44, 90, 160, 0.3);
+    }
+    
+    .no-citas {
+        text-align: center;
+        padding: 3rem;
+        color: #6c757d;
+        font-size: 1.1rem;
+    }
+    
+    .cita-id {
+        font-weight: 700;
+        color: #2c5aa0;
+    }
+    
+    .fecha-cita {
+        background: #e8f4fd;
+        padding: 4px 8px;
+        border-radius: 6px;
+        color: #2c5aa0;
+        font-weight: 600;
+    }
+    
+    .hora-cita {
+        background: #fff3cd;
+        padding: 4px 8px;
+        border-radius: 6px;
+        color: #856404;
+        font-weight: 600;
+    }
+</style>
 
-            <div class="form-group">
-                <input type="date" class="form-control" name="fecha" id="fecha"
-                    value="{{ request.args.get('fecha', '') }}">
-            </div>
-
-            <button type="submit" class="btn btn-sm btn-info">
-                Filtrar
-            </button>
-            <a href="{{ url_for('indexCita') }}" class="btn btn-sm btn-warning">
-                Reiniciar
+<div class="container-fluid px-4">
+    <!-- Header con título y botón nueva cita -->
+    <div class="citas-header">
+        <div class="d-flex justify-content-between align-items-center">
+            <h1 class="citas-title">
+                📅 Gestión de Citas
+            </h1>
+            <a href="{{ url_for('crearCita') }}" class="btn-nueva-cita">
+                ➕ Nueva Cita
             </a>
-
-        </form>
-
-        <script>
-            /*
-            function filtrarPorFecha() {
-                const fechaInput = document.getElementById('fecha').value;
-                if (fechaInput) {
-                    // El input date ya devuelve el formato yyyy-mm-dd
-                    window.location.href = "{{ url_for('indexCita') }}?fecha=" + fechaInput;
-                } else {
-                    window.location.href = "{{ url_for('indexCita') }}";
-                }
-            }
-            /*
-            function validarYConvertirFecha() {
-                const input = document.getElementById('fecha');
-                if (!input.checkValidity()) {
-                    input.reportValidity();
-                    return false;
-                }
-
-                // Convertir fecha para el backend
-                const [day, month, year] = input.value.split('/');
-                input.value = `${year}-${month}-${day}`;
-                return true;
-            }*/
-        </script>
+        </div>
     </div>
 
-    <div class="table-responsive">
-        <table class="table table-striped table-hover">
-            <thead class="table-dark">
+    <!-- Filtro de fechas -->
+    <div class="filtro-container">
+        <form id="filtroForm" action="{{ url_for('indexCita') }}" method="get" class="filtro-form">
+            <label for="fecha" style="color: #2c5aa0; font-weight: 600;">🗓️ Filtrar por fecha:</label>
+            <input type="date" class="form-control" name="fecha" id="fecha" 
+                   value="{{ request.args.get('fecha', '') }}" style="width: auto;">
+            
+            <button type="submit" class="btn-filtro">
+                🔍 Filtrar
+            </button>
+            <a href="{{ url_for('indexCita') }}" class="btn-reiniciar">
+                🔄 Mostrar Todas
+            </a>
+        </form>
+    </div>
+
+    <!-- Tabla de citas -->
+    <div class="tabla-citas">
+        <table class="table table-hover mb-0">
+            <thead>
                 <tr>
-                    <th>ID Cita</th>
-                    <th>ID Paciente</th>
-                    <th>ID Doctor</th>
-                    <th>Fecha</th>
-                    <th>Hora</th>
+                    <th> ID Cita</th>
+                    <th> ID Paciente</th>
+                    <th> ID Doctor</th>
+                    <th> Fecha</th>
+                    <th> Hora</th>
+                    <th> Acciones</th>
                 </tr>
             </thead>
             <tbody>
                 {% for p in pacientes %}
                 <tr>
-                    <td>{{ p.id }}</td>
+                    <td><span class="cita-id">#{{ p.id }}</span></td>
                     <td>{{ p.paciente_id }}</td>
                     <td>{{ p.doctor_id }}</td>
-                    <td>{{ p.fecha.strftime('%d/%m/%Y') if p.fecha else '' }}</td>
-                    <td>{{ p.hora.strftime('%I:%M %p') }}</td>
+                    <td>
+                        <span class="fecha-cita">
+                            {{ p.fecha.strftime('%d/%m/%Y') if p.fecha else '' }}
+                        </span>
+                    </td>
+                    <td>
+                        <span class="hora-cita">
+                            {{ p.hora.strftime('%I:%M %p') }}
+                        </span>
+                    </td>
                     <td class="action-buttons">
-
-
-
-                        <!-- Botón para ver más detalles -->
-                        <a href="{{ url_for('detalle_cita', id=p.id) }}" class="btn btn-sm btn-info">
-                            Ver Más
+                        <a href="{{ url_for('detalle_cita', id=p.id) }}" class="btn-ver">
+                             Ver
                         </a>
-
-                        <!-- Editar-->
-                        <a href="{{ url_for('editarCita', id=p.id) }}" class="btn btn-sm btn-warning">
-                            Editar
+                        <a href="{{ url_for('editarCita', id=p.id) }}" class="btn-editar">
+                             Editar
                         </a>
-
-                        <!-- Eliminar -->
                         <form action="{{ url_for('eliminarCita', id=p.id) }}" method="post" class="d-inline">
-                            <button type="submit" class="btn btn-sm btn-danger"
-                                onclick="return confirm('¿Estás seguro de eliminar esta cita?')">
-                                Eliminar
+                            <button type="submit" class="btn-eliminar"
+                                    onclick="return confirm('¿Estás seguro de eliminar esta cita?')">
+                                🗑️ Eliminar
                             </button>
                         </form>
                     </td>
                 </tr>
                 {% else %}
                 <tr>
-                    <td colspan="5" class="text-center">No hay Citas registradas</td>
+                    <td colspan="6" class="no-citas">
+                        📅 No hay citas registradas
+                        <br>
+                        <small>Haz clic en "Nueva Cita" para agregar la primera cita</small>
+                    </td>
                 </tr>
                 {% endfor %}
             </tbody>
         </table>
     </div>
-    <a href="/" class="btn btn-success">
-        <i class="bi bi-plus-circle"></i> Atras
+
+    <!-- Botón atrás -->
+    <a href="/" class="btn-atras">
+        ⬅️ Regresar al Inicio
     </a>
 </div>
+
 {% endblock %}

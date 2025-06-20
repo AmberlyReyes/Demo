@@ -25,18 +25,28 @@ def register_routes(app):
     @app.route('/citas')
     def indexCita():
         fecha_str = request.args.get('fecha')
+        patient_id = request.args.get('patientId')
 
-        if fecha_str:
-            try:
-                citas = citaControlador.obtener_por_fecha(fecha=fecha_str).all()
-            except ValueError:
-                flash("Formato de fecha inválido. Use YYYY-MM-DD", 'error')
-                return redirect(url_for('indexCita'))
+        # 1 Si hay patient_id, filtra solo por ese paciente
+        # 2 Si también hay fecha, filtra adicionalmente por la fecha
+        # 3 Si no hay patient_id, muestra todas las citas
+        if patient_id:
+            if fecha_str:
+                citas = citaControlador.obtener_por_paciente_y_fecha(patient_id, fecha_str)
+            else:
+                citas = citaControlador.obtener_por_paciente(patient_id)
         else:
-            citas = citaControlador.obtener_todos()
-    
-        #pacientes = citaControlador.obtener_todos()
+            if fecha_str:
+                try:
+                    citas = citaControlador.obtener_por_fecha(fecha=fecha_str).all()
+                except ValueError:
+                    flash("Formato de fecha inválido. Use YYYY-MM-DD", 'error')
+                    return redirect(url_for('indexCita'))
+            else:
+                citas = citaControlador.obtener_todos()
+
         return render_template('indexCita.html', pacientes=citas)
+   
 
     # Crear nuevo paciente
     @app.route('/crear', methods=('GET', 'POST'))
@@ -98,10 +108,17 @@ def register_routes(app):
 
         return render_template('crearCita.html', error=error)
     
+    #@app.route('/gestionPaciente')
+    #def gestion_paciente():
+    # return render_template('gestionPaciente.html')
     @app.route('/gestionPaciente')
     def gestion_paciente():
-     return render_template('gestionPaciente.html')
-
+        patient_id = request.args.get('patientId')
+        paciente = PacienteControlador.obtener_por_id(patient_id)
+        if not paciente:
+            return "Paciente no encontrado", 404
+        return render_template('gestionPaciente.html', paciente=paciente)
+    
     # Editar pacientes
     @app.route('/<int:id>/editar', methods=('GET', 'POST'))
     def editar(id):
@@ -121,7 +138,7 @@ def register_routes(app):
                 'nacimiento': request.form['nacimiento']
             }
             PacienteControlador.actualizar_paciente(id, nuevos_datos)
-            return redirect(url_for('index'))
+            return redirect(url_for('gestion_paciente',patientId=id))
 
         return render_template('editar.html', pacientes=paciente)
 

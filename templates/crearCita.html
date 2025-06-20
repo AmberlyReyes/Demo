@@ -1,41 +1,214 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="table-container">
+<style>
+    .form-header {
+        background: linear-gradient(135deg, #2c5aa0 0%, #4a7bc8 100%);
+        padding: 2rem;
+        border-radius: 15px;
+        margin-bottom: 2rem;
+        color: white;
+        text-align: center;
+        box-shadow: 0 8px 25px rgba(44, 90, 160, 0.3);
+    }
+    
+    .form-title {
+        font-size: 2.2rem;
+        font-weight: 600;
+        margin: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        gap: 15px;
+    }
+    
+    .form-container {
+        background: white;
+        padding: 2.5rem;
+        border-radius: 15px;
+        box-shadow: 0 8px 30px rgba(44, 90, 160, 0.1);
+        border: 1px solid #e1ecf7;
+        max-width: 600px;
+        margin: 0 auto;
+    }
+    
+    .alert-error {
+        background: #fee;
+        border: 1px solid #fcc;
+        color: #c66;
+        padding: 1rem;
+        border-radius: 8px;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    
+    .form-group {
+        margin-bottom: 1.5rem;
+    }
+    
+    .form-label {
+        display: block;
+        margin-bottom: 0.5rem;
+        color: #2c5aa0;
+        font-weight: 600;
+        font-size: 1rem;
+    }
+    
+    .form-control {
+        width: 100%;
+        padding: 12px 16px;
+        border: 2px solid #d1e0f0;
+        border-radius: 8px;
+        font-size: 1rem;
+        transition: all 0.3s ease;
+        background: #fafbfc;
+    }
+    
+    .form-control:focus {
+        outline: none;
+        border-color: #2c5aa0;
+        box-shadow: 0 0 0 3px rgba(44, 90, 160, 0.1);
+        background: white;
+    }
+    
+    .form-actions {
+        display: flex;
+        gap: 15px;
+        justify-content: center;
+        margin-top: 2rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid #e1ecf7;
+    }
+    
+    .btn-cancelar {
+        background: #6c757d;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 25px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .btn-cancelar:hover {
+        background: #5a6268;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(108, 117, 125, 0.3);
+        color: white;
+        text-decoration: none;
+    }
+    
+    .btn-guardar {
+        background: #2c5aa0;
+        color: white;
+        border: none;
+        padding: 12px 24px;
+        border-radius: 25px;
+        font-weight: 600;
+        cursor: pointer;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+    
+    .btn-guardar:hover {
+        background: #1a3d73;
+        transform: translateY(-2px);
+        box-shadow: 0 4px 15px rgba(44, 90, 160, 0.3);
+    }
+    
+    .input-icon {
+        position: relative;
+    }
+    
+    .input-icon::before {
+        content: attr(data-icon);
+        position: absolute;
+        left: 12px;
+        top: 50%;
+        transform: translateY(-50%);
+        color: #2c5aa0;
+        z-index: 1;
+    }
+    
+    .input-icon .form-control {
+        padding-left: 40px;
+    }
+    
+    .form-hint {
+        font-size: 0.85rem;
+        color: #6c757d;
+        margin-top: 0.25rem;
+    }
+</style>
 
-
-    <h2 class="mb-4">Nueva cita</h2>
-    {% if error %}
-    <div class="alert alert-danger">
-        {{ error }}
+<div class="container-fluid px-4">
+    <!-- Header -->
+    <div class="form-header">
+        <h1 class="form-title">
+            📅 Nueva Cita
+        </h1>
     </div>
-    {% endif %}
 
-
-    <form method="post">
-        <div class="mb-3">
-            <label for="paciente_id" class="form-label">ID Paciente</label>
-            <input type="number" class="form-control" name="paciente_id" id="paciente_id" min="0" step="1" required>
+    <!-- Formulario -->
+    <div class="form-container">
+        {% if error %}
+        <div class="alert-error">
+            ⚠️ {{ error }}
         </div>
+        {% endif %}
 
-        <div class="mb-3">
-            <label for="doctor_id" class="form-label">ID Doctor</label>
-            <input type="number" class="form-control" name="doctor_id" id="doctor_id" min="0" step="1" required>
-        </div>
+        <form action="{{ url_for('crearCita') }}" method="post">
+            <div class="form-group">
+                <label for="paciente_id" class="form-label">👤 ID Paciente</label>
+                <div class="input-icon" data-icon="👤">
+                    <input type="number" class="form-control" id="paciente_id" name="paciente_id" 
+                           required min="1" placeholder="Ingrese el ID del paciente">
+                </div>
+            </div>
 
-        <div class="mb-3">
-            <label for="fecha" class="form-label">Fecha (dd/mm/yyyy)</label>
-            <input type="text" class="form-control" name="fecha" id="fecha" placeholder="dd/mm/yyyy"
-                pattern="^(0[1-9]|[12]\d|3[01])/(0[1-9]|1[0-2])/\d{4}$" required
-                title="Ingrese una fecha en el formato dd/mm/yyyy. Por ejemplo: 31/01/2025.">
-        </div>
-        <input type="time" class="form-control" name="hora" id="hora" min="08:00" max="18:00" required>
+            <div class="form-group">
+                <label for="doctor_id" class="form-label">👨‍⚕️ ID Doctor</label>
+                <div class="input-icon" data-icon="👨‍⚕️">
+                    <input type="number" class="form-control" id="doctor_id" name="doctor_id" 
+                           required min="1" placeholder="Ingrese el ID del doctor">
+                </div>
+            </div>
 
+            <div class="form-group">
+                <label for="fecha" class="form-label">📅 Fecha</label>
+                <div class="input-icon" data-icon="📅">
+                    <input type="date" class="form-control" id="fecha" name="fecha" required>
+                </div>
+                <div class="form-hint">Seleccione la fecha de la cita</div>
+            </div>
 
-        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-            <a href="{{ url_for('indexCita') }}" class="btn btn-secondary me-md-2">Cancelar</a>
-            <button type="submit" class="btn btn-primary">Guardar Paciente</button>
-        </div>
-    </form>
+            <div class="form-group">
+                <label for="hora" class="form-label">🕐 Hora</label>
+                <div class="input-icon" data-icon="🕐">
+                    <input type="time" class="form-control" id="hora" name="hora" required>
+                </div>
+                <div class="form-hint">Seleccione la hora de la cita</div>
+            </div>
+
+            <div class="form-actions">
+                <a href="{{ url_for('indexCita') }}" class="btn-cancelar">
+                    ❌ Cancelar
+                </a>
+                <button type="submit" class="btn-guardar">
+                    💾 Guardar Cita
+                </button>
+            </div>
+        </form>
+    </div>
 </div>
+
 {% endblock %}

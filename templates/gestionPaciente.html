@@ -174,72 +174,6 @@
             color: rgba(255, 255, 255, 0.8);
         }
 
-        /* Búsqueda rápida */
-        .search-section {
-            background: white;
-            border-radius: 15px;
-            padding: 25px;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-            border: 1px solid #e9ecef;
-        }
-
-        .search-section h3 {
-            color: #2c5aa0;
-            font-size: 18px;
-            margin-bottom: 15px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .search-input-container {
-            position: relative;
-            margin-bottom: 15px;
-        }
-
-        .search-input {
-            width: 100%;
-            padding: 15px 20px 15px 50px;
-            border: 2px solid #e1e5e9;
-            border-radius: 12px;
-            font-size: 16px;
-            transition: all 0.3s ease;
-            background: #f8f9fa;
-        }
-
-        .search-input:focus {
-            outline: none;
-            border-color: #4a90e2;
-            background: white;
-            box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
-        }
-
-        .search-icon {
-            position: absolute;
-            left: 18px;
-            top: 50%;
-            transform: translateY(-50%);
-            color: #6c757d;
-            font-size: 18px;
-        }
-
-        .search-btn {
-            background: linear-gradient(135deg, #2c5aa0 0%, #4a90e2 100%);
-            color: white;
-            border: none;
-            padding: 12px 25px;
-            border-radius: 8px;
-            font-size: 14px;
-            font-weight: 600;
-            cursor: pointer;
-            transition: all 0.3s ease;
-        }
-
-        .search-btn:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 8px 25px rgba(74, 144, 226, 0.3);
-        }
-
         /* Responsive */
         @media (max-width: 768px) {
             .container {
@@ -338,26 +272,11 @@
             </div>
         </div>
 
-        <!-- Sección de búsqueda -->
-        <div class="search-section">
-            <h3>🔍 Buscar Otro Paciente</h3>
-            <div class="search-input-container">
-                <span class="search-icon">🔍</span>
-                <input 
-                    type="text" 
-                    id="searchInput"
-                    class="search-input"
-                    placeholder="Ingrese cédula o nombre del paciente"
-                >
-            </div>
-            <button class="search-btn" onclick="searchPatient()">Buscar Paciente</button>
-        </div>
-
         <!-- Estado sin paciente -->
         <div class="no-patient" id="noPatient">
             <div class="no-patient-icon">👤</div>
             <div class="no-patient-text">No hay paciente seleccionado</div>
-            <div class="no-patient-subtext">Use el buscador para encontrar un paciente</div>
+            <div class="no-patient-subtext">Seleccione un paciente desde el menú principal</div>
         </div>
     </div>
 
@@ -498,34 +417,14 @@
             window.location.href = `/${currentPatient.id}/editar`;
         }
 
-        // Función para buscar nuevo paciente
-        function searchPatient() {
-            const searchValue = document.getElementById('searchInput').value.trim();
-            if (!searchValue) {
-                alert('Ingrese un término de búsqueda');
-                return;
-            }
-
-            // Abrir ventana de búsqueda
-            window.open('/buscarPaciente', 'searchWindow', 'width=600,height=700,scrollbars=yes,resizable=yes');
-        }
-
         // Función para regresar
         function goBack() {
             window.location.href = '/';
         }
 
-        // Auto-focus en el campo de búsqueda
+        // Cargar paciente al inicializar la página
         document.addEventListener('DOMContentLoaded', function() {
             loadPatient();
-            document.getElementById('searchInput').focus();
-        });
-
-        // Permitir búsqueda con Enter
-        document.getElementById('searchInput').addEventListener('keypress', function(e) {
-            if (e.key === 'Enter') {
-                searchPatient();
-            }
         });
     </script>
 </body>
