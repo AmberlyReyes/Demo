@@ -3,568 +3,414 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Buscar Paciente - Dr Reyes</title>
+    <title>Buscar Paciente - Dr. Reyes</title>
     <style>
-        :root {
-            --color-principal: #0077A7;
-            --color-coronita: #40E0D0;
-            --color-fondo: #e6f5fb;
-        }
-
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
-            font-family: Arial, sans-serif;
         }
 
         body {
-            background-color: rgba(0, 0, 0, 0.5);
-            backdrop-filter: blur(5px);
-            display: flex;
-            justify-content: center;
-            align-items: center;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f0f8ff 0%, #e6f3ff 100%);
             min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
             padding: 20px;
         }
 
-        /* Modal Container */
-        .modal {
-            background: linear-gradient(135deg, #ffffff 0%, #f8fcff 100%);
-            border-radius: 15px;
-            width: 90%;
+        /* Overlay del modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(5px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 1000;
+        }
+
+        /* Contenedor del modal */
+        .modal-container {
+            background: white;
+            border-radius: 20px;
+            box-shadow: 0 25px 50px rgba(0, 0, 0, 0.2);
             max-width: 500px;
+            width: 90%;
             max-height: 90vh;
-            overflow: hidden;
-            box-shadow: 0 20px 60px rgba(0, 119, 167, 0.3);
-            animation: modalSlideIn 0.3s ease forwards;
+            overflow-y: auto;
+            animation: modalSlideIn 0.3s ease-out;
+        }
+
+        @keyframes modalSlideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-50px) scale(0.95);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0) scale(1);
+            }
+        }
+
+        /* Header del modal */
+        .modal-header {
+            background: linear-gradient(135deg, #2c5aa0 0%, #4a90e2 100%);
+            color: white;
+            padding: 25px;
+            border-radius: 20px 20px 0 0;
+            text-align: center;
             position: relative;
         }
 
-        /* Header del Modal */
-        .modal-header {
-            background: linear-gradient(135deg, var(--color-fondo) 0%, #d0ebf6 100%);
-            padding: 20px 25px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 2px solid #d0ebf6;
+        .modal-header h1 {
+            font-size: 24px;
+            font-weight: 600;
+            margin-bottom: 5px;
         }
 
-        .modal-title {
-            color: var(--color-principal);
-            font-size: 22px;
-            font-weight: bold;
-            margin: 0;
-            display: flex;
-            align-items: center;
-            gap: 10px;
+        .modal-header .subtitle {
+            font-size: 14px;
+            opacity: 0.9;
+            font-weight: 300;
         }
 
         .close-btn {
+            position: absolute;
+            top: 15px;
+            right: 20px;
             background: none;
             border: none;
-            font-size: 28px;
-            color: #666;
+            color: white;
+            font-size: 24px;
             cursor: pointer;
-            width: 40px;
-            height: 40px;
+            width: 30px;
+            height: 30px;
             border-radius: 50%;
             display: flex;
             align-items: center;
             justify-content: center;
-            transition: all 0.2s ease;
+            transition: background-color 0.3s;
         }
 
         .close-btn:hover {
-            background: rgba(255, 255, 255, 0.7);
-            color: var(--color-principal);
-            transform: rotate(90deg);
+            background-color: rgba(255, 255, 255, 0.2);
         }
 
-        /* Contenido del Modal */
-        .modal-body {
-            padding: 30px 25px;
+        /* Contenido del modal */
+        .modal-content {
+            padding: 30px;
         }
 
-        .search-options {
-            display: flex;
-            gap: 15px;
-            margin-bottom: 25px;
-            flex-wrap: wrap;
-        }
-
-        .radio-option {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            padding: 8px 15px;
-            border: 2px solid #e0e0e0;
-            border-radius: 25px;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            background: white;
-        }
-
-        .radio-option:hover {
-            border-color: var(--color-coronita);
-            background: rgba(64, 224, 208, 0.05);
-        }
-
-        .radio-option input[type="radio"] {
-            accent-color: var(--color-coronita);
-            margin: 0;
-        }
-
-        .radio-option.selected {
-            border-color: var(--color-coronita);
-            background: rgba(64, 224, 208, 0.1);
-            color: var(--color-principal);
-            font-weight: bold;
-        }
-
-        .radio-option label {
-            color: inherit;
-            font-size: 14px;
-            cursor: pointer;
-            margin: 0;
+        /* Formulario de búsqueda */
+        .search-form {
+            margin-bottom: 30px;
         }
 
         .form-group {
-            margin-bottom: 25px;
+            margin-bottom: 20px;
         }
 
         .form-label {
             display: block;
-            margin-bottom: 10px;
-            color: var(--color-principal);
-            font-weight: bold;
-            font-size: 15px;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #2c5aa0;
+            font-size: 14px;
         }
 
         .search-input-container {
             position: relative;
         }
 
-        .form-input {
+        .search-input {
             width: 100%;
-            padding: 15px 20px;
-            border: 2px solid #e0e0e0;
-            border-radius: 10px;
+            padding: 15px 20px 15px 50px;
+            border: 2px solid #e1e5e9;
+            border-radius: 12px;
             font-size: 16px;
             transition: all 0.3s ease;
-            background: white;
+            background: #f8f9fa;
         }
 
-        .form-input:focus {
+        .search-input:focus {
             outline: none;
-            border-color: var(--color-coronita);
-            box-shadow: 0 0 0 3px rgba(64, 224, 208, 0.1);
+            border-color: #4a90e2;
+            background: white;
+            box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
         }
 
         .search-icon {
             position: absolute;
-            right: 15px;
+            left: 18px;
             top: 50%;
             transform: translateY(-50%);
-            color: #999;
+            color: #6c757d;
             font-size: 18px;
         }
 
-        /* Resultados de búsqueda */
-        .search-results {
-            margin-top: 20px;
-            max-height: 200px;
-            overflow-y: auto;
-            border: 1px solid #e0e0e0;
-            border-radius: 8px;
-            background: white;
-            display: none;
-        }
-
-        .result-item {
-            padding: 12px 15px;
-            border-bottom: 1px solid #f0f0f0;
+        .search-btn {
+            width: 100%;
+            padding: 15px;
+            background: linear-gradient(135deg, #2c5aa0 0%, #4a90e2 100%);
+            color: white;
+            border: none;
+            border-radius: 12px;
+            font-size: 16px;
+            font-weight: 600;
             cursor: pointer;
-            transition: background-color 0.2s ease;
+            transition: all 0.3s ease;
+            margin-top: 10px;
         }
 
-        .result-item:hover {
-            background-color: rgba(64, 224, 208, 0.05);
+        .search-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(74, 144, 226, 0.3);
         }
 
-        .result-item:last-child {
-            border-bottom: none;
+        .search-btn:active {
+            transform: translateY(0);
         }
 
-        .result-name {
-            font-weight: bold;
-            color: var(--color-principal);
-            margin-bottom: 4px;
+        /* Sección de resultados */
+        .results-section {
+            border-top: 1px solid #e9ecef;
+            padding-top: 25px;
         }
 
-        .result-details {
+        .results-title {
+            color: #2c5aa0;
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .results-count {
+            background: #e3f2fd;
+            color: #2c5aa0;
             font-size: 12px;
-            color: #666;
+            padding: 4px 8px;
+            border-radius: 12px;
+            font-weight: 500;
+        }
+
+        .patient-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .patient-card {
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 12px;
+            padding: 18px;
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+
+        .patient-card:hover {
+            background: white;
+            border-color: #4a90e2;
+            box-shadow: 0 4px 15px rgba(74, 144, 226, 0.1);
+            transform: translateY(-2px);
+        }
+
+        .patient-name {
+            font-weight: 600;
+            color: #2c5aa0;
+            font-size: 16px;
+            margin-bottom: 5px;
+        }
+
+        .patient-info {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .patient-detail {
+            font-size: 14px;
+            color: #6c757d;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .detail-icon {
+            width: 16px;
+            text-align: center;
+            color: #4a90e2;
         }
 
         .no-results {
-            padding: 20px;
             text-align: center;
-            color: #999;
-            font-style: italic;
+            padding: 40px 20px;
+            color: #6c757d;
         }
 
-        /* Botones del Modal */
-        .modal-actions {
-            display: flex;
-            gap: 15px;
-            justify-content: center;
-            padding: 0 25px 25px;
+        .no-results-icon {
+            font-size: 48px;
+            margin-bottom: 15px;
+            opacity: 0.5;
         }
 
-        .btn-search {
-            background: linear-gradient(135deg, var(--color-coronita) 0%, #2dd4bf 100%);
-            color: white;
-            border: none;
-            padding: 15px 30px;
-            border-radius: 10px;
-            cursor: pointer;
+        .no-results-text {
             font-size: 16px;
-            font-weight: bold;
-            transition: all 0.3s ease;
-            flex: 1;
-            max-width: 200px;
+            margin-bottom: 8px;
         }
 
-        .btn-search:hover {
-            transform: translateY(-2px);
-            box-shadow: 0 6px 20px rgba(64, 224, 208, 0.4);
-        }
-
-        .btn-search:disabled {
-            background: #ccc;
-            cursor: not-allowed;
-            transform: none;
-            box-shadow: none;
-        }
-
-        .btn-cancel {
-            background: linear-gradient(135deg, #f56565 0%, #e53e3e 100%);
-            color: white;
-            border: none;
-            padding: 12px;
-            border-radius: 50%;
-            cursor: pointer;
-            font-size: 20px;
-            font-weight: bold;
-            transition: all 0.3s ease;
-            width: 50px;
-            height: 50px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .btn-cancel:hover {
-            transform: translateY(-2px) rotate(90deg);
-            box-shadow: 0 6px 20px rgba(245, 101, 101, 0.4);
-        }
-
-        .loading {
-            display: none;
-            text-align: center;
-            padding: 20px;
-            color: var(--color-principal);
-        }
-
-        .spinner {
-            border: 3px solid #f3f3f3;
-            border-top: 3px solid var(--color-coronita);
-            border-radius: 50%;
-            width: 30px;
-            height: 30px;
-            animation: spin 1s linear infinite;
-            margin: 0 auto 10px;
-        }
-
-        /* Animaciones */
-        @keyframes modalSlideIn {
-            from {
-                transform: scale(0.7) translateY(-50px);
-                opacity: 0;
-            }
-            to {
-                transform: scale(1) translateY(0);
-                opacity: 1;
-            }
-        }
-
-        @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
+        .no-results-subtext {
+            font-size: 14px;
+            opacity: 0.8;
         }
 
         /* Responsive */
         @media (max-width: 768px) {
-            .modal {
-                width: 95%;
+            .modal-container {
                 margin: 10px;
+                width: calc(100% - 20px);
             }
             
-            .modal-body, .modal-actions {
-                padding-left: 20px;
-                padding-right: 20px;
+            .modal-content {
+                padding: 20px;
             }
             
-            .search-options {
-                flex-direction: column;
-                gap: 10px;
+            .modal-header {
+                padding: 20px;
+            }
+            
+            .modal-header h1 {
+                font-size: 20px;
             }
         }
     </style>
 </head>
 <body>
-    <div class="modal">
-        <div class="modal-header">
-            <h2 class="modal-title">
-                🔍 Buscar Paciente
-            </h2>
-            <button class="close-btn" onclick="closeModal()" title="Cerrar">&times;</button>
-        </div>
-        
-        <div class="modal-body">
-            <div class="search-options">
-                <div class="radio-option selected" data-type="nombre">
-                    <input type="radio" id="searchNombre" name="searchType" value="nombre" checked>
-                    <label for="searchNombre">👤 Nombre</label>
-                </div>
-                <div class="radio-option" data-type="cedula">
-                    <input type="radio" id="searchCedula" name="searchType" value="cedula">
-                    <label for="searchCedula">🆔 Cédula</label>
-                </div>
-                <div class="radio-option" data-type="telefono">
-                    <input type="radio" id="searchTelefono" name="searchType" value="telefono">
-                    <label for="searchTelefono">📞 Teléfono</label>
-                </div>
+    <div class="modal-overlay">
+        <div class="modal-container">
+            <!-- Header del Modal -->
+            <div class="modal-header">
+                <button class="close-btn" onclick="closeModal()">&times;</button>
+                <h1>🦷 Dr. Reyes</h1>
+                <div class="subtitle">Centro Odontológico</div>
             </div>
 
-            <div class="form-group">
-                <label class="form-label" for="searchInput">Ingrese los datos del paciente:</label>
-                <div class="search-input-container">
-                    <input 
-                        type="text" 
-                        id="searchInput" 
-                        class="form-input" 
-                        placeholder="Ej: Juan Pérez"
-                        autocomplete="off"
-                    >
-                    <span class="search-icon">🔍</span>
+            <!-- Contenido del Modal -->
+            <div class="modal-content">
+                <!-- Formulario de Búsqueda -->
+                <form class="search-form" method="POST" action="{{ url_for('buscarPaciente') }}">
+                    <div class="form-group">
+                        <label for="valor" class="form-label">Buscar Paciente</label>
+                        <div class="search-input-container">
+                            <span class="search-icon">🔍</span>
+                            <input 
+                                type="text" 
+                                name="valor" 
+                                id="valor" 
+                                class="search-input"
+                                placeholder="Ingrese cédula (056-1200000-1) o nombre del paciente"
+                                required
+                            >
+                        </div>
+                    </div>
+                    <button type="submit" class="search-btn">
+                        Buscar Paciente
+                    </button>
+                </form>
+
+                <!-- Sección de Resultados -->
+                {% if pacientes is not none %}
+                <div class="results-section">
+                    {% if pacientes %}
+                        <div class="results-title">
+                            📋 Resultados de la búsqueda
+                            <span class="results-count">{{ pacientes|length }} encontrado{{ 's' if pacientes|length != 1 else '' }}</span>
+                        </div>
+                        <div class="patient-list">
+                            {% for paciente in pacientes %}
+                            <div class="patient-card" onclick="selectPatient('{{ paciente.id }}', '{{ paciente.nombre }}')">
+                                <div class="patient-name">{{ paciente.nombre }}</div>
+                                <div class="patient-info">
+                                    <div class="patient-detail">
+                                        <span class="detail-icon">🆔</span>
+                                        <span>{{ paciente.cedula }}</span>
+                                    </div>
+                                    <div class="patient-detail">
+                                        <span class="detail-icon">📞</span>
+                                        <span>{{ paciente.telefono or 'No registrado' }}</span>
+                                    </div>
+                                </div>
+                            </div>
+                            {% endfor %}
+                        </div>
+                    {% else %}
+                        <div class="no-results">
+                            <div class="no-results-icon">🔍</div>
+                            <div class="no-results-text">No se encontraron pacientes</div>
+                            <div class="no-results-subtext">Intente con otro término de búsqueda</div>
+                        </div>
+                    {% endif %}
                 </div>
+                {% endif %}
             </div>
-
-            <div class="loading" id="loading">
-                <div class="spinner"></div>
-                <p>Buscando paciente...</p>
-            </div>
-
-            <div class="search-results" id="searchResults">
-                <!-- Los resultados se cargarán aquí dinámicamente -->
-            </div>
-        </div>
-
-        <div class="modal-actions">
-            <button class="btn-search" id="btnSearch" onclick="searchPatient()">
-                Buscar Paciente
-            </button>
-            <button class="btn-cancel" onclick="closeModal()" title="Cerrar">
-                &times;
-            </button>
         </div>
     </div>
 
     <script>
-        // Variables globales
-        let searchTimeout;
-        const placeholders = {
-            nombre: 'Ej: Juan Pérez',
-            cedula: 'Ej: 001-1234567-8',
-            telefono: 'Ej: 809-123-4567'
-        };
+        // Función para cerrar el modal
+        function closeModal() {
+            document.querySelector('.modal-overlay').style.opacity = '0';
+            setTimeout(() => {
+                window.close(); // Si es una ventana popup
+                // O redirigir a otra página: window.location.href = '/dashboard';
+            }, 300);
+        }
 
-        // Inicializar cuando carga la página
-        document.addEventListener('DOMContentLoaded', function() {
-            document.getElementById('searchInput').focus();
-            setupEventListeners();
+        // Función para seleccionar un paciente
+        function selectPatient(patientId, patientName) {
+            console.log('Paciente seleccionado:', patientId, patientName);
+            // Aquí puedes agregar la lógica para enviar los datos al servidor
+            // o comunicarte con la ventana padre si es un popup
+            
+            // Ejemplo de comunicación con ventana padre:
+            if (window.opener) {
+                window.opener.postMessage({
+                    type: 'patientSelected',
+                    patientId: patientId,
+                    patientName: patientName
+                }, '*');
+                window.close();
+            }
+        }
+
+        // Cerrar modal al hacer clic fuera de él
+        document.querySelector('.modal-overlay').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeModal();
+            }
         });
 
-        function setupEventListeners() {
-            // Manejar cambio de tipo de búsqueda
-            document.querySelectorAll('.radio-option').forEach(option => {
-                option.addEventListener('click', function() {
-                    const radio = this.querySelector('input[type="radio"]');
-                    radio.checked = true;
-                    updateSearchType();
-                });
-            });
-
-            // Búsqueda en tiempo real mientras escribes
-            document.getElementById('searchInput').addEventListener('input', function() {
-                clearTimeout(searchTimeout);
-                const value = this.value.trim();
-                
-                if (value.length >= 2) {
-                    searchTimeout = setTimeout(() => {
-                        performSearch(value, false);
-                    }, 500);
-                } else {
-                    hideResults();
-                }
-            });
-
-            // Buscar con Enter
-            document.getElementById('searchInput').addEventListener('keypress', function(e) {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    searchPatient();
-                }
-            });
-
-            // Cerrar con Escape
-            document.addEventListener('keydown', function(e) {
-                if (e.key === 'Escape') {
-                    closeModal();
-                }
-            });
-        }
-
-        function updateSearchType() {
-            // Actualizar estilos visuales
-            document.querySelectorAll('.radio-option').forEach(option => {
-                option.classList.remove('selected');
-            });
-            
-            const selectedOption = document.querySelector('input[name="searchType"]:checked').closest('.radio-option');
-            selectedOption.classList.add('selected');
-
-            // Actualizar placeholder
-            const searchType = document.querySelector('input[name="searchType"]:checked').value;
-            const input = document.getElementById('searchInput');
-            input.placeholder = placeholders[searchType] || 'Escriba aquí para buscar...';
-            
-            // Limpiar resultados anteriores
-            hideResults();
-            input.focus();
-        }
-
-        function searchPatient() {
-            const searchValue = document.getElementById('searchInput').value.trim();
-            if (!searchValue) {
-                alert('Por favor ingrese un valor para buscar');
-                return;
+        // Cerrar modal con la tecla Escape
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeModal();
             }
-            performSearch(searchValue, true);
-        }
+        });
 
-        async function performSearch(searchValue, showLoading = false) {
-            const searchType = document.querySelector('input[name="searchType"]:checked').value;
-            
-            if (showLoading) {
-                showLoadingState();
-            }
-
-            try {
-                // Construir la URL de búsqueda según tu estructura Flask
-                const url = `/buscar_paciente?tipo=${searchType}&valor=${encodeURIComponent(searchValue)}`;
-                
-                const response = await fetch(url, {
-                    method: 'GET',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    }
-                });
-
-                if (!response.ok) {
-                    throw new Error('Error en la búsqueda');
-                }
-
-                const data = await response.json();
-                displayResults(data.pacientes || []);
-                
-            } catch (error) {
-                console.error('Error al buscar pacientes:', error);
-                displayError('Error al realizar la búsqueda. Intente nuevamente.');
-            } finally {
-                hideLoadingState();
-            }
-        }
-
-        function displayResults(pacientes) {
-            const resultsContainer = document.getElementById('searchResults');
-            
-            if (pacientes.length === 0) {
-                resultsContainer.innerHTML = '<div class="no-results">No se encontraron pacientes</div>';
-            } else {
-                resultsContainer.innerHTML = pacientes.map(paciente => `
-                    <div class="result-item" onclick="selectPatient(${paciente.id})">
-                        <div class="result-name">${paciente.nombre} ${paciente.apellido}</div>
-                        <div class="result-details">
-                            Cédula: ${paciente.cedula} | Teléfono: ${paciente.telefono || 'N/A'}
-                        </div>
-                    </div>
-                `).join('');
-            }
-            
-            resultsContainer.style.display = 'block';
-        }
-
-        function displayError(message) {
-            const resultsContainer = document.getElementById('searchResults');
-            resultsContainer.innerHTML = `<div class="no-results" style="color: #e53e3e;">${message}</div>`;
-            resultsContainer.style.display = 'block';
-        }
-
-        function hideResults() {
-            document.getElementById('searchResults').style.display = 'none';
-        }
-
-        function showLoadingState() {
-            document.getElementById('loading').style.display = 'block';
-            document.getElementById('btnSearch').disabled = true;
-            hideResults();
-        }
-
-        function hideLoadingState() {
-            document.getElementById('loading').style.display = 'none';
-            document.getElementById('btnSearch').disabled = false;
-        }
-
-        function selectPatient(pacienteId) {
-            // Aquí puedes redirigir al perfil del paciente o hacer lo que necesites
-            // Por ejemplo:
-            window.location.href = `/paciente/${pacienteId}`;
-            
-            // O si quieres pasar el ID al parent window y cerrar el modal:
-            // window.parent.postMessage({action: 'pacienteSeleccionado', pacienteId: pacienteId}, '*');
-            // closeModal();
-        }
-
-        function closeModal() {
-            // Si es una ventana emergente, cerrarla
-            if (window.opener) {
-                window.close();
-            } else {
-                // Si está embebido, redirigir o ocultar
-                window.history.back();
-            }
-        }
-
-        // Funciones auxiliares para integración con Flask
-        function getCsrfToken() {
-            // Si se usa CSRF tokens en Flask
-            const token = document.querySelector('meta[name=csrf-token]');
-            return token ? token.getAttribute('content') : '';
-        }
+        // Auto-focus en el campo de búsqueda
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('valor').focus();
+        });
     </script>
 </body>
 </html>

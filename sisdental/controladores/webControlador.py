@@ -2,6 +2,8 @@ from flask import render_template, request, redirect, url_for
 from sisdental import db
 from sisdental.controladores.PacienteControlador import PacienteControlador
 from sisdental.controladores.citaControlador import citaControlador
+from sisdental.modelos.Paciente import Paciente
+from sisdental.modelos.Persona import Persona
 
 
 def register_routes(app):
@@ -19,9 +21,6 @@ def register_routes(app):
         pacientes = PacienteControlador.obtener_todos()
         return render_template('index.html', pacientes=pacientes)
     
-    @app.route('/buscarPaciente')
-    def buscarPaciente():
-        return render_template('buscarPaciente.html')
     
     # Listar Citas
     @app.route('/citas')
@@ -169,3 +168,23 @@ def register_routes(app):
         if not paciente:
             return "Cita no encontrada", 404
         return render_template('detalleCita.html', paciente=paciente)
+
+    @app.route('/buscarPaciente', methods=['GET', 'POST'])
+    def buscarPaciente():
+        if request.method == 'GET':
+            # Muestra solo la plantilla vacía
+            return render_template('buscarPaciente.html', pacientes=None)
+
+        # Si es POST, se hace la búsqueda
+        valor = request.form.get('valor', '').strip()
+        if not valor:
+            # Si no se introdujo ningún valor, renderiza con lista vacía
+            return render_template('buscarPaciente.html', pacientes=[])
+
+        # Buscar en Persona filtrando tipo='paciente', y comparando cédula O nombre
+        personas = Persona.query.filter(
+            (Persona.nombre.ilike(f"%{valor}%") | Persona.cedula.ilike(f"%{valor}%")),
+            Persona.tipo == 'paciente'
+        ).all()
+
+        return render_template('buscarPaciente.html', pacientes=personas)
