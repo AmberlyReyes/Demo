@@ -1,4 +1,4 @@
-from flask import render_template, request, redirect, url_for
+from flask import flash, render_template, request, redirect, url_for
 from sisdental import db
 from sisdental.controladores.PacienteControlador import PacienteControlador
 from sisdental.controladores.citaControlador import citaControlador
@@ -25,12 +25,10 @@ def register_routes(app):
     @app.route('/citas')
     def indexCita():
         fecha_str = request.args.get('fecha')
-        fecha = None
 
         if fecha_str:
             try:
-                fecha = datetime.strptime(fecha_str, '%Y-%m-%d').date()
-                citas = citaControlador.obtener_por_fecha(fecha=fecha).all()
+                citas = citaControlador.obtener_por_fecha(fecha=fecha_str).all()
             except ValueError:
                 flash("Formato de fecha inválido. Use YYYY-MM-DD", 'error')
                 return redirect(url_for('indexCita'))

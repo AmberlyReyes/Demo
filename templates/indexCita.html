@@ -9,9 +9,16 @@
         </a>
         <form id="filtroForm" action="{{ url_for('indexCita') }}" method="get"
             onsubmit="return validarYConvertirFecha()">
+            <!-- 
             <input type="text" class="form-control" name="fecha" id="fecha" placeholder="dd/mm/yyyy"
                 pattern="^(0[1-9]|[12]\d|3[01])/(0[1-9]|1[0-2])/\d{4}$" required
-                value="{{ request.args.get('fecha', '') }}">
+                value="{{ request.args.get('fecha', '') }}">-->
+
+            <div class="form-group">
+                <input type="date" class="form-control" name="fecha" id="fecha"
+                    value="{{ request.args.get('fecha', '') }}">
+            </div>
+
             <button type="submit" class="btn btn-sm btn-info">
                 Filtrar
             </button>
@@ -22,6 +29,17 @@
         </form>
 
         <script>
+            /*
+            function filtrarPorFecha() {
+                const fechaInput = document.getElementById('fecha').value;
+                if (fechaInput) {
+                    // El input date ya devuelve el formato yyyy-mm-dd
+                    window.location.href = "{{ url_for('indexCita') }}?fecha=" + fechaInput;
+                } else {
+                    window.location.href = "{{ url_for('indexCita') }}";
+                }
+            }
+            /*
             function validarYConvertirFecha() {
                 const input = document.getElementById('fecha');
                 if (!input.checkValidity()) {
@@ -33,7 +51,7 @@
                 const [day, month, year] = input.value.split('/');
                 input.value = `${year}-${month}-${day}`;
                 return true;
-            }
+            }*/
         </script>
     </div>
 
