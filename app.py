@@ -3,46 +3,37 @@ from sisdental.modelos.Paciente import Paciente
 from sisdental.modelos.Doctor import Doctor
 from sisdental.controladores.webControlador import register_routes
 
-def crearDoc():
-        data = {
-                'id': 0,
-                'nombre': "Pepe",
-                'cedula': 2323,
-                'telefono': 123,
-                'direccion': "alla",
-                'email': "Pepe@gmail.com",
-                'especialidad': "Todologo"
-            }
-        try:
-            nuevo = Doctor(**data)
-            db.session.add(nuevo)
-            db.session.commit()
-            return nuevo
-        except Exception as e:
-            error = f"Error insertando Doc: {e}"
-            db.session.rollback()
+
 
 app = crear_app()
 
 with app.app_context():
-   
-<<<<<<< HEAD
-    db.drop_all()
-    db.create_all()
-=======
-    #db.drop_all()
-    #db.create_all()
-    #crearDoc()
->>>>>>> 714cb03b0a4fc8c3c9ea1b7d870a5dfb1f7f13bd
-    
     try:
+        # Verificar conexión y contar pacientes
         count = db.session.query(Paciente).count()
-        docCount = db.session.query(Doctor).count()
         print(f"Base de datos conectada correctamente. Total pacientes: {count}")
-        print(f"Total Doctores: {docCount}")
+
+        # Agregar un doctor solo si no existe con esa cédula
+        cedula_doctor = "402-12345678"  
+        doctor_existente = Doctor.query.filter_by(cedula=cedula_doctor).first()
+        if not doctor_existente:
+            nuevo_doctor = Doctor(
+                nombre="Ana Martínez",
+                cedula=cedula_doctor,
+                telefono="5551234",
+                direccion="Av. Central 123",
+                email="ana.martinez@ejemplo.com",
+                especialidad="Ortodoncia"
+            )
+            db.session.add(nuevo_doctor)
+            db.session.commit()
+            print(f"Doctor agregado: {nuevo_doctor.nombre}")
+        else:
+            print(f"El doctor con cédula {cedula_doctor} ya existe: {doctor_existente.nombre}")
 
     except Exception as e:
-        print("Error en la conexión:", e)
+        print("Error en la conexión o al agregar doctor:", e)
+        db.session.rollback()
 
 register_routes(app)
 
