@@ -7,7 +7,8 @@
     <style>
         :root {
            
-            --color-principal: #0077A7; /* un poco más oscuro que #0089bf */
+            --color-principal: #2c5aa0; /* Color principal del segundo HTML */
+            --color-secundario: #4a90e2; /* Color secundario del segundo HTML */
         }
     
         * {
@@ -28,7 +29,25 @@
             justify-content: space-between;
             align-items: center;
         }
-        
+        .header h1 {
+            color: var(--color-principal);
+            font-family: 'Georgia', 'Times New Roman', serif;
+            font-style: italic;
+            font-weight: 700;
+            letter-spacing: 1px;
+            margin-left: 10px;
+            font-size: 28px;
+            line-height: 1;
+            text-shadow: 0 2px 4px rgba(44, 90, 160, 0.1);
+        }
+
+        .header p {
+            color: var(--color-principal);
+            font-size: 12px;
+            font-style: italic;
+            margin-left: 10px;
+        }
+
         .logo {
             display: flex;
             align-items: center;
@@ -40,21 +59,29 @@
     
         .logo h1 {
         
-            color: var(--color-principal); /* Aquí tu nuevo color */
+            color: linear-gradient(135deg, #2c5aa0 0%, #4a90e2 100%);
+            background: linear-gradient(135deg, #2c5aa0 0%, #4a90e2 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            font-family: 'Georgia', 'Times New Roman', serif;
             font-style: italic;
+            font-weight: 700;
+            letter-spacing: 1px;
             margin-left: 10px;
-            font-size: 24px;
+            font-size: 28px;
             line-height: 1;
+            text-shadow: 0 2px 4px rgba(44, 90, 160, 0.1);
         }
 
         
         .navbar h1 {
-            color: #0077A7; /* Color de "Dr Reyes" */
+            color: #2c5aa0; /* Color de "Dr Reyes" */
         }
 
       
         .bienvenido-usuario {
-            color: #0077A7; 
+            color: #2c5aa0; 
         }
         
         .logo p {
@@ -88,7 +115,7 @@
         
         .contact-bar {
             display: flex;
-            background-color: #e6f5fb;
+            background: linear-gradient(135deg, #f0f8ff 0%, #e6f3ff 100%);
             border-bottom: 1px solid #d0ebf6;
             /* Puedes usar justify-content: space-between o space-around si quieres más separación */
             justify-content: space-evenly;
@@ -125,7 +152,7 @@
         /* Cambiar color de fondo del botón de "Agendar una cita" */
         .appointment-btn {
             /* background-color: #0089bf; */
-            background-color: var(--color-principal); /* Nuevo color */
+            background: linear-gradient(135deg, #2c5aa0 0%, #4a90e2 100%); /* Nuevo color con gradiente */
             color: white;
             padding: 15px 30px;
             text-align: center;
@@ -166,7 +193,7 @@
             width: 100%;
             height: 100%;
             /* background-color: rgba(0, 137, 191, 0.7); */
-            background-color: rgba(0, 119, 167, 0.4); /* Versión oscurecida del color base */
+            background: linear-gradient(135deg, rgba(44, 90, 160, 0.7) 0%, rgba(74, 144, 226, 0.7) 100%); /* Versión con gradiente del color base */
         }
         
         .hero-content {
@@ -231,7 +258,7 @@
         }
 
         .nav-menu li a {
-            position: relative;       /* Necesario para el pseudo-elemento */
+            position: relative;       
             color: #666;             /* Color de texto normal */
             text-decoration: none;
             font-weight: bold;
@@ -245,43 +272,44 @@
         .nav-menu li a::after {
             content: "";
             position: absolute;
-            left: 0; 
-            bottom: 0;               /* Línea en la parte de abajo del enlace */
+            left: 0;
+            bottom: 0;
             width: 100%;
             height: 2px;
-            background-color: var(--color-coronita);
-            
-            
+            background-color: var(--color-principal); 
             transform: scaleX(0);
-            transform-origin: right; 
+            transform-origin: right;
             transition: transform 0.3s ease;
         }
 
-        
         .nav-menu li a:hover {
-            color: var(--color-coronita);
+            color: var(--color-principal); 
         }
 
         .nav-menu li a:hover::after {
             transform: scaleX(1);
-            transform-origin: left;  /* La línea se extiende desde la izquierda */
+            transform-origin: left;
         }
 
+        .nav-menu li a.active,
+        .nav-menu li a:hover {
+            color: var(--color-principal);
+        }
 
+        .nav-menu li a.active::after,
+        .nav-menu li a:hover::after {
+            transform: scaleX(1);
+            transform-origin: left;
+        }
     </style>
     
 </head>
 <body>
     <header class="header">
-        <div class="logo">
-            <img src="{{ url_for('static', filename='logo.png') }}" alt="Nuevo Logo">
-
-            <div>
-                <h1>Dr Reyes</h1>
-                <p>Centro Odontológico</p>
+        <div>
+            <h1>Dr Reyes</h1>
+            <p>Centro Odontológico</p>
             </div>
-        </div>
-        
         <ul class="nav-menu">
             <li><a href="#">Inicio</a></li>
             <li><a href="{{ url_for('indexCita') }}">Agendar cita</a></li>
