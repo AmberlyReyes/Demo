@@ -2,7 +2,8 @@ from flask import render_template, request, redirect, url_for
 from sisdental import db
 from sisdental.controladores.PacienteControlador import PacienteControlador
 from sisdental.controladores.citaControlador import citaControlador
-
+from datetime import datetime
+from flask import request, flash, redirect, url_for, render_template
 
 def register_routes(app):
     """Registra todas las rutas de la aplicación Flask en el objeto 'app'."""
@@ -26,8 +27,21 @@ def register_routes(app):
     # Listar Citas
     @app.route('/citas')
     def indexCita():
-        pacientes = citaControlador.obtener_todos()
-        return render_template('indexCita.html', pacientes=pacientes)
+        fecha_str = request.args.get('fecha')
+        fecha = None
+
+        if fecha_str:
+            try:
+                fecha = datetime.strptime(fecha_str, '%Y-%m-%d').date()
+                citas = citaControlador.obtener_por_fecha(fecha=fecha).all()
+            except ValueError:
+                flash("Formato de fecha inválido. Use YYYY-MM-DD", 'error')
+                return redirect(url_for('indexCita'))
+        else:
+            citas = citaControlador.obtener_todos()
+    
+        #pacientes = citaControlador.obtener_todos()
+        return render_template('indexCita.html', pacientes=citas)
 
     # Crear nuevo paciente
     @app.route('/crear', methods=('GET', 'POST'))
@@ -85,7 +99,7 @@ def register_routes(app):
                 error = f"Error insertando cita: {e}"
                 return render_template('crearCita.html', error=error)
 
-            return redirect(url_for('index'))
+            return redirect(url_for('indexCita'))
 
         return render_template('crearCita.html', error=error)
 
