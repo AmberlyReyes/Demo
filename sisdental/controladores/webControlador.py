@@ -178,7 +178,7 @@ def register_routes(app):
     @app.route('/<int:id>/eliminar', methods=('POST',))
     def eliminar(id):
         PacienteControlador.eliminar_paciente(id)
-        
+
         return redirect(url_for('index'))
     
     # Eliminar cita
