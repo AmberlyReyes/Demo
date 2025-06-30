@@ -13,6 +13,15 @@ def register_routes(app):
     def mainpage():
         return render_template('mainpage.html')
     
+    # Paciente historial
+    @app.route('/historial',methods=['GET'] )
+    def historial():
+        patient_id = request.args.get('patientId')
+        paciente = PacienteControlador.obtener_por_id(patient_id)
+        if not paciente:
+            return "Paciente no encontrado", 404    
+        return render_template('historialPaciente.html')
+    
         
     # Listar todos los pacientes
     @app.route('/pacientes')

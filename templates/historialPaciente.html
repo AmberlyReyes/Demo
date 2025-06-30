@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Historial Clínico</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #2c5aa0 0%, #4a90e2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: #4a90e2;
+            color: white;
+            padding: 25px 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 24px;
+            margin-bottom: 5px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 14px;
+        }
+
+        .patient-info {
+            padding: 20px 30px;
+            background: #f8f9fa;
+            border-bottom: 1px solid #e9ecef;
+        }
+
+        .patient-info h2 {
+            color: #2c5aa0;
+            margin-bottom: 10px;
+            font-size: 18px;
+        }
+
+        .info-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+        }
+
+        .info-item {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .info-label {
+            font-weight: 600;
+            color: #666;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .info-value {
+            color: #333;
+            font-size: 14px;
+            margin-top: 2px;
+        }
+
+        .consultas-section {
+            padding: 30px;
+        }
+
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 25px;
+        }
+
+        .section-title {
+            color: #2c5aa0;
+            font-size: 20px;
+            font-weight: 600;
+        }
+
+        .btn-nueva {
+            background: #4a90e2;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: background-color 0.3s ease;
+        }
+
+        .btn-nueva:hover {
+            background: #2c5aa0;
+        }
+
+        .consultas-list {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+        }
+
+        .consulta-item {
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 20px;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .consulta-item:hover {
+            border-color: #4a90e2;
+            box-shadow: 0 4px 12px rgba(74, 144, 226, 0.15);
+            transform: translateY(-1px);
+        }
+
+        .consulta-header {
+            display: flex;
+            justify-content: between;
+            align-items: flex-start;
+            margin-bottom: 10px;
+        }
+
+        .consulta-fecha {
+            color: #4a90e2;
+            font-weight: 600;
+            font-size: 16px;
+        }
+
+        .consulta-tipo {
+            background: #e3f2fd;
+            color: #2c5aa0;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: 500;
+            margin-left: auto;
+        }
+
+        .consulta-motivo {
+            color: #666;
+            font-size: 14px;
+            margin-bottom: 8px;
+            line-height: 1.4;
+        }
+
+        .consulta-footer {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 12px;
+            color: #888;
+            border-top: 1px solid #f0f0f0;
+            padding-top: 10px;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #666;
+        }
+
+        .empty-state h3 {
+            margin-bottom: 10px;
+            color: #2c5aa0;
+        }
+
+        @media (max-width: 768px) {
+            .container {
+                margin: 10px;
+                border-radius: 8px;
+            }
+            
+            .header, .patient-info, .consultas-section {
+                padding: 20px;
+            }
+            
+            .info-grid {
+                grid-template-columns: 1fr;
+            }
+            
+            .section-header {
+                flex-direction: column;
+                gap: 15px;
+                align-items: stretch;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <h1>Historial Clínico</h1>
+            <p>Registro médico del paciente</p>
+        </div>
+
+        <!-- Información del Paciente -->
+        <div class="patient-info">
+            <h2>Información del Paciente</h2>
+            <div class="info-grid">
+                <div class="info-item">
+                    <span class="info-label">Nombre Completo</span>
+                    <span class="info-value">{{ paciente.nombre }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Cédula</span>
+                    <span class="info-value">{{ paciente.cedula }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Fecha de Nacimiento</span>
+                    <span class="info-value">{{ paciente.nacimiento }}</span>
+                </div>
+                <div class="info-item">
+                    <span class="info-label">Teléfono</span>
+                    <span class="info-value">{{ paciente.telefono }}</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sección de Consultas -->
+        <div class="consultas-section">
+            <div class="section-header">
+                <h2 class="section-title">Consultas Médicas</h2>
+                <button class="btn-nueva" onclick="nuevaConsulta()">+ Nueva Consulta</button>
+            </div>
+
+            <div class="consultas-list">
+                <!-- Ejemplo de consultas - esto será dinámico -->
+                <div class="consulta-item" onclick="verConsulta(1)">
+                    <div class="consulta-header">
+                        <div class="consulta-fecha">25 de Junio, 2025</div>
+                        <div class="consulta-tipo">Control</div>
+                    </div>
+                    <div class="consulta-motivo">Control rutinario - Seguimiento de hipertensión arterial</div>
+                    <div class="consulta-footer">
+                        <span>Dr. María González</span>
+                        <span>10:30 AM</span>
+                    </div>
+                </div>
+
+                <div class="consulta-item" onclick="verConsulta(2)">
+                    <div class="consulta-header">
+                        <div class="consulta-fecha">18 de Junio, 2025</div>
+                        <div class="consulta-tipo">Urgencia</div>
+                    </div>
+                    <div class="consulta-motivo">Dolor abdominal agudo en cuadrante superior derecho</div>
+                    <div class="consulta-footer">
+                        <span>Dr. Roberto Martínez</span>
+                        <span>2:45 PM</span>
+                    </div>
+                </div>
+
+                <div class="consulta-item" onclick="verConsulta(3)">
+                    <div class="consulta-header">
+                        <div class="consulta-fecha">10 de Junio, 2025</div>
+                        <div class="consulta-tipo">Especialidad</div>
+                    </div>
+                    <div class="consulta-motivo">Evaluación cardiológica - ECG y ecocardiograma</div>
+                    <div class="consulta-footer">
+                        <span>Dr. Ana Rodríguez - Cardiología</span>
+                        <span>9:00 AM</span>
+                    </div>
+                </div>
+
+                <!-- Estado vacío - mostrar cuando no hay consultas -->
+                <!-- 
+                <div class="empty-state">
+                    <h3>No hay consultas registradas</h3>
+                    <p>Haz clic en "Nueva Consulta" para agregar la primera consulta médica</p>
+                </div>
+                -->
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Funciones placeholder para la lógica CRUD
+        function nuevaConsulta() {
+            console.log('Abrir formulario para nueva consulta');
+            // Aquí irá la lógica para abrir modal/página de nueva consulta
+            alert('Aquí se abrirá el formulario para nueva consulta');
+        }
+
+        function verConsulta(id) {
+            console.log('Ver consulta con ID:', id);
+            // Aquí irá la lógica para ver/editar la consulta
+            alert(`Ver consulta #${id} - Aquí irá la lógica CRUD`);
+        }
+
+        // Función para cuando no hay consultas (mostrar estado vacío)
+        function mostrarEstadoVacio() {
+            const consultasList = document.querySelector('.consultas-list');
+            consultasList.innerHTML = `
+                <div class="empty-state">
+                    <h3>No hay consultas registradas</h3>
+                    <p>Haz clic en "Nueva Consulta" para agregar la primera consulta médica</p>
+                </div>
+            `;
+        }
+    </script>
+</body>
+</html>

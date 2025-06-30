@@ -3,8 +3,6 @@ from sisdental.modelos.Paciente import Paciente
 from sisdental.modelos.Doctor import Doctor
 from sisdental.controladores.webControlador import register_routes
 
-
-
 app = crear_app()
 
 with app.app_context():
