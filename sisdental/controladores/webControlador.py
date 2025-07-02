@@ -1,8 +1,12 @@
-from flask import flash, render_template, request, redirect, url_for
+from flask import flash, render_template, request, redirect, url_for, jsonify
 from sisdental import db
 from sisdental.controladores.PacienteControlador import PacienteControlador
 from sisdental.controladores.citaControlador import citaControlador
+from sisdental.controladores.ConsultaControlador import ConsultaControlador
 from sisdental.modelos import Persona
+from datetime import datetime
+from sisdental.modelos.Doctor import Doctor
+from datetime import date, timedelta
 
 
 def register_routes(app):
@@ -14,13 +18,16 @@ def register_routes(app):
         return render_template('mainpage.html')
     
     # Paciente historial
-    @app.route('/historial',methods=['GET'] )
+    @app.route('/historial', methods=['GET'])
     def historial():
         patient_id = request.args.get('patientId')
         paciente = PacienteControlador.obtener_por_id(patient_id)
         if not paciente:
-            return "Paciente no encontrado", 404    
-        return render_template('historialPaciente.html')
+            return "Paciente no encontrado", 404
+        
+        consultas = ConsultaControlador.obtener_por_paciente(patient_id)
+        
+        return render_template('historialPaciente.html', paciente=paciente, consultas=consultas)
     
         
     # Listar todos los pacientes
@@ -60,6 +67,10 @@ def register_routes(app):
     # Crear nuevo paciente
     @app.route('/crear', methods=('GET', 'POST'))
     def crear():
+        if request.method == 'GET':
+            fecha_maxima = (date.today() - timedelta(days=1)).strftime('%Y-%m-%d')
+            return render_template('crear.html', fecha_maxima=fecha_maxima)
+
         error = None
 
         if request.method == 'POST':
@@ -167,7 +178,6 @@ def register_routes(app):
             fecha_formateada = f"{anio}-{mes}-{dia}"
 
             # Convierte la hora en objeto time
-            from datetime import datetime
             hora_str = request.form['hora']  # Ej. "13:30"
             hora_python = datetime.strptime(hora_str, '%H:%M').time()
             hora_formateada = hora_python.strftime("%H:%M")
@@ -248,3 +258,98 @@ def register_routes(app):
             "aseguradora": paciente.aseguradora,
             "nacimiento": paciente.nacimiento
         }, 200
+
+    @app.route('/nuevaConsulta', methods=['GET'])
+    def nueva_consulta():
+        patient_id = request.args.get('patientId')
+        if not patient_id:
+            return "Paciente no especificado", 400
+
+        # Buscar la última consulta del paciente
+        ultima_consulta = ConsultaControlador.obtener_por_paciente(patient_id)
+        if ultima_consulta and len(ultima_consulta) > 0:
+            # Tomar la fecha de la última consulta (la más reciente)
+            fecha_ultima = ultima_consulta[0].fecha.strftime('%Y-%m-%d')
+        else:
+            # Si no hay consultas, usar la fecha de hoy
+            from datetime import date
+            fecha_ultima = date.today().strftime('%Y-%m-%d')
+
+        return render_template('nuevaConsulta.html', ultima_consulta=fecha_ultima)
+
+        
+
+
+    @app.route('/api/consulta', methods=['POST'])
+    def api_crear_consulta():
+        data = request.get_json()
+        print("Datos recibidos:", data)  # Log de datos recibidos
+
+        if not data:
+            error_msg = 'No se enviaron datos'
+            print("Error:", error_msg)
+            return jsonify({'error': error_msg}), 400
+
+        if 'paciente_id' not in data:
+            error_msg = 'Falta paciente_id en los datos'
+            print("Error:", error_msg)
+            return jsonify({'error': error_msg}), 400
+
+        from sisdental.modelos.HistorialClinico import HistorialClinico
+
+        # Procesar fechas
+        try:
+            fecha = datetime.strptime(data['fecha'], '%Y-%m-%d').date() if data.get('fecha') else None
+            ultima_consulta = datetime.strptime(data['ultima_consulta'], '%Y-%m-%d').date() if data.get('ultima_consulta') else None
+        except Exception as exc:
+            error_msg = f'Formato de fecha inválido: {exc}'
+            print("Error:", error_msg)
+            return jsonify({'error': error_msg}), 400
+
+        # Buscar o crear el Historial
+        historial = HistorialClinico.query.filter_by(paciente_id=data['paciente_id']).first()
+        if not historial:
+            historial = HistorialClinico(paciente_id=data['paciente_id'])
+            db.session.add(historial)
+            db.session.commit()
+            print("Historial clínico creado con id:", historial.id)
+        else:
+            print("Historial clínico existente id:", historial.id)
+
+        # Usar la cédula del doctor para la prueba
+        doctor = Doctor.query.filter_by(cedula='402-12345678').first()
+        if not doctor:
+            error_msg = 'El doctor con cédula tal no existe'
+            print("Error:", error_msg)
+            return jsonify({'error': error_msg}), 400
+
+        consulta_data = {
+            'paciente_id': data['paciente_id'],
+            'historial_clinico_id': historial.id,
+            'doctor_id': doctor.id,  # Se asigna el ID del doctor hallado por cédula
+            'fecha': fecha,
+            'presion_arterial': data.get('presion_arterial'),
+            'ultima_consulta': ultima_consulta,
+            'diagnostico': data.get('diagnostico'),
+            'antecedentes_familiares': data.get('antecedentes_familiares'),
+            'medicacion': data.get('medicacion'),
+            'notas': data.get('notas'),
+        }
+        print("Datos a insertar en consulta:", consulta_data)
+
+        try:
+            ConsultaControlador.crear_consulta(consulta_data)
+            return jsonify({'success': True}), 201
+        except Exception as e:
+            error_msg = f'Ocurrió un error al guardar la consulta: {e}'
+            print("Error:", error_msg)
+            return jsonify({'error': error_msg}), 500
+        
+
+    @app.route('/consulta/<int:consulta_id>', methods=['GET'])
+    def ver_consulta(consulta_id):
+        consulta = ConsultaControlador.obtener_por_id(consulta_id)
+        if not consulta:
+            return "Consulta no encontrada", 404
+        return render_template('verConsulta.html', consulta=consulta)
+

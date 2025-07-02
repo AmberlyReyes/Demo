@@ -2,7 +2,6 @@
 <html lang="es">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Historial Clínico</title>
     <style>
         * {
@@ -248,77 +247,38 @@
             </div>
 
             <div class="consultas-list">
-                <!-- Ejemplo de consultas - esto será dinámico -->
-                <div class="consulta-item" onclick="verConsulta(1)">
-                    <div class="consulta-header">
-                        <div class="consulta-fecha">25 de Junio, 2025</div>
-                        <div class="consulta-tipo">Control</div>
+                {% if consultas and consultas|length > 0 %}
+                    {% for consulta in consultas %}
+                        <div class="consulta-item" onclick="verConsulta({{ consulta.id }})">
+                            <div class="consulta-header">
+                                <div class="consulta-fecha">{{ consulta.fecha.strftime('%d de %B, %Y') }}</div>
+                                
+                            </div>
+                            <div class="consulta-footer">
+                                <span>Dr. {{ consulta.doctor.nombre if consulta.doctor else 'Dr Reyes' }}</span>
+                                <span>{{ consulta.hora or '' }}</span>
+                            </div>
+                        </div>
+                    {% endfor %}
+                {% else %}
+                    <div class="empty-state">
+                        <h3>No hay consultas registradas</h3>
+                        <p>Haz clic en "Nueva Consulta" para agregar la primera consulta médica</p>
                     </div>
-                    <div class="consulta-motivo">Control rutinario - Seguimiento de hipertensión arterial</div>
-                    <div class="consulta-footer">
-                        <span>Dr. María González</span>
-                        <span>10:30 AM</span>
-                    </div>
-                </div>
-
-                <div class="consulta-item" onclick="verConsulta(2)">
-                    <div class="consulta-header">
-                        <div class="consulta-fecha">18 de Junio, 2025</div>
-                        <div class="consulta-tipo">Urgencia</div>
-                    </div>
-                    <div class="consulta-motivo">Dolor abdominal agudo en cuadrante superior derecho</div>
-                    <div class="consulta-footer">
-                        <span>Dr. Roberto Martínez</span>
-                        <span>2:45 PM</span>
-                    </div>
-                </div>
-
-                <div class="consulta-item" onclick="verConsulta(3)">
-                    <div class="consulta-header">
-                        <div class="consulta-fecha">10 de Junio, 2025</div>
-                        <div class="consulta-tipo">Especialidad</div>
-                    </div>
-                    <div class="consulta-motivo">Evaluación cardiológica - ECG y ecocardiograma</div>
-                    <div class="consulta-footer">
-                        <span>Dr. Ana Rodríguez - Cardiología</span>
-                        <span>9:00 AM</span>
-                    </div>
-                </div>
-
-                <!-- Estado vacío - mostrar cuando no hay consultas -->
-                <!-- 
-                <div class="empty-state">
-                    <h3>No hay consultas registradas</h3>
-                    <p>Haz clic en "Nueva Consulta" para agregar la primera consulta médica</p>
-                </div>
-                -->
+                {% endif %}
             </div>
         </div>
     </div>
 
     <script>
-        // Funciones placeholder para la lógica CRUD
         function nuevaConsulta() {
-            console.log('Abrir formulario para nueva consulta');
-            // Aquí irá la lógica para abrir modal/página de nueva consulta
-            alert('Aquí se abrirá el formulario para nueva consulta');
+            // Lógica para abrir el formulario de nueva consulta
+            window.location.href = `/nuevaConsulta?patientId={{ paciente.id }}`;
         }
-
+        
         function verConsulta(id) {
-            console.log('Ver consulta con ID:', id);
-            // Aquí irá la lógica para ver/editar la consulta
-            alert(`Ver consulta #${id} - Aquí irá la lógica CRUD`);
-        }
-
-        // Función para cuando no hay consultas (mostrar estado vacío)
-        function mostrarEstadoVacio() {
-            const consultasList = document.querySelector('.consultas-list');
-            consultasList.innerHTML = `
-                <div class="empty-state">
-                    <h3>No hay consultas registradas</h3>
-                    <p>Haz clic en "Nueva Consulta" para agregar la primera consulta médica</p>
-                </div>
-            `;
+            // Lógica para ver o editar la consulta
+            window.location.href = `/consulta/${id}`;
         }
     </script>
 </body>

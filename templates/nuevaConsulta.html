@@ -1,0 +1,501 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nueva Consulta - Dr. Reyes</title>
+    <style>
+        /* Estilos generales */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #f0f8ff 0%, #e6f3ff 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+        }
+
+        /* Header */
+        .header {
+            background: linear-gradient(135deg, #2c5aa0 0%, #4a90e2 100%);
+            color: white;
+            padding: 20px 30px;
+            border-radius: 15px;
+            margin-bottom: 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 600;
+        }
+
+        .header .subtitle {
+            font-size: 14px;
+            opacity: 0.9;
+            margin-top: 5px;
+        }
+
+        .exit-btn {
+            background: rgba(255, 255, 255, 0.2);
+            border: none;
+            color: white;
+            padding: 12px 20px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+
+        .exit-btn:hover {
+            background: rgba(255, 255, 255, 0.3);
+            transform: translateY(-2px);
+        }
+
+        /* Panel de información del paciente */
+        .patient-info-panel {
+            background: white;
+            border-radius: 15px;
+            padding: 20px;
+            margin-bottom: 30px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e9ecef;
+        }
+
+        .patient-info-panel h3 {
+            color: #2c5aa0;
+            font-size: 18px;
+            margin-bottom: 15px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .patient-summary {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 20px;
+            color: #6c757d;
+            font-size: 14px;
+        }
+
+        .patient-summary span {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        /* Formulario de consulta */
+        .consulta-form {
+            background: white;
+            border-radius: 15px;
+            padding: 30px;
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+            border: 1px solid #e9ecef;
+        }
+
+        .form-title {
+            color: #2c5aa0;
+            font-size: 20px;
+            margin-bottom: 25px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .form-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 20px;
+            margin-bottom: 20px;
+        }
+
+        .form-group {
+            display: flex;
+            flex-direction: column;
+        }
+
+        .form-group.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .form-group label {
+            font-weight: 600;
+            color: #2c5aa0;
+            margin-bottom: 8px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            padding: 12px 15px;
+            border: 2px solid #e9ecef;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s ease;
+            font-family: inherit;
+        }
+
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #4a90e2;
+            box-shadow: 0 0 0 3px rgba(74, 144, 226, 0.1);
+        }
+
+        .form-group textarea {
+            resize: vertical;
+            min-height: 100px;
+        }
+
+        .form-group input[type="date"] {
+            cursor: pointer;
+        }
+
+        /* Botones de acción */
+        .form-actions {
+            display: flex;
+            gap: 15px;
+            justify-content: flex-end;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #e9ecef;
+        }
+
+        .btn {
+            padding: 12px 25px;
+            border: none;
+            border-radius: 8px;
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #2c5aa0 0%, #4a90e2 100%);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: linear-gradient(135deg, #1e3d6f 0%, #2c5aa0 100%);
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(44, 90, 160, 0.3);
+        }
+
+        .btn-secondary {
+            background: #f8f9fa;
+            color: #6c757d;
+            border: 2px solid #e9ecef;
+        }
+
+        .btn-secondary:hover {
+            background: #e9ecef;
+            color: #495057;
+        }
+
+        /* Estado de carga */
+        .loading {
+            opacity: 0.7;
+            pointer-events: none;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 10px;
+            }
+
+            .header {
+                padding: 15px 20px;
+                flex-direction: column;
+                text-align: center;
+                gap: 10px;
+            }
+
+            .form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .form-actions {
+                flex-direction: column;
+            }
+
+            .patient-summary {
+                flex-direction: column;
+                gap: 10px;
+            }
+        }
+
+        /* Mensajes de estado */
+        .message {
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .message.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .message.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header">
+            <div>
+                <h1>📋 Nueva Consulta</h1>
+                <div class="subtitle">Dr. Reyes - Centro Odontológico</div>
+            </div>
+            <button class="exit-btn" onclick="goBack()">← Volver</button>
+        </div>
+
+        <!-- Información del paciente -->
+        <div class="patient-info-panel" id="patientInfo" style="display: none;">
+            <h3>👤 Paciente</h3>
+            <div class="patient-summary" id="patientSummary">
+                <!-- Se llenará dinámicamente -->
+            </div>
+        </div>
+
+        <!-- Mensajes -->
+        <div class="message success" id="successMessage">
+            ✅ Consulta guardada exitosamente
+        </div>
+        <div class="message error" id="errorMessage">
+            ❌ Error al guardar la consulta
+        </div>
+
+        <!-- Formulario de consulta -->
+        <div class="consulta-form">
+            <h2 class="form-title">🩺 Datos de la Consulta</h2>
+            
+            <form id="consultaForm">
+                <div class="form-grid">
+                    <div class="form-group">
+                        <label for="fecha"> Fecha de Consulta</label>
+                        <input type="date" id="fecha" name="fecha" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="presion_arterial"> Presión Arterial</label>
+                        <input type="text" id="presion_arterial" name="presion_arterial" placeholder="Ej: 120/80">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="ultima_consulta"> Última Consulta</label>
+                        <input type="date" id="ultima_consulta" name="ultima_consulta" value="{{ultima_consulta}}">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="diagnostico"> Diagnóstico</label>
+                        <input type="text" id="diagnostico" name="diagnostico" placeholder="Diagnóstico principal" maxlength="200">
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label for="antecedentes_familiares"> Antecedentes Familiares</label>
+                        <textarea id="antecedentes_familiares" name="antecedentes_familiares" placeholder="Historial médico familiar relevante..."></textarea>
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label for="medicacion"> Medicación Actual</label>
+                        <textarea id="medicacion" name="medicacion" placeholder="Medicamentos que toma actualmente..."></textarea>
+                    </div>
+
+                    <div class="form-group full-width">
+                        <label for="notas"> Notas y Observaciones</label>
+                        <textarea id="notas" name="notas" placeholder="Observaciones adicionales, síntomas, recomendaciones..."></textarea>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="button" class="btn btn-secondary" onclick="limpiarFormulario()">
+                        🗑️ Limpiar
+                    </button>
+                    <button type="submit" class="btn btn-primary">
+                        💾 Guardar Consulta
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <script>
+        // Variables globales
+        let currentPatient = null;
+        let patientId = null;
+
+        // Cargar información inicial
+        document.addEventListener('DOMContentLoaded', function() {
+            loadPatientInfo();
+            setCurrentDate();
+        });
+
+        // Función para cargar información del paciente
+        function loadPatientInfo() {
+            const urlParams = new URLSearchParams(window.location.search);
+            patientId = urlParams.get('patientId');
+            
+            if (patientId) {
+                // Hacer petición para obtener datos del paciente
+                fetch(`/api/paciente/${patientId}`)
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error('Paciente no encontrado');
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        currentPatient = data;
+                        displayPatientInfo(data);
+                    })
+                    .catch(err => {
+                        console.error(err);
+                        showMessage('Error cargando información del paciente', 'error');
+                    });
+            } else {
+                showMessage('No se especificó un paciente', 'error');
+            }
+        }
+
+        // Función para mostrar información del paciente
+        function displayPatientInfo(patient) {
+            document.getElementById('patientInfo').style.display = 'block';
+            const patientSummary = document.getElementById('patientSummary');
+            
+            patientSummary.innerHTML = `
+                <span><strong>👤 ${patient.nombre}</strong></span>
+                <span>🆔 ${patient.cedula}</span>
+                <span>📞 ${patient.telefono}</span>
+                <span>🎂 ${patient.nacimiento}</span>
+            `;
+        }
+
+        // Establecer fecha actual por defecto
+        function setCurrentDate() {
+            const today = new Date();
+            const formattedDate = today.toISOString().split('T')[0];
+            document.getElementById('fecha').value = formattedDate;
+        }
+
+        // Manejar envío del formulario
+        document.getElementById('consultaForm').addEventListener('submit', function(e) {
+            e.preventDefault();
+            guardarConsulta();
+        });
+
+        // Función para guardar la consulta
+        function guardarConsulta() {
+            if (!patientId) {
+                showMessage('Error: No hay paciente seleccionado', 'error');
+                return;
+            }
+
+            const form = document.getElementById('consultaForm');
+            const formData = new FormData(form);
+            
+            // Convertir FormData a objeto
+            const consultaData = {};
+            for (let [key, value] of formData.entries()) {
+                consultaData[key] = value || null;
+            }
+
+            // Agregar IDs necesarios
+            consultaData.paciente_id = patientId;
+            
+            // Deshabilitar formulario durante envío
+            form.classList.add('loading');
+
+            // Enviar datos al backend
+            fetch('/api/consulta', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(consultaData)
+            })
+            .then(response => {
+                if (!response.ok) {
+                    throw new Error('Error al guardar la consulta');
+                }
+                return response.json();
+            })
+            .then(data => {
+                showMessage('Consulta guardada exitosamente', 'success');
+                // Opcional: redirigir después de un delay
+                setTimeout(() => {
+                    window.location.href = `/historial?patientId=${patientId}`;
+                }, 2000);
+            })
+            .catch(err => {
+                console.error(err);
+                showMessage('Error al guardar la consulta', 'error');
+            })
+            .finally(() => {
+                form.classList.remove('loading');
+            });
+        }
+
+        // Función para mostrar mensajes
+        function showMessage(message, type) {
+            const messageElement = document.getElementById(type + 'Message');
+            if (messageElement) {
+                messageElement.textContent = message;
+                messageElement.style.display = 'block';
+                
+                // Ocultar después de 5 segundos
+                setTimeout(() => {
+                    messageElement.style.display = 'none';
+                }, 5000);
+            }
+        }
+
+        // Función para limpiar formulario
+        function limpiarFormulario() {
+            if (confirm('¿Está seguro de que desea limpiar todos los campos?')) {
+                document.getElementById('consultaForm').reset();
+                setCurrentDate();
+            }
+        }
+
+        // Función para volver atrás
+        function goBack() {
+            if (patientId) {
+                window.location.href = `/gestionPaciente?patientId=${patientId}`;
+            } else {
+                window.location.href = '/';
+            }
+        }
+    </script>
+</body>
+</html>
