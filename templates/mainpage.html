@@ -1,27 +1,30 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Dr Reyes - Centro Odontológico</title>
     <style>
         :root {
-           
-            --color-principal: #2c5aa0; /* Color principal del segundo HTML */
-            --color-secundario: #4a90e2; /* Color secundario del segundo HTML */
+
+            --color-principal: #2c5aa0;
+            /* Color principal del segundo HTML */
+            --color-secundario: #4a90e2;
+            /* Color secundario del segundo HTML */
         }
-    
+
         * {
             margin: 0;
             padding: 0;
             box-sizing: border-box;
             font-family: Arial, sans-serif;
         }
-        
+
         body {
             background-color: #f5f5f5;
         }
-        
+
         .header {
             background-color: white;
             padding: 15px 10%;
@@ -29,6 +32,7 @@
             justify-content: space-between;
             align-items: center;
         }
+
         .header h1 {
             color: var(--color-principal);
             font-family: 'Georgia', 'Times New Roman', serif;
@@ -52,13 +56,13 @@
             display: flex;
             align-items: center;
         }
-        
+
         .logo img {
             height: 50px;
         }
-    
+
         .logo h1 {
-        
+
             color: linear-gradient(135deg, #2c5aa0 0%, #4a90e2 100%);
             background: linear-gradient(135deg, #2c5aa0 0%, #4a90e2 100%);
             -webkit-background-clip: text;
@@ -74,31 +78,32 @@
             text-shadow: 0 2px 4px rgba(44, 90, 160, 0.1);
         }
 
-        
+
         .navbar h1 {
-            color: #2c5aa0; /* Color de "Dr Reyes" */
+            color: #2c5aa0;
+            /* Color de "Dr Reyes" */
         }
 
-      
+
         .bienvenido-usuario {
-            color: #2c5aa0; 
+            color: #2c5aa0;
         }
-        
+
         .logo p {
             color: #666;
             font-size: 12px;
             font-style: italic;
         }
-        
+
         .nav-menu {
             display: flex;
             list-style: none;
         }
-        
+
         .nav-menu li {
             margin-left: 20px;
         }
-        
+
         .nav-menu a {
             text-decoration: none;
             color: #666;
@@ -106,13 +111,13 @@
             text-transform: uppercase;
             font-size: 14px;
         }
-        
+
         .social-icons a {
             margin-left: 10px;
             text-decoration: none;
             color: #666;
         }
-        
+
         .contact-bar {
             display: flex;
             background: linear-gradient(135deg, #f0f8ff 0%, #e6f3ff 100%);
@@ -121,6 +126,7 @@
             justify-content: space-evenly;
             align-items: center;
         }
+
         .Agregar-paciente,
         .agendar-cita,
         .Visualizar-calendario {
@@ -132,7 +138,7 @@
             font-size: 14px;
         }
 
-        
+
         /* Cambiar el color de texto de la contact-info (íconos y texto) */
         .contact-info {
             flex: 1;
@@ -140,19 +146,21 @@
             align-items: center;
             padding: 15px 20px;
             /* color: #0089bf; */
-            color: var(--color-principal); /* Nuevo color */
+            color: var(--color-principal);
+            /* Nuevo color */
             font-size: 14px;
         }
-        
+
         .contact-info i {
             margin-right: 10px;
             font-size: 20px;
         }
-        
+
         /* Cambiar color de fondo del botón de "Agendar una cita" */
         .appointment-btn {
             /* background-color: #0089bf; */
-            background: linear-gradient(135deg, #2c5aa0 0%, #4a90e2 100%); /* Nuevo color con gradiente */
+            background: linear-gradient(135deg, #2c5aa0 0%, #4a90e2 100%);
+            /* Nuevo color con gradiente */
             color: white;
             padding: 15px 30px;
             text-align: center;
@@ -162,17 +170,17 @@
             align-items: center;
             justify-content: center;
         }
-        
+
         .appointment-btn strong {
             font-size: 16px;
             display: block;
             margin-bottom: 5px;
         }
-        
+
         .appointment-btn span {
             font-size: 12px;
         }
-        
+
         .hero {
             height: 500px;
             background-image: url("{{ url_for('static', filename='backgroundnav.jpg') }}");
@@ -183,7 +191,7 @@
             align-items: center;
             color: white;
         }
-        
+
         /* Ajustar el tono del overlay de la hero */
         .hero::before {
             content: '';
@@ -193,26 +201,27 @@
             width: 100%;
             height: 100%;
             /* background-color: rgba(0, 137, 191, 0.7); */
-            background: linear-gradient(135deg, rgba(44, 90, 160, 0.7) 0%, rgba(74, 144, 226, 0.7) 100%); /* Versión con gradiente del color base */
+            background: linear-gradient(135deg, rgba(44, 90, 160, 0.7) 0%, rgba(74, 144, 226, 0.7) 100%);
+            /* Versión con gradiente del color base */
         }
-        
+
         .hero-content {
             position: relative;
             z-index: 2;
             padding-left: 10%;
         }
-        
+
         .hero-content h2 {
             font-size: 46px;
             font-weight: bold;
             margin-bottom: 10px;
         }
-        
+
         .hero-content p {
             font-size: 18px;
             margin-bottom: 30px;
         }
-        
+
         .cta-button {
             display: inline-block;
             padding: 12px 30px;
@@ -224,14 +233,14 @@
             font-weight: bold;
             text-transform: uppercase;
         }
-        
+
         .dots {
             position: absolute;
             bottom: 20px;
             left: 10%;
             display: flex;
         }
-        
+
         .dot {
             width: 12px;
             height: 12px;
@@ -239,32 +248,35 @@
             background-color: rgba(255, 255, 255, 0.5);
             margin-right: 8px;
         }
-        
+
         .dot.active {
             background-color: white;
         }
-               
+
         :root {
-            --color-coronita: #40E0D0; 
+            --color-coronita: #40E0D0;
         }
 
         /* Estilos base para el menú */
         .nav-menu {
             list-style: none;
             display: flex;
-            gap: 20px; /* Espacio entre opciones */
+            gap: 20px;
+            /* Espacio entre opciones */
             margin: 0;
             padding: 0;
         }
 
         .nav-menu li a {
-            position: relative;       
-            color: #666;             /* Color de texto normal */
+            position: relative;
+            color: #666;
+            /* Color de texto normal */
             text-decoration: none;
             font-weight: bold;
             text-transform: uppercase;
             font-size: 14px;
-            padding: 10px;           /* Un poco de espacio */
+            padding: 10px;
+            /* Un poco de espacio */
             transition: color 0.3s ease;
         }
 
@@ -276,14 +288,14 @@
             bottom: 0;
             width: 100%;
             height: 2px;
-            background-color: var(--color-principal); 
+            background-color: var(--color-principal);
             transform: scaleX(0);
             transform-origin: right;
             transition: transform 0.3s ease;
         }
 
         .nav-menu li a:hover {
-            color: var(--color-principal); 
+            color: var(--color-principal);
         }
 
         .nav-menu li a:hover::after {
@@ -302,55 +314,65 @@
             transform-origin: left;
         }
     </style>
-    
+
 </head>
+
 <body>
     <header class="header">
         <div>
             <h1>Dr Reyes</h1>
             <p>Centro Odontológico</p>
-            </div>
+        </div>
         <ul class="nav-menu">
             <li><a href="#">Inicio</a></li>
             <li><a href="{{ url_for('indexCita') }}">Agendar cita</a></li>
             <li><a href="#">Log in</a></li>
             <li><a href="{{ url_for('buscarPaciente') }}">Pacientes</a></li>
+            {% if current_user.is_authenticated %}
+            {# Opciones cuando el usuario ESTÁ logueado #}
+            <li><a href="{{ url_for('logout') }}">Cerrar Sesión</a></li>
+            {% else %}
+            {# Opciones cuando el usuario NO está logueado #}
+            <li><a href="{{ url_for('login') }}">Iniciar Sesión</a></li>
+            {% endif %}
         </ul>
-        
+
     </header>
     <div class="contact-bar">
         <div class="Agregar-paciente">
-             <a href="{{ url_for('index') }}" style="color: var(--color-principal); text-decoration: none; font-weight: bold;">
-                 <strong>Agregar paciente</strong>
-             </a>
-    </div>
-    
+            <a href="{{ url_for('index') }}"
+                style="color: var(--color-principal); text-decoration: none; font-weight: bold;">
+                <strong>Agregar paciente</strong>
+            </a>
+        </div>
+
         <div class="agendar-cita">
             <div>
                 <strong>Nueva cita</strong>
             </div>
         </div>
-    
+
         <div class="Visualizar-calendario">
             <div>
                 <strong>Calendario</strong>
             </div>
         </div>
-    </div> 
-    
+    </div>
+
     <div class="hero">
         <div class="hero-content">
-           <h2 style="color: var(--color-principal);">Bienvenido<br>@usuario</h2>
+            <h2 style="color: var(--color-principal);">Bienvenido<br>@usuario</h2>
             <p>Técnicas dentales en manos de profesionales</p>
             <a href="#" class="cta-button">AGENDAR CITA</a>
         </div>
-        
+
         <div class="dots">
             <div class="dot active"></div>
             <div class="dot"></div>
             <div class="dot"></div>
         </div>
     </div>
-    
+
 </body>
+
 </html>

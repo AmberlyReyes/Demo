@@ -3,11 +3,13 @@ from sisdental import db
 from sisdental.controladores.PacienteControlador import PacienteControlador
 from sisdental.controladores.citaControlador import citaControlador
 from sisdental.controladores.ConsultaControlador import ConsultaControlador
+from sisdental.controladores.usuarioControlador import UsuarioControlador
 from sisdental.modelos import Persona
 from datetime import datetime
 from sisdental.modelos.Doctor import Doctor
+from sisdental.modelos.Usuario import Usuario
 from datetime import date, timedelta
-
+from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 
 def register_routes(app):
  
@@ -15,8 +17,94 @@ def register_routes(app):
     # Ruta principal
     @app.route('/')
     def mainpage():
-        return render_template('mainpage.html')
+        return render_template('mainpage.html', user=current_user)
     
+    @app.route('/login', methods=['GET', 'POST'])
+    def login():
+        if current_user.is_authenticated:
+            return redirect(url_for('mainpage'))
+
+        user = None
+
+        if request.method == 'POST':
+            username = request.form.get('username')
+            password = request.form.get('password')
+        
+            user = Usuario.query.filter_by(username=username).first()
+        
+
+        if user is None:
+            flash('Usuario no encontrado', 'danger')
+            return render_template('login.html')
+
+            # Verificación básica (deberías usar hash en producción)
+        if user and user.password == password:
+            login_user(user)
+            
+            # Redirección según rol
+            if user.administrador:
+                return redirect(url_for('mainpage'))
+            elif user.doctor:
+                return redirect(url_for('index'))
+            elif user.asistente:
+                return redirect(url_for('indexCita'))
+            else:
+                return redirect(url_for('mainpage'))  # Redirigir a una página por defecto si no es admin, doctor o asistente
+        else:
+            flash('Usuario o contraseña incorrectos', 'danger')
+    
+        return render_template('login.html')
+
+    @app.route('/logout')
+    @login_required
+    def logout():
+        logout_user()
+        flash('Has cerrado sesión correctamente', 'info')
+        return redirect(url_for('mainpage'))
+
+    @app.route('/register', methods=['GET', 'POST'])
+    def register():
+        if current_user.is_authenticated:
+            return redirect(url_for('index'))
+
+        if request.method == 'POST':
+            
+            username = request.form['username']
+            password = request.form['password']
+            confirm_password = request.form['confirm_password']
+            nombre = request.form['nombre']
+            email = request.form['email']
+
+            # Validaciones básicas
+            if password != confirm_password:
+                flash('Las contraseñas no coinciden', 'danger')
+                return redirect(url_for('register'))
+
+            if Usuario.query.filter_by(username=username).first():
+                flash('Este nombre de usuario ya está en uso', 'danger')
+                return redirect(url_for('register'))
+
+        # Crear usuario
+
+        try:
+            data = {
+                'username': username,
+                'password': password,  # En producción deberías hashear la contraseña
+                'administrador': False,  # Por defecto no es admin
+                'doctor': False,
+                'asistente': False,
+            }
+            print("Datos del usuario:", data)  # Log de datos recibidos
+            UsuarioControlador.crear_usuario(data)
+            db.session.commit()
+            flash('Registro exitoso. Ahora puedes iniciar sesión', 'success')
+            return redirect(url_for('login'))
+        except Exception as e:
+            db.session.rollback()
+            flash('Error al registrar el usuario: ' + str(e), 'danger')
+
+        return render_template('register.html')
+
     # Paciente historial
     @app.route('/historial', methods=['GET'])
     def historial():
@@ -89,7 +177,7 @@ def register_routes(app):
             if PacienteControlador.obtener_por_cedula(data['cedula']):
                 error = f"La cédula '{data['cedula']}' ya está registrada."
                 return render_template('crear.html', error=error)
-
+            
             try:
                 PacienteControlador.crear_paciente(data)
             except Exception as e:
@@ -106,8 +194,9 @@ def register_routes(app):
         error = None
 
         if request.method == 'POST':
+            Paci = PacienteControlador.obtener_por_cedula(request.form['paciente_cedula'])
             data = {
-                'paciente_id': request.form['paciente_id'],
+                'paciente_id': Paci.id,
                 'doctor_id': request.form['doctor_id'],
                 'fecha': request.form['fecha'],
                 'hora': request.form['hora'],
@@ -183,7 +272,7 @@ def register_routes(app):
             hora_formateada = hora_python.strftime("%H:%M")
 
             nuevos_datos = {
-                'paciente_id': request.form['paciente_id'],
+                'paciente_cedula': request.form['paciente_cedula'],
                 'doctor_id': request.form['doctor_id'],
                 'fecha': fecha_formateada,  # Ahora en "YYYY-MM-DD"
                 'hora': hora_formateada
