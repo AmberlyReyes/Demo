@@ -326,7 +326,6 @@
         <ul class="nav-menu">
             <li><a href="#">Inicio</a></li>
             <li><a href="{{ url_for('indexCita') }}">Agendar cita</a></li>
-            <li><a href="#">Log in</a></li>
             <li><a href="{{ url_for('buscarPaciente') }}">Pacientes</a></li>
             {% if current_user.is_authenticated %}
             {# Opciones cuando el usuario ESTÁ logueado #}

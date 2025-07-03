@@ -168,7 +168,7 @@
 
         <form action="{{ url_for('crearCita') }}" method="post">
             <div class="form-group">
-                <label for="paciente_cedula" class="form-label">👤 ID Paciente</label>
+                <label for="paciente_cedula" class="form-label">👤 Cédula del Paciente</label>
                 <div class="input-icon" data-icon="👤">
                     <input type="number" class="form-control" id="paciente_cedula" name="paciente_cedula" 
                            required min="1" placeholder="Ingrese la cédula del paciente">
@@ -194,7 +194,7 @@
             <div class="form-group">
                 <label for="hora" class="form-label">🕐 Hora</label>
                 <div class="input-icon" data-icon="🕐">
-                    <input type="time" class="form-control" id="hora" name="hora" required>
+                    <input type="time" class="form-control" id="hora" name="hora" min="08:00" max="18:00" required>
                 </div>
                 <div class="form-hint">Seleccione la hora de la cita</div>
             </div>

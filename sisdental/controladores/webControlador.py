@@ -4,6 +4,7 @@ from sisdental.controladores.PacienteControlador import PacienteControlador
 from sisdental.controladores.citaControlador import citaControlador
 from sisdental.controladores.ConsultaControlador import ConsultaControlador
 from sisdental.controladores.usuarioControlador import UsuarioControlador
+from sisdental.controladores.DoctorControlador import DoctorControlador
 from sisdental.modelos import Persona
 from datetime import datetime
 from sisdental.modelos.Doctor import Doctor
@@ -194,26 +195,45 @@ def register_routes(app):
         error = None
 
         if request.method == 'POST':
-            Paci = PacienteControlador.obtener_por_cedula(request.form['paciente_cedula'])
-            data = {
-                'paciente_id': Paci.id,
-                'doctor_id': request.form['doctor_id'],
-                'fecha': request.form['fecha'],
-                'hora': request.form['hora'],
-            }
-
-            # Verificar si la Cita choca con otra TO-DO
-            #if PacienteControlador.obtener_por_cedula(data['cedula']):
-            #    error = f"La cédula '{data['cedula']}' ya está registrada."
-            #    return render_template('crear.html', error=error)
-
             try:
-                citaControlador.crear_cita(data)
-            except Exception as e:
-                error = f"Error insertando cita: {e}"
-                return render_template('crearCita.html', error=error)
+                # 1. Verificar que el paciente existe
+                Paci = PacienteControlador.obtener_por_cedula(request.form['paciente_cedula'])
+                if not Paci:
+                    error = "El paciente no existe"
+                    return render_template('crearCita.html', error=error)
 
-            return redirect(url_for('indexCita'))
+                # 2. Verificar que el doctor existe
+                doctor_id = request.form['doctor_id']
+                doctor = DoctorControlador.obtener_por_id(doctor_id)  # Necesitarás implementar este método
+                if not doctor:
+                    error = "El doctor especificado no existe"
+                    return render_template('crearCita.html', error=error)
+
+                # Preparar datos de la cita
+                data = {
+                    'paciente_id': Paci.id,
+                    'doctor_id': doctor_id,
+                    'fecha': request.form['fecha'],
+                    'hora': request.form['hora'],
+                }
+
+                # 3. Verificar disponibilidad del doctor (fecha y hora única)
+                if citaControlador.check_cita_doctor(data['doctor_id'], data['fecha'], data['hora']):
+                    error = "El doctor ya tiene una cita programada en esa fecha y hora"
+                    return render_template('crearCita.html', error=error)
+
+                # 4. Verificar que el paciente no tenga otra cita a la misma hora
+                if citaControlador.check_cita_paciente(data['paciente_id'], data['fecha'], data['hora']):
+                    error = "El paciente ya tiene una cita programada en esa fecha y hora"
+                    return render_template('crearCita.html', error=error)
+
+                # Si pasa todas las validaciones, crear la cita
+                citaControlador.crear_cita(data)
+                return redirect(url_for('indexCita'))
+
+            except Exception as e:
+                error = f"Error al procesar la cita: {str(e)}"
+                return render_template('crearCita.html', error=error)
 
         return render_template('crearCita.html', error=error)
     

@@ -42,6 +42,22 @@ class citaControlador:
     def obtener_por_paciente_y_fecha(paciente_id, fecha):
         return Cita.query.filter_by(paciente_id=paciente_id, fecha=fecha).all()
 
+    @staticmethod
+    def check_cita_doctor(doctor_id, fecha, hora):
+        return Cita.query.filter_by(
+        doctor_id=doctor_id,
+        fecha=fecha,
+        hora=hora
+        ).first() is not None
+    
+    
+    def check_cita_paciente(paciente_id, fecha, hora):
+        """Verifica si el paciente ya tiene una cita programada en esa fecha y hora"""
+        return Cita.query.filter_by(
+        paciente_id=paciente_id,
+        fecha=fecha,
+        hora=hora
+    ).first() is not None
     #estos 3 podrian ser algo como "obtener_por_dato" 
     #en lugar de tener el mismo codigo repetido varias veces
     #Puede ser mas confuso pero hace este codigo mas limpio
