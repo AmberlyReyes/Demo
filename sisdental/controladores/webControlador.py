@@ -69,12 +69,11 @@ def register_routes(app):
             return redirect(url_for('index'))
 
         if request.method == 'POST':
-            
-            username = request.form['username']
-            password = request.form['password']
-            confirm_password = request.form['confirm_password']
-            nombre = request.form['nombre']
-            email = request.form['email']
+            username = request.form.get('username')
+            password = request.form.get('password')
+            confirm_password = request.form.get('confirm_password')
+            nombre = request.form.get('nombre')
+            email = request.form.get('email')
 
             # Validaciones básicas
             if password != confirm_password:
@@ -85,24 +84,22 @@ def register_routes(app):
                 flash('Este nombre de usuario ya está en uso', 'danger')
                 return redirect(url_for('register'))
 
-        # Crear usuario
-
-        try:
-            data = {
-                'username': username,
-                'password': password,  # En producción deberías hashear la contraseña
-                'administrador': False,  # Por defecto no es admin
-                'doctor': False,
-                'asistente': False,
-            }
-            print("Datos del usuario:", data)  # Log de datos recibidos
-            UsuarioControlador.crear_usuario(data)
-            db.session.commit()
-            flash('Registro exitoso. Ahora puedes iniciar sesión', 'success')
-            return redirect(url_for('login'))
-        except Exception as e:
-            db.session.rollback()
-            flash('Error al registrar el usuario: ' + str(e), 'danger')
+            try:
+                data = {
+                    'username': username,
+                    'password': password,  # En producción deberías hashear la contraseña
+                    'administrador': False,
+                    'doctor': False,
+                    'asistente': False,
+                }
+                print("Datos del usuario:", data)
+                UsuarioControlador.crear_usuario(data)
+                db.session.commit()
+                flash('Registro exitoso. Ahora puedes iniciar sesión', 'success')
+                return redirect(url_for('login'))
+            except Exception as e:
+                db.session.rollback()
+                flash('Error al registrar el usuario: ' + str(e), 'danger')
 
         return render_template('register.html')
 
