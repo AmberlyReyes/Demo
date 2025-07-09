@@ -11,6 +11,7 @@ from sisdental.modelos.Doctor import Doctor
 from sisdental.modelos.Usuario import Usuario
 from datetime import date, timedelta
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
+from sqlalchemy import extract
 
 def register_routes(app):
  
@@ -458,4 +459,30 @@ def register_routes(app):
         if not consulta:
             return "Consulta no encontrada", 404
         return render_template('verConsulta.html', consulta=consulta)
+    
+    @app.route('/calendario')
+    @login_required
+    def calendario():
+        # Obtener la fecha de la URL, si no se provee, usar la fecha de hoy.
+        fecha_str = request.args.get('fecha', date.today().strftime('%Y-%m-%d'))
+        
+        try:
+            # Convertir el string de la fecha a un objeto date de Python
+            fecha_seleccionada = datetime.strptime(fecha_str, '%Y-%m-%d').date()
+        except ValueError:
+            flash("Formato de fecha inválido. Usando fecha de hoy.", 'warning')
+            fecha_seleccionada = date.today()
 
+        # Usar el controlador para obtener las citas de esa fecha
+        citas_del_dia = citaControlador.obtener_por_fecha(fecha=fecha_seleccionada).all()
+
+        # Calcular fechas para los botones "Anterior" y "Siguiente"
+        fecha_anterior = (fecha_seleccionada - timedelta(days=1)).strftime('%Y-%m-%d')
+        fecha_siguiente = (fecha_seleccionada + timedelta(days=1)).strftime('%Y-%m-%d')
+        
+        # Renderizar la nueva plantilla del calendario
+        return render_template('calendario.html', 
+                               citas=citas_del_dia, 
+                               fecha_mostrada=fecha_seleccionada,
+                               fecha_anterior=fecha_anterior,
+                               fecha_siguiente=fecha_siguiente)
