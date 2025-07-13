@@ -116,7 +116,7 @@
         /* Botones de acción principales */
         .action-buttons {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            grid-template-columns: repeat(3, 1fr); 
             gap: 20px;
             margin-bottom: 30px;
         }
@@ -225,7 +225,7 @@
         <!-- Header -->
         <div class="header">
             <div>
-                <h1>🦷 Gestión de Pacientes</h1>
+                <h1> Gestión de Pacientes</h1>
                 <div class="subtitle">Dr. Reyes - Centro Odontológico</div>
             </div>
             <button class="exit-btn" onclick="goBack()">← Salir</button>
@@ -259,10 +259,16 @@
                 <div class="description">Ver pagos, facturas y estado financiero</div>
             </div>
 
-            <div class="action-btn" onclick="openTratamientos()">
+            <div class="action-btn" onclick="openNuevaConsulta()">
+                <span class="icon">📝</span>
+                <div class="title">Nueva Consulta</div>
+                <div class="description">Agregar nueva consulta al paciente</div>
+            </div>
+
+            <div class="action-btn" onclick="openGestionTratamientos()">
                 <span class="icon">🦷</span>
-                <div class="title">Tratamientos</div>
-                <div class="description">Gestionar tratamientos y diagnósticos</div>
+                <div class="title">Gestión de planes </div>
+                <div class="description">Gestionar planes Odontológicos</div>
             </div>
 
             <div class="action-btn modify-btn" onclick="openModificar()">
@@ -399,13 +405,22 @@
             window.location.href = `/estado-cuenta?patientId=${currentPatient.id}`;
         }
 
-        function openTratamientos() {
+        function openNuevaConsulta() {
             if (!currentPatient) {
                 alert('Debe seleccionar un paciente primero');
                 return;
             }
-            // Redirigir a la página de tratamientos
             window.location.href = `/nuevaConsulta?patientId=${currentPatient.id}`;
+        }
+
+        
+        function openGestionTratamientos() {
+            if (!currentPatient) {
+                alert('Debe seleccionar un paciente primero');
+                return;
+            }
+            // En el futuro apunta a la ruta de gestión de tratamientos
+            alert('Módulo de gestión de tratamientos - Próximamente');
         }
 
         function openModificar() {
