@@ -186,6 +186,125 @@
             color: #2c5aa0;
         }
 
+        .tabs {
+            display: flex;
+            justify-content: center;
+            margin: 20px 0;
+        }
+
+        .tabs button {
+            background: #4a90e2;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            margin: 0 5px;
+            transition: background-color 0.3s ease;
+        }
+
+        .tabs button:hover {
+            background: #2c5aa0;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 20px;
+            border-radius: 8px;
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        label {
+            font-weight: 600;
+            color: #333;
+            font-size: 14px;
+        }
+
+        textarea {
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-size: 14px;
+            color: #333;
+            resize: vertical;
+        }
+
+        input[type="file"] {
+            border: none;
+        }
+
+        button[type="submit"] {
+            background: #4a90e2;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+            transition: background-color 0.3s ease;
+        }
+
+        button[type="submit"]:hover {
+            background: #2c5aa0;
+        }
+
+        h4 {
+            margin-top: 30px;
+            color: #2c5aa0;
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        ul {
+            list-style: none;
+            padding: 0;
+            margin: 0;
+        }
+
+        li {
+            background: white;
+            border: 1px solid #e9ecef;
+            border-radius: 8px;
+            padding: 10px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        li a {
+            color: #2c5aa0;
+            text-decoration: none;
+            font-weight: 500;
+        }
+
+        li button {
+            background: transparent;
+            border: none;
+            color: #e74c3c;
+            cursor: pointer;
+            font-size: 14px;
+            font-weight: 500;
+        }
+
+        li button:hover {
+            text-decoration: underline;
+        }
+
         @media (max-width: 768px) {
             .container {
                 margin: 10px;
@@ -204,6 +323,14 @@
                 flex-direction: column;
                 gap: 15px;
                 align-items: stretch;
+            }
+
+            .tabs {
+                flex-direction: column;
+            }
+
+            .tabs button {
+                margin: 5px 0;
             }
         }
     </style>
@@ -239,8 +366,14 @@
             </div>
         </div>
 
+        <!-- Tabs -->
+        <div class="tabs">
+            <button onclick="showTab('consultas')">Consultas</button>
+            <button onclick="showTab('historial')">Historial Clínico</button>
+        </div>
+
         <!-- Sección de Consultas -->
-        <div class="consultas-section">
+        <div id="consultas" class="tab-content active">
             <div class="section-header">
                 <h2 class="section-title">Consultas Médicas</h2>
                 <button class="btn-nueva" onclick="nuevaConsulta()">+ Nueva Consulta</button>
@@ -268,6 +401,39 @@
                 {% endif %}
             </div>
         </div>
+
+        <!-- Historial Clínico -->
+        <div id="historial" class="tab-content" style="display:none;">
+          <form method="POST" action="{{ url_for('actualizar_historial', historial_id=historial.id) }}"
+                enctype="multipart/form-data">
+            <input type="hidden" name="paciente_id" value="{{ paciente.id }}">
+            <div>
+              <label>Antecedentes Familiares</label>
+              <textarea name="antecedentes">{{ historial.antecedentes_familiares or '' }}</textarea>
+            </div>
+            <div>
+              <label>Medicación</label>
+              <textarea name="medicacion">{{ historial.medicacion or '' }}</textarea>
+            </div>
+            <div>
+              <label>Adjuntar Archivo</label>
+              <input type="file" name="file" accept=".png,.jpg,.jpeg,.pdf">
+            </div>
+            <button type="submit">Guardar Historia</button>
+          </form>
+
+          <h4>Archivos</h4>
+          <ul>
+            {% for a in historial.archivos %}
+              <li>
+                <a href="{{ url_for('static',filename=a.file_url) }}" target="_blank">{{ a.filename }}</a>
+                <button onclick="deleteFile({{a.id}})">Eliminar</button>
+              </li>
+            {% else %}
+              <li>No hay archivos.</li>
+            {% endfor %}
+          </ul>
+        </div>
     </div>
 
     <script>
@@ -279,6 +445,17 @@
         function verConsulta(id) {
             // Lógica para ver o editar la consulta
             window.location.href = `/consulta/${id}`;
+        }
+
+        function showTab(id){
+          document.querySelectorAll('.tab-content')
+            .forEach(e=>e.style.display='none');
+          document.getElementById(id).style.display='block';
+        }
+
+        function deleteFile(fid){
+          fetch(`/historial/{{historial.id}}/file/${fid}`,{method:'DELETE'})
+            .then(r=>r.json()).then(j=> j.success? location.reload():alert(j.error));
         }
     </script>
 </body>

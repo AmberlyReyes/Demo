@@ -1,10 +1,11 @@
-from flask import flash, render_template, request, redirect, url_for, jsonify
+from flask import flash, render_template, request, redirect, url_for, jsonify, current_app
 from sisdental import db
 from sisdental.controladores.PacienteControlador import PacienteControlador
 from sisdental.controladores.citaControlador import citaControlador
 from sisdental.controladores.ConsultaControlador import ConsultaControlador
 from sisdental.controladores.usuarioControlador import UsuarioControlador
 from sisdental.controladores.DoctorControlador import DoctorControlador
+from sisdental.controladores.HistorialControlador import HistorialControlador
 from sisdental.modelos import Persona
 from datetime import datetime
 from sisdental.modelos.Doctor import Doctor
@@ -12,6 +13,9 @@ from sisdental.modelos.Usuario import Usuario
 from datetime import date, timedelta
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from sqlalchemy import extract
+from sisdental.modelos.ArchivoHistorial import ArchivoHistorial
+import os
+from werkzeug.utils import secure_filename
 
 def register_routes(app):
  
@@ -111,10 +115,22 @@ def register_routes(app):
         paciente = PacienteControlador.obtener_por_id(patient_id)
         if not paciente:
             return "Paciente no encontrado", 404
-        
+
+        # 1) Obtener o crear el historial clínico
+        historial = HistorialControlador.obtener_por_paciente(patient_id)
+        if not historial:
+            historial = HistorialControlador.crear_historial(patient_id)
+
+        # 2) Obtener las consultas para lista de “Consultas”
         consultas = ConsultaControlador.obtener_por_paciente(patient_id)
-        
-        return render_template('historialPaciente.html', paciente=paciente, consultas=consultas)
+
+        # 3) Pasar ambas variables al template
+        return render_template(
+            'historialPaciente.html',
+            paciente=paciente,
+            historial=historial,
+            consultas=consultas
+        )
     
         
     # Listar todos los pacientes
@@ -433,16 +449,14 @@ def register_routes(app):
         consulta_data = {
             'paciente_id': data['paciente_id'],
             'historial_clinico_id': historial.id,
-            'doctor_id': doctor.id,  # Se asigna el ID del doctor hallado por cédula
+            'doctor_id': doctor.id,
             'fecha': fecha,
             'presion_arterial': data.get('presion_arterial'),
             'ultima_consulta': ultima_consulta,
             'diagnostico': data.get('diagnostico'),
-            'antecedentes_familiares': data.get('antecedentes_familiares'),
-            'medicacion': data.get('medicacion'),
             'notas': data.get('notas'),
         }
-        print("Datos a insertar en consulta:", consulta_data)
+       
 
         try:
             ConsultaControlador.crear_consulta(consulta_data)
@@ -486,3 +500,38 @@ def register_routes(app):
                                fecha_mostrada=fecha_seleccionada,
                                fecha_anterior=fecha_anterior,
                                fecha_siguiente=fecha_siguiente)
+
+    @app.route('/historial/<int:historial_id>/update', methods=['POST'])
+    def actualizar_historial(historial_id):
+        antecedentes = request.form.get('antecedentes')
+        medicacion   = request.form.get('medicacion')
+        HistorialControlador.actualizar_historial(historial_id, {
+            'antecedentes_familiares': antecedentes,
+            'medicacion': medicacion
+        })
+
+        # Subida de archivo opcional
+        file = request.files.get('file')
+        if file and file.filename:
+            fn = secure_filename(file.filename)
+            folder = current_app.config['UPLOAD_FOLDER']
+            path = os.path.join(folder, fn)
+            file.save(path)
+            nuevo = ArchivoHistorial(historial_clinico_id=historial_id, filename=fn, file_url=path)
+            db.session.add(nuevo); db.session.commit()
+
+        # redirigir al historial del paciente
+        h = HistorialControlador.obtener_por_paciente(request.form.get('paciente_id'))
+        return redirect(url_for('historial', patientId=h.paciente_id))
+
+    @app.route('/historial/<int:historial_id>/file/<int:file_id>', methods=['DELETE'])
+    def delete_file(historial_id, file_id):
+        archivo = ArchivoHistorial.query.get(file_id)
+        if not archivo:
+            return jsonify({'error':'No encontrado'}),404
+        try:
+            os.remove(archivo.file_url)
+        except:
+            pass
+        db.session.delete(archivo); db.session.commit()
+        return jsonify({'success':True})
