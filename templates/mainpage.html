@@ -7,10 +7,12 @@
     <title>Dr Reyes - Centro Odontológico</title>
     <style>
     :root {
-        --color-principal: #2c5aa0;
-        --color-secundario: #4a90e2;
+        
+        --color-principal: #018ABE; 
+        --color-secundario: #34B3D9; /* Un tono más claro para acentos */
+        --color-sidebar: #004D6A;   /* Un color oscuro y relacionado para la barra lateral */
+      
         --color-fondo: #f4f7fa;
-        --color-sidebar: #1e293b;
         --color-texto-sidebar: #cbd5e1;
         --color-blanco: #ffffff;
         --color-borde: #e2e8f0;
@@ -97,7 +99,6 @@
         margin-right: 15px;
     }
 
-    /* --- Contenido Principal --- */
     .main-content {
         flex-grow: 1; /* Ocupa el resto del espacio */
         padding: 30px;
@@ -155,7 +156,7 @@
         display: flex;
         align-items: center;
         justify-content: center;
-        background: #eef4ff;
+        background: #e3f8ff; /* Color de fondo relacionado al nuevo principal */
         border: 2px dashed var(--color-secundario);
     }
      .add-new-link {
@@ -170,7 +171,6 @@
         margin-bottom: 10px;
     }
 
-    /* --- Área de Datos (Gráficos/Tablas) --- */
     .main-data-area {
         display: grid;
         grid-template-columns: 2fr 1fr;
@@ -194,7 +194,7 @@
         border-bottom: none;
     }
 
-</style>
+    </style>
 </head>
 <body>
     <div class="dashboard-container">
@@ -207,7 +207,7 @@
                 <ul>
                     <li class="active"><a href="#"><i class="fas fa-home"></i> <span>Inicio</span></a></li>
                     <li><a href="{{ url_for('buscarPaciente') }}"><i class="fas fa-users"></i> <span>Pacientes</span></a></li>
-                    <li><a href="{{ url_for('indexCita') }}"><i class="fas fa-calendar-plus"></i> <span>Agendar Cita</span></a></li>
+                    <li><a href="{{ url_for('indexCita') }}"><i class="fas fa-calendar-plus"></i> <span>Citas</span></a></li>
                     <li><a href="{{ url_for('calendario') }}"><i class="fas fa-calendar-alt"></i> <span>Calendario</span></a></li>
                     <li><a href="#"><i class="fas fa-file-invoice-dollar"></i> <span>Facturación</span></a></li>
                 </ul>
@@ -232,7 +232,7 @@
             <div class="kpi-cards-container">
                 <div class="kpi-card">
                     <h4>Citas para Hoy</h4>
-                    <p class="kpi-number">8</p> <span class="kpi-footer">2 confirmadas</span>
+                    <p class="kpi-number">8</p></span>
                 </div>
                 <div class="kpi-card">
                     <h4>Ingresos del Mes</h4>
@@ -279,8 +279,8 @@
                 datasets: [{
                     label: '# de Citas',
                     data: [12, 19, 15, 22],
-                    borderColor: '#4a90e2',
-                    tension: 0.1
+                    
+                    borderColor: 'var(--color-principal)', 
                 }]
             }
         });
