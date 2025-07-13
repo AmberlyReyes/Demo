@@ -7,3 +7,5 @@ class HistorialClinico(db.Model):
 
     # Relación: un historial tiene muchas consultas
     consultas = db.relationship('Consulta', backref='historial_clinico', lazy=True)
+    # Relación con archivos adjuntos
+    archivos  = db.relationship('ArchivoHistorial', backref='historial', lazy=True)
