@@ -533,15 +533,12 @@ def register_routes(app):
         file = request.files.get('file')
         if file and file.filename:
             fn = secure_filename(file.filename)
-            folder = current_app.config['UPLOAD_FOLDER']
+            folder = current_app.config.get('UPLOAD_FOLDER')
             path = os.path.join(folder, fn)
             file.save(path)
-            nuevo = ArchivoHistorial(historial_clinico_id=historial_id, filename=fn, file_url=path)
-            db.session.add(nuevo); db.session.commit()
+            HistorialControlador.guardar_archivo(historial_id, fn, path)
 
-        # redirigir al historial del paciente
-        h = HistorialControlador.obtener_por_paciente(request.form.get('paciente_id'))
-        return redirect(url_for('historial', patientId=h.paciente_id))
+        return redirect(url_for('historial', patientId=request.form.get('paciente_id')))
 
     @app.route('/historial/<int:historial_id>/file/<int:file_id>', methods=['DELETE'])
     def delete_file(historial_id, file_id):
