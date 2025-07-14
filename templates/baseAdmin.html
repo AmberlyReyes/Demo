@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}Panel de Administración{% endblock %}</title>
+    <style>
+        :root {
+            --color-principal: #018ABE; --color-secundario: #34B3D9; --color-sidebar: #004D6A; --color-fondo: #f4f7fa;
+            --color-blanco: #ffffff; --color-borde: #e2e8f0; --color-texto: #334155; --color-danger: #dc2626;
+        }
+        body { font-family: 'Segoe UI', sans-serif; background-color: var(--color-fondo); margin: 0; }
+        .admin-container { padding: 30px; max-width: 1200px; margin: auto; }
+        .admin-header { display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--color-borde); padding-bottom: 20px; margin-bottom: 30px; }
+        .admin-header h1 { color: var(--color-sidebar); margin: 0; }
+        .btn { padding: 10px 20px; border-radius: 8px; text-decoration: none; font-weight: bold; border: none; cursor: pointer; transition: all 0.3s; }
+        .btn-primary { background-color: var(--color-principal); color: white; }
+        .btn-primary:hover { background-color: var(--color-secundario); }
+        .btn-back { background-color: #f1f5f9; color: var(--color-texto); }
+        /* Estilos para tablas, formularios, etc. se añadirán aquí */
+        .content-card { background: var(--color-blanco); padding: 30px; border-radius: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+    </style>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+</head>
+<body>
+    <div class="admin-container">
+        <header class="admin-header">
+            <h1><i class="fas fa-shield-alt"></i> {% block page_title %}Panel de Administración{% endblock %}</h1>
+            <a href="{{ url_for('mainpage') }}" class="btn btn-back">← Volver al Dashboard Principal</a>
+        </header>
+
+        <main class="content-card">
+            {% block admin_content %}{% endblock %}
+        </main>
+    </div>
+</body>
+</html>

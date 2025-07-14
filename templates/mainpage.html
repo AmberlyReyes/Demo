@@ -203,13 +203,17 @@
                 <h3>Dr. Reyes</h3>
                 <p>Gestión Clínica</p>
             </div>
-            <nav class="sidebar-nav">
+           <nav class="sidebar-nav">
                 <ul>
                     <li class="active"><a href="#"><i class="fas fa-home"></i> <span>Inicio</span></a></li>
                     <li><a href="{{ url_for('buscarPaciente') }}"><i class="fas fa-users"></i> <span>Pacientes</span></a></li>
                     <li><a href="{{ url_for('indexCita') }}"><i class="fas fa-calendar-plus"></i> <span>Citas</span></a></li>
                     <li><a href="{{ url_for('calendario') }}"><i class="fas fa-calendar-alt"></i> <span>Calendario</span></a></li>
-                    <li><a href="#"><i class="fas fa-file-invoice-dollar"></i> <span>Facturación</span></a></li>
+                    
+                    {% if current_user.is_authenticated and current_user.administrador %}
+                    <li style="padding: 10px 20px; font-size: 12px; color: var(--color-secundario); text-transform: uppercase;">Panel</li>
+                    <li><a href="{{ url_for('admin_dashboard') }}"><i class="fas fa-shield-alt"></i> <span>Administración</span></a></li>
+                    {% endif %}
                 </ul>
             </nav>
             <div class="sidebar-footer">

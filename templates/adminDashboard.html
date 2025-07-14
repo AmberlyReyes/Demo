@@ -1,0 +1,29 @@
+{% extends "baseAdmin.html" %}
+
+{% block title %}Dashboard de Administración{% endblock %}
+{% block page_title %}Dashboard de Administración{% endblock %}
+
+{% block admin_content %}
+<style>
+    .admin-menu { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 20px; }
+    .menu-card { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 40px; border-radius: 12px; background-color: #f8fafc; border: 1px solid var(--color-borde); text-decoration: none; color: var(--color-texto); transition: all 0.3s; }
+    .menu-card:hover { transform: translateY(-5px); box-shadow: 0 8px 16px rgba(0,0,0,0.08); border-color: var(--color-principal); }
+    .menu-card i { font-size: 48px; color: var(--color-principal); margin-bottom: 15px; }
+    .menu-card h3 { margin: 0; font-size: 20px; }
+</style>
+
+<div class="admin-menu">
+    <a href="{{ url_for('listar_tratamientos') }}" class="menu-card">
+        <i class="fas fa-syringe"></i>
+        <h3>Gestionar Tratamientos</h3>
+    </a>
+    <a href="#" class="menu-card">
+        <i class="fas fa-users-cog"></i>
+        <h3>Gestionar Usuarios</h3>
+    </a>
+    <a href="#" class="menu-card">
+        <i class="fas fa-file-invoice-dollar"></i>
+        <h3>Config. Facturación</h3>
+    </a>
+</div>
+{% endblock %}

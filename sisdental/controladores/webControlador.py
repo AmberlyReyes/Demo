@@ -6,6 +6,7 @@ from sisdental.controladores.ConsultaControlador import ConsultaControlador
 from sisdental.controladores.usuarioControlador import UsuarioControlador
 from sisdental.controladores.DoctorControlador import DoctorControlador
 from sisdental.controladores.HistorialControlador import HistorialControlador
+from sisdental.controladores.TratamientoControlador import TratamientoControlador
 from sisdental.modelos import Persona
 from datetime import datetime
 from sisdental.modelos.Doctor import Doctor
@@ -16,6 +17,8 @@ from sqlalchemy import extract
 from sisdental.modelos.ArchivoHistorial import ArchivoHistorial
 import os
 from werkzeug.utils import secure_filename
+from functools import wraps
+
 
 def register_routes(app):
  
@@ -24,6 +27,21 @@ def register_routes(app):
     @app.route('/')
     def mainpage():
         return render_template('mainpage.html', user=current_user)
+    
+    def admin_required(f):
+        @wraps(f)
+        def decorated_function(*args, **kwargs):
+            if not current_user.is_authenticated or not current_user.administrador:
+                flash('Acceso denegado. Se requieren privilegios de administrador.', 'danger')
+                return redirect(url_for('mainpage'))
+            return f(*args, **kwargs)
+        return decorated_function
+    
+    @app.route('/admin')
+    @login_required
+    @admin_required
+    def admin_dashboard():
+        return render_template('adminDashboard.html')
     
     @app.route('/login', methods=['GET', 'POST'])
     def login():
@@ -250,10 +268,7 @@ def register_routes(app):
                 return render_template('crearCita.html', error=error)
 
         return render_template('crearCita.html', error=error)
-    
-    #@app.route('/gestionPaciente')
-    #def gestion_paciente():
-    # return render_template('gestionPaciente.html')
+
     @app.route('/gestionPaciente')
     def gestion_paciente():
         patient_id = request.args.get('patientId')
@@ -388,17 +403,21 @@ def register_routes(app):
         if not patient_id:
             return "Paciente no especificado", 400
 
-        # Buscar la última consulta del paciente
-        ultima_consulta = ConsultaControlador.obtener_por_paciente(patient_id)
-        if ultima_consulta and len(ultima_consulta) > 0:
-            # Tomar la fecha de la última consulta (la más reciente)
-            fecha_ultima = ultima_consulta[0].fecha.strftime('%Y-%m-%d')
+        # Obtener lista de consultas ordenada por fecha descendente
+        consultas = ConsultaControlador.obtener_por_paciente(patient_id)
+        if consultas and len(consultas) > 0:
+            fecha_ultima = consultas[0].fecha.strftime('%Y-%m-%d')
+            ultima_id   = consultas[0].id
         else:
-            # Si no hay consultas, usar la fecha de hoy
             from datetime import date
             fecha_ultima = date.today().strftime('%Y-%m-%d')
+            ultima_id    = None
 
-        return render_template('nuevaConsulta.html', ultima_consulta=fecha_ultima)
+        return render_template(
+            'nuevaConsulta.html',
+            ultima_consulta=fecha_ultima,
+            ultima_consulta_id=ultima_id
+        )
 
         
 
@@ -535,3 +554,27 @@ def register_routes(app):
             pass
         db.session.delete(archivo); db.session.commit()
         return jsonify({'success':True})
+
+    @app.route('/tratamientos')
+    @login_required
+    @admin_required
+    def listar_tratamientos():
+        tratamientos = TratamientoControlador.obtener_todos()
+        
+        return render_template('listarTratamiento.html', tratamientos=tratamientos)
+
+    @app.route('/tratamientosCrear', methods=['GET', 'POST'])
+    @login_required
+    @admin_required
+    def crear_tratamiento():
+        if request.method == 'POST':
+            data = {
+                'nombre': request.form['nombre'],
+                'descripcion': request.form['descripcion'],
+                'costo': float(request.form['costo'])
+            }
+            TratamientoControlador.crear(data)
+            flash('Tratamiento creado con éxito.', 'success')
+            return redirect(url_for('listar_tratamiento'))
+        return render_template('crearTratamiento.html')
+

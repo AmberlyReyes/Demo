@@ -267,6 +267,21 @@
             color: #721c24;
             border: 1px solid #f5c6cb;
         }
+
+        .link-ultima-consulta {
+            display: inline-block;
+            padding: 8px 12px;
+            background: #f0f8ff;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            color: #2c5aa0;
+            text-decoration: none;
+            font-weight: 600;
+        }
+
+        .link-ultima-consulta:hover {
+            background: #e6f3ff;
+        }
     </style>
 </head>
 <body>
@@ -313,8 +328,18 @@
                     </div>
 
                     <div class="form-group">
-                        <label for="ultima_consulta"> Última Consulta</label>
-                        <input type="date" id="ultima_consulta" name="ultima_consulta" value="{{ultima_consulta}}">
+                        <label>Última Consulta</label>
+                        {% if ultima_consulta_id %}
+                          <a href="{{ url_for('ver_consulta', consulta_id=ultima_consulta_id) }}"
+                             class="link-ultima-consulta">
+                            {{ ultima_consulta }}
+                          </a>
+                        {% else %}
+                          <input type="date"
+                                 id="ultima_consulta"
+                                 name="ultima_consulta"
+                                 value="{{ ultima_consulta }}">
+                        {% endif %}
                     </div>
 
                     <div class="form-group">

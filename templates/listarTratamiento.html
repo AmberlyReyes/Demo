@@ -1,0 +1,38 @@
+{% extends "admin_base.html" %}
+
+{% block title %}Gestión de Tratamientos{% endblock %}
+{% block page_title %}Gestión de Tratamientos{% endblock %}
+
+{% block admin_content %}
+<style>
+    .table-actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .data-table { width: 100%; border-collapse: collapse; }
+    .data-table th, .data-table td { padding: 12px 15px; text-align: left; border-bottom: 1px solid var(--color-borde); }
+    .data-table th { background-color: #f8fafc; font-size: 14px; text-transform: uppercase; color: #64748b; }
+    .data-table .actions a { margin-right: 10px; color: var(--color-secundario); }
+</style>
+
+<div class="table-actions">
+    <p>Aquí puedes administrar los servicios que ofrece la clínica.</p>
+    <a href="{{ url_for('crear_tratamiento') }}" class="btn btn-primary"><i class="fas fa-plus"></i> Crear Nuevo Tratamiento</a>
+</div>
+
+<table class="data-table">
+    <thead>
+        <tr><th>Nombre</th><th>Descripción</th><th>Costo</th><th class="actions">Acciones</th></tr>
+    </thead>
+    <tbody>
+        {% for tratamiento in tratamientos %}
+        <tr>
+            <td>{{ tratamiento.nombre }}</td>
+            <td>{{ tratamiento.descripcion }}</td>
+            <td>${{ "%.2f"|format(tratamiento.costo) }}</td>
+            <td class="actions">
+                <a href="#" title="Editar"><i class="fas fa-edit"></i></a>
+                <a href="#" title="Eliminar" style="color:var(--color-danger);"><i class="fas fa-trash"></i></a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
