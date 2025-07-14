@@ -575,6 +575,6 @@ def register_routes(app):
             }
             TratamientoControlador.crear(data)
             flash('Tratamiento creado con éxito.', 'success')
-            return redirect(url_for('listar_tratamiento'))
+            return redirect(url_for('listar_tratamientos'))
         return render_template('crearTratamiento.html')
 
