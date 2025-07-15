@@ -1,4 +1,4 @@
-from flask import flash, render_template, request, redirect, url_for, jsonify, current_app
+from flask import flash, render_template, request, redirect, url_for, jsonify, current_app, send_from_directory
 from sisdental import db
 from sisdental.controladores.PacienteControlador import PacienteControlador
 from sisdental.controladores.citaControlador import citaControlador
@@ -21,8 +21,6 @@ from functools import wraps
 
 
 def register_routes(app):
- 
-
     # Ruta principal
     @app.route('/')
     def mainpage():
@@ -126,31 +124,7 @@ def register_routes(app):
 
         return render_template('register.html')
 
-    # Paciente historial
-    @app.route('/historial', methods=['GET'])
-    def historial():
-        patient_id = request.args.get('patientId')
-        paciente = PacienteControlador.obtener_por_id(patient_id)
-        if not paciente:
-            return "Paciente no encontrado", 404
 
-        # 1) Obtener o crear el historial clínico
-        historial = HistorialControlador.obtener_por_paciente(patient_id)
-        if not historial:
-            historial = HistorialControlador.crear_historial(patient_id)
-
-        # 2) Obtener las consultas para lista de “Consultas”
-        consultas = ConsultaControlador.obtener_por_paciente(patient_id)
-
-        # 3) Pasar ambas variables al template
-        return render_template(
-            'historialPaciente.html',
-            paciente=paciente,
-            historial=historial,
-            consultas=consultas
-        )
-    
-        
     # Listar todos los pacientes
     @app.route('/pacientes')
     def index():
@@ -484,7 +458,15 @@ def register_routes(app):
             error_msg = f'Ocurrió un error al guardar la consulta: {e}'
             print("Error:", error_msg)
             return jsonify({'error': error_msg}), 500
-        
+
+   
+    @app.route('/uploads/<path:filename>')
+    @login_required
+    def ver_archivo(filename):
+        """Sirve los archivos desde la carpeta UPLOAD_FOLDER."""
+        upload_folder = current_app.config['UPLOAD_FOLDER']
+        return send_from_directory(upload_folder, filename)
+    
 
     @app.route('/consulta/<int:consulta_id>', methods=['GET'])
     def ver_consulta(consulta_id):
@@ -532,11 +514,17 @@ def register_routes(app):
         # Subida de archivo opcional
         file = request.files.get('file')
         if file and file.filename:
-            fn = secure_filename(file.filename)
-            folder = current_app.config.get('UPLOAD_FOLDER')
-            path = os.path.join(folder, fn)
-            file.save(path)
-            HistorialControlador.guardar_archivo(historial_id, fn, path)
+            # 1) Sanitizar nombre
+            filename = secure_filename(file.filename)
+
+            # 2) Ruta física donde se guarda
+            upload_folder = current_app.config['UPLOAD_FOLDER']
+            os.makedirs(upload_folder, exist_ok=True)
+            save_path = os.path.join(upload_folder, filename)
+            file.save(save_path)
+
+            # 3) Guardar sólo el filename en BD (file_url será relativo)
+            HistorialControlador.guardar_archivo(historial_id, filename, filename)
 
         return redirect(url_for('historial', patientId=request.form.get('paciente_id')))
 
@@ -574,4 +562,33 @@ def register_routes(app):
             flash('Tratamiento creado con éxito.', 'success')
             return redirect(url_for('listar_tratamientos'))
         return render_template('crearTratamiento.html')
+    
+    # En webControlador.py
+
+    @app.route('/historial', methods=['GET'])
+    def historial():
+        patient_id = request.args.get('patientId')
+        paciente = PacienteControlador.obtener_por_id(patient_id)
+        if not paciente:
+            return "Paciente no encontrado", 404
+
+        # Obtener o crear el historial clínico
+        historial = HistorialControlador.obtener_por_paciente(patient_id)
+        if not historial:
+            historial = HistorialControlador.crear_historial(patient_id)
+
+        # Obtener las consultas
+        consultas = ConsultaControlador.obtener_por_paciente(patient_id)
+
+        # === NUEVO: OBTENER LOS ARCHIVOS DEL HISTORIAL ===
+        archivos = HistorialControlador.listar_archivos(historial.id)
+
+        # Pasar todas las variables al template
+        return render_template(
+            'historialPaciente.html',
+            paciente=paciente,
+            historial=historial,
+            consultas=consultas,
+            archivos=archivos  # <-- Pasamos la nueva variable de archivos
+        )
 
