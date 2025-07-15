@@ -28,7 +28,7 @@ def crear_app():
     # Importar modelos aquí para que se registren con SQLAlchemy
     from sisdental.modelos import (
         Paciente, Persona, Doctor, Asistente, Usuario, Cita,
-        HistorialClinico, Factura, Consulta, Enfermedad, Tratamiento, Pago, ArchivoHistorial
+        HistorialClinico, Factura, Consulta, Enfermedad, Tratamiento, Pago, ArchivoHistorial,PlanTratamiento, PlanTratamientoDetalle, Cuota
     )
     with app.app_context():
         db.create_all()
