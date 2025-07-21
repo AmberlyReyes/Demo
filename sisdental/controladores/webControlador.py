@@ -54,27 +54,26 @@ def register_routes(app):
             password = request.form.get('password')
         
             user = Usuario.query.filter_by(username=username).first()
-        
 
-        if user is None:
-            flash('Usuario no encontrado', 'danger')
-            return render_template('login.html')
+            if user is None:
+                flash('Usuario no encontrado', 'danger')
+                return render_template('login.html')
 
-            # Verificación básica (deberías usar hash en producción)
-        if user and user.password == password:
-            login_user(user)
-            
-            # Redirección según rol
-            if user.administrador:
-                return redirect(url_for('mainpage'))
-            elif user.doctor:
-                return redirect(url_for('index'))
-            elif user.asistente:
-                return redirect(url_for('indexCita'))
+            # Verificación usando el método check_password
+            if user and user.check_password(password):
+                login_user(user)
+                
+                # Redirección según rol
+                if user.administrador:
+                    return redirect(url_for('mainpage'))
+                elif user.doctor:
+                    return redirect(url_for('index'))
+                elif user.asistente:
+                    return redirect(url_for('indexCita'))
+                else:
+                    return redirect(url_for('mainpage'))  
             else:
-                return redirect(url_for('mainpage'))  # Redirigir a una página por defecto si no es admin, doctor o asistente
-        else:
-            flash('Usuario o contraseña incorrectos', 'danger')
+                flash('Usuario o contraseña incorrectos', 'danger')
     
         return render_template('login.html')
 
@@ -85,43 +84,29 @@ def register_routes(app):
         flash('Has cerrado sesión correctamente', 'info')
         return redirect(url_for('mainpage'))
 
-    @app.route('/register', methods=['GET', 'POST'])
+    @app.route('/register', methods=['GET','POST'])
     def register():
-        if current_user.is_authenticated:
-            return redirect(url_for('index'))
-
         if request.method == 'POST':
-            username = request.form.get('username')
-            password = request.form.get('password')
-            confirm_password = request.form.get('confirm_password')
-            nombre = request.form.get('nombre')
-            email = request.form.get('email')
-
-            # Validaciones básicas
-            if password != confirm_password:
-                flash('Las contraseñas no coinciden', 'danger')
+            username = request.form['username']
+            pwd      = request.form['password']
+            conf     = request.form['confirm_password']
+            if pwd != conf:
+                flash('Las contraseñas no coinciden','danger')
                 return redirect(url_for('register'))
-
             if Usuario.query.filter_by(username=username).first():
-                flash('Este nombre de usuario ya está en uso', 'danger')
+                flash('Usuario ya registrado','warning')
                 return redirect(url_for('register'))
 
-            try:
-                data = {
-                    'username': username,
-                    'password': password,  # En producción deberías hashear la contraseña
-                    'administrador': False,
-                    'doctor': False,
-                    'asistente': False,
-                }
-                print("Datos del usuario:", data)
-                UsuarioControlador.crear_usuario(data)
-                db.session.commit()
-                flash('Registro exitoso. Ahora puedes iniciar sesión', 'success')
-                return redirect(url_for('login'))
-            except Exception as e:
-                db.session.rollback()
-                flash('Error al registrar el usuario: ' + str(e), 'danger')
+            # Creación de usuario con hash
+            nuevo = Usuario(username=username,
+                            administrador=False,
+                            doctor=False,
+                            asistente=False)
+            nuevo.set_password(pwd)
+            db.session.add(nuevo)
+            db.session.commit()
+            flash('Registro exitoso','success')
+            return redirect(url_for('login'))
 
         return render_template('register.html')
 
@@ -693,3 +678,95 @@ def register_routes(app):
         else:
             flash('Error al eliminar el tratamiento.', 'danger')
         return redirect(url_for('listar_tratamientos'))
+    
+    @app.route('/admin/usuarios')
+    @login_required
+    @admin_required
+    def listar_usuarios():
+        usuarios = UsuarioControlador.obtener_todos()
+        return render_template('listar_usuarios.html', usuarios=usuarios)
+
+    @app.route('/admin/usuarios/crear', methods=['GET', 'POST'])
+    @login_required
+    @admin_required
+    def crear_usuario():
+        if request.method == 'POST':
+            # Lógica para crear el usuario
+            nuevo_usuario = Usuario(
+                username=request.form['username'],
+                persona_id=request.form.get('persona_id') or None,
+                administrador='administrador' in request.form,
+                doctor='doctor' in request.form,
+                asistente='asistente' in request.form
+            )
+            nuevo_usuario.set_password(request.form['password'])
+            db.session.add(nuevo_usuario)
+            db.session.commit()
+            flash('Usuario creado con éxito.', 'success')
+            return redirect(url_for('listar_usuarios'))
+
+        # GET: obtenemos el ID de la persona si viene por query param
+        persona_vinculada = request.args.get('persona_id', type=int)
+
+        # Listar personas sin usuario y que no sean pacientes
+        personas_sin_usuario = Persona.query.filter(
+            Persona.usuario == None,
+            Persona.tipo != 'paciente'
+        ).all()
+
+        return render_template(
+            'crear_editarU.html',
+            personas=personas_sin_usuario,
+            persona_a_vincular_id=persona_vinculada
+        )
+
+
+    @app.route('/admin/usuarios/<int:id>/editar', methods=['GET', 'POST'])
+    @login_required
+    @admin_required
+    def editar_usuario(id):
+        usuario = UsuarioControlador.obtener_por_id(id)
+        if not usuario:
+            flash('Usuario no encontrado.', 'danger')
+            return redirect(url_for('listar_usuarios'))
+
+        if request.method == 'POST':
+            # Lógica para actualizar el usuario
+            usuario.username = request.form['username']
+            usuario.persona_id = request.form.get('persona_id') or None
+            usuario.administrador = 'administrador' in request.form
+            usuario.doctor = 'doctor' in request.form
+            usuario.asistente = 'asistente' in request.form
+
+            # Opcional: actualizar contraseña si se cambió
+            if request.form.get('password'):
+                usuario.set_password(request.form['password'])
+            
+            db.session.commit()
+            flash('Usuario actualizado con éxito.', 'success')
+            return redirect(url_for('listar_usuarios'))
+
+        personas_sin_usuario = Persona.query.filter(Persona.usuario == None).all()
+        return render_template('crear_editarU.html', usuario=usuario, personas=personas_sin_usuario)
+
+
+    @app.route('/admin/usuarios/<int:id>/eliminar', methods=['POST'])
+    @login_required
+    @admin_required
+    def eliminar_usuario(id):
+        # Evitar que un admin se elimine a sí mismo
+        if id == current_user.id:
+            flash('No puedes eliminar tu propia cuenta de administrador.', 'danger')
+            return redirect(url_for('listar_usuarios'))
+            
+        UsuarioControlador.eliminar_usuario(id)
+        flash('Usuario eliminado con éxito.', 'info')
+        return redirect(url_for('listar_usuarios'))
+    
+    @app.route('/admin/personas')
+    @login_required
+    @admin_required
+    def listar_personas():
+        # Esta simple consulta obtiene todas las personas gracias a la herencia
+        todas_las_personas = Persona.query.order_by(Persona.nombre).all()
+        return render_template('listar_personas.html', personas=todas_las_personas)

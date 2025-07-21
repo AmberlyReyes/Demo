@@ -1,0 +1,46 @@
+{% extends "baseAdmin.html" %}
+{% block title %}Gestión de Usuarios{% endblock %}
+{% block page_title %}Gestión de Usuarios{% endblock %}
+{% block admin_content %}
+<style>
+    /* Estilos de la tabla, similares a listar_tratamientos.html */
+    .table-actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .data-table { width: 100%; border-collapse: collapse; }
+    .data-table th, .data-table td { padding: 12px 15px; text-align: left; border-bottom: 1px solid var(--color-borde); }
+    .data-table th { background-color: #f8fafc; font-size: 14px; text-transform: uppercase; color: #64748b; }
+    .data-table .actions a, .data-table .actions button { margin-right: 10px; color: var(--color-secundario); background:none; border:none; cursor:pointer; padding:0; }
+    .role-badge { padding: 3px 8px; border-radius: 12px; font-size: 12px; color: white; margin-right: 5px; }
+</style>
+
+<div class="table-actions">
+    <p>Administra las cuentas de acceso al sistema.</p>
+    <a href="{{ url_for('crear_usuario') }}" class="btn btn-primary"><i class="fas fa-plus"></i> Crear Nuevo Usuario</a>
+</div>
+
+<table class="data-table">
+    <thead>
+        <tr><th>Usuario</th><th>Nombre Asociado</th><th>Roles</th><th class="actions">Acciones</th></tr>
+    </thead>
+    <tbody>
+        {% for usuario in usuarios %}
+        <tr>
+            <td>{{ usuario.username }}</td>
+            <td>{{ usuario.persona.nombre if usuario.persona else 'N/A' }}</td>
+            <td>
+                {% if usuario.administrador %}<span class="role-badge" style="background:#c0392b;">Admin</span>{% endif %}
+                {% if usuario.doctor %}<span class="role-badge" style="background:#2980b9;">Doctor</span>{% endif %}
+                {% if usuario.asistente %}<span class="role-badge" style="background:#27ae60;">Asistente</span>{% endif %}
+            </td>
+            <td class="actions">
+                <a href="{{ url_for('editar_usuario', id=usuario.id) }}" title="Editar"><i class="fas fa-edit"></i></a>
+                {% if usuario.id != current_user.id %}
+                <form method="POST" action="{{ url_for('eliminar_usuario', id=usuario.id) }}" style="display:inline;" onsubmit="return confirm('¿Estás seguro?');">
+                    <button type="submit" title="Eliminar" style="color:var(--color-danger);"><i class="fas fa-trash"></i></button>
+                </form>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

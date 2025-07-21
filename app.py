@@ -17,7 +17,6 @@ login_manager.login_view = 'login'
 
 # Necesitamos que Usuario herede de UserMixin para Flask-Login
 
-Usuario.__bases__ = (UserMixin,) + Usuario.__bases__
 
 @login_manager.user_loader
 def load_user(user_id):

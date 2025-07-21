@@ -1,0 +1,54 @@
+{% extends "baseAdmin.html" %}
+{% block title %}{% if usuario %}Editar Usuario{% else %}Crear Usuario{% endif %}{% endblock %}
+{% block page_title %}{% if usuario %}Editar Usuario: {{ usuario.username }}{% else %}Crear Nuevo Usuario{% endif %}{% endblock %}
+{% block admin_content %}
+<style>
+    /* Estilos de formulario, similares a otros */
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .form-group { display: flex; flex-direction: column; }
+    .form-group label { font-weight: bold; margin-bottom: 8px; }
+    .form-group input, .form-group select { padding: 12px; border: 1px solid var(--color-borde); border-radius: 8px; font-size: 16px; }
+    .form-group.full-width { grid-column: 1 / -1; }
+    .form-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+    .roles-group label { display: inline-block; margin-right: 15px; }
+</style>
+
+<form method="POST" action="{% if usuario %}{{ url_for('editar_usuario', id=usuario.id) }}{% else %}{{ url_for('crear_usuario') }}{% endif %}">
+    <div class="form-grid">
+        <div class="form-group">
+            <label for="username">Nombre de Usuario</label>
+            <input type="text" id="username" name="username" value="{{ usuario.username or '' }}" required>
+        </div>
+        <div class="form-group">
+            <label for="password">Contraseña</label>
+            <input type="password" id="password" name="password" placeholder="{% if usuario %}Dejar en blanco para no cambiar{% else %}Requerido{% endif %}" {% if not usuario %}required{% endif %}>
+        </div>
+        <div class="form-group full-width">
+            <label for="persona_id">Asociar a Persona (Doctor/Asistente)</label>
+            <select id="persona_id" name="persona_id">
+                <option value="">-- Ninguno --</option>
+                {% if usuario and usuario.persona %}
+                <option value="{{ usuario.persona.id }}" selected>{{ usuario.persona.nombre }} (Actual)</option>
+                {% endif %}
+                {% for persona in personas %}
+                    <option value="{{ persona.id }}" {% if persona.id == persona_a_vincular_id %}selected{% endif %}>
+                        {{ persona.nombre }} ({{ persona.tipo }})
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group full-width roles-group">
+            <label>Roles</label>
+            <div>
+                <label><input type="checkbox" name="administrador" {% if usuario and usuario.administrador %}checked{% endif %}> Administrador</label>
+                <label><input type="checkbox" name="doctor" {% if usuario and usuario.doctor %}checked{% endif %}> Doctor</label>
+                <label><input type="checkbox" name="asistente" {% if usuario and usuario.asistente %}checked{% endif %}> Asistente</label>
+            </div>
+        </div>
+    </div>
+    <div class="form-actions">
+        <a href="{{ url_for('listar_usuarios') }}" class="btn btn-back">Cancelar</a>
+        <button type="submit" class="btn btn-primary">Guardar</button>
+    </div>
+</form>
+{% endblock %}

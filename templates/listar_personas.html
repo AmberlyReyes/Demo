@@ -1,0 +1,62 @@
+{% extends "baseAdmin.html" %}
+{% block title %}Directorio de Personas{% endblock %}
+{% block page_title %}Directorio de Personas{% endblock %}
+
+{% block admin_content %}
+<style>
+    /* Estilos de la tabla, similares a otros listados */
+    .table-actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .data-table { width: 100%; border-collapse: collapse; }
+    .data-table th, .data-table td { padding: 12px 15px; text-align: left; border-bottom: 1px solid var(--color-borde); }
+    .data-table th { background-color: #f8fafc; font-size: 14px; text-transform: uppercase; color: #64748b; }
+    .role-badge { padding: 3px 8px; border-radius: 12px; font-size: 12px; color: white; }
+</style>
+
+<div class="table-actions">
+    <p>Lista completa de todas las personas registradas en el sistema.</p>
+    </div>
+
+<table class="data-table">
+    <thead>
+        <tr>
+            <th>Nombre</th>
+            <th>Cédula</th>
+            <th>Teléfono</th>
+            <th>Tipo</th>
+            <th>Cuenta de Usuario</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for persona in personas %}
+        <tr>
+            <td>{{ persona.nombre }}</td>
+            <td>{{ persona.cedula }}</td>
+            <td>{{ persona.telefono }}</td>
+            <td>
+                {% if persona.tipo == 'paciente' %}
+                    <span class="role-badge" style="background:#3498db;">Paciente</span>
+                {% elif persona.tipo == 'doctor' %}
+                    <span class="role-badge" style="background:#2980b9;">Doctor</span>
+                {% elif persona.tipo == 'asistente' %}
+                    <span class="role-badge" style="background:#27ae60;">Asistente</span>
+                {% endif %}
+            </td>
+            <td>
+                {% if persona.usuario %}
+                    <i class="fas fa-check-circle" style="color: #27ae60;"></i>
+                    <strong>{{ persona.usuario.username }}</strong>
+                {% else %}
+                    <span style="color: #7f8c8d;">Sin cuenta</span>
+                {% endif %}
+            </td>
+            <td>
+                {% if not persona.usuario and persona.tipo != 'paciente' %}
+                    <a href="{{ url_for('crear_usuario', persona_id=persona.id) }}" class="btn" style="padding: 5px 10px; font-size:12px; background-color: #f1f5f9;">Crear Usuario</a>
+                {% endif %}
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}
