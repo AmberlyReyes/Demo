@@ -4,6 +4,7 @@ from sisdental.controladores.PacienteControlador import PacienteControlador
 from sisdental.controladores.citaControlador import citaControlador
 from sisdental.controladores.ConsultaControlador import ConsultaControlador
 from sisdental.controladores.usuarioControlador import UsuarioControlador
+from sisdental.controladores.PersonaControlador import PersonaControlador
 from sisdental.controladores.DoctorControlador import DoctorControlador
 from sisdental.controladores.HistorialControlador import HistorialControlador
 from sisdental.controladores.TratamientoControlador import TratamientoControlador
@@ -698,7 +699,9 @@ def register_routes(app):
                 administrador='administrador' in request.form,
                 doctor='doctor' in request.form,
                 asistente='asistente' in request.form
+                 #return redirect(url_for('listar_usuarios'))
             )
+
             nuevo_usuario.set_password(request.form['password'])
             db.session.add(nuevo_usuario)
             db.session.commit()
@@ -716,9 +719,11 @@ def register_routes(app):
 
         return render_template(
             'crear_editarU.html',
+            usuario=None,  
             personas=personas_sin_usuario,
             persona_a_vincular_id=persona_vinculada
         )
+    
 
 
     @app.route('/admin/usuarios/<int:id>/editar', methods=['GET', 'POST'])
@@ -770,3 +775,53 @@ def register_routes(app):
         # Esta simple consulta obtiene todas las personas gracias a la herencia
         todas_las_personas = Persona.query.order_by(Persona.nombre).all()
         return render_template('listar_personas.html', personas=todas_las_personas)
+
+    @app.route('/admin/personas/crear', methods=['GET','POST'])
+    @login_required
+    @admin_required
+    def crear_persona():
+        if request.method == 'POST':
+            data = {
+                'nombre':   request.form['nombre'],
+                'cedula':   request.form['cedula'],
+                'telefono': request.form['telefono'],
+                'direccion':request.form['direccion'],
+                'email':    request.form['email'],
+                'tipo':     request.form['tipo']
+            }
+            PersonaControlador.crear_persona(data)
+            flash('Persona creada.', 'success')
+            return redirect(url_for('listar_personas'))
+        return render_template('crear_persona.html')
+
+    @app.route('/admin/personas/<int:id>/editar', methods=['GET','POST'])
+    @login_required
+    @admin_required
+    def editar_persona(id):
+        persona = PersonaControlador.obtener_por_id(id)
+        if not persona:
+            flash('Persona no encontrada.', 'danger')
+            return redirect(url_for('listar_personas'))
+        if request.method == 'POST':
+            datos = {
+                'nombre':   request.form['nombre'],
+                'cedula':   request.form['cedula'],
+                'telefono': request.form['telefono'],
+                'direccion':request.form['direccion'],
+                'email':    request.form['email'],
+                'tipo':     request.form['tipo']
+            }
+            PersonaControlador.actualizar_persona(id, datos)
+            flash('Persona actualizada.', 'success')
+            return redirect(url_for('listar_personas'))
+        return render_template('editar_persona.html', persona=persona)
+
+    @app.route('/admin/personas/<int:id>/eliminar', methods=['POST'])
+    @login_required
+    @admin_required
+    def eliminar_persona(id):
+        PersonaControlador.eliminar_persona(id)
+        flash('Persona eliminada.', 'info')
+        return redirect(url_for('listar_personas'))
+
+

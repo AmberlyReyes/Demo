@@ -14,7 +14,10 @@
 
 <div class="table-actions">
     <p>Lista completa de todas las personas registradas en el sistema.</p>
-    </div>
+    <a href="{{ url_for('crear_persona') }}" class="btn btn-primary">
+        <i class="fas fa-plus"></i> Crear Nueva Persona
+    </a>
+</div>
 
 <table class="data-table">
     <thead>
@@ -51,9 +54,16 @@
                 {% endif %}
             </td>
             <td>
-                {% if not persona.usuario and persona.tipo != 'paciente' %}
-                    <a href="{{ url_for('crear_usuario', persona_id=persona.id) }}" class="btn" style="padding: 5px 10px; font-size:12px; background-color: #f1f5f9;">Crear Usuario</a>
-                {% endif %}
+              {% if not persona.usuario and persona.tipo!='paciente' %}
+                <a href="{{ url_for('crear_usuario', persona_id=persona.id) }}" class="btn">Crear Usuario</a>
+              {% endif %}
+              <a href="{{ url_for('editar_persona', id=persona.id) }}" class="btn">Editar</a>
+              <form method="post"
+                    action="{{ url_for('eliminar_persona', id=persona.id) }}"
+                    style="display:inline;"
+                    onsubmit="return confirm('¿Eliminar esta persona?');">
+                <button type="submit" class="btn btn-danger">Eliminar</button>
+              </form>
             </td>
         </tr>
         {% endfor %}
