@@ -28,8 +28,19 @@
             <td>{{ tratamiento.descripcion }}</td>
             <td>${{ "%.2f"|format(tratamiento.costo) }}</td>
             <td class="actions">
-                <a href="#" title="Editar"><i class="fas fa-edit"></i></a>
-                <a href="#" title="Eliminar" style="color:var(--color-danger);"><i class="fas fa-trash"></i></a>
+                <a href="{{ url_for('editar_tratamiento', id=tratamiento.id) }}" title="Editar">
+                    <i class="fas fa-edit"></i>
+                </a>
+                <form method="POST"
+                      action="{{ url_for('eliminar_tratamiento', id=tratamiento.id) }}"
+                      style="display:inline;"
+                      onsubmit="return confirm('¿Estás seguro de que quieres eliminar este tratamiento?');">
+                    <button type="submit"
+                            title="Eliminar"
+                            style="background:none; border:none; color:var(--color-danger); cursor:pointer; padding:0;">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </form>
             </td>
         </tr>
         {% endfor %}

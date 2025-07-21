@@ -12,5 +12,31 @@ class TratamientoControlador:
         db.session.add(nuevo)
         db.session.commit()
         return nuevo
+
+    @staticmethod
+    def obtener_por_id(tratamiento_id):
     
-    # Aquí irían las funciones de obtener_por_id, actualizar y eliminar...
+        return Tratamiento.query.get(tratamiento_id)
+
+    @staticmethod
+    def actualizar(tratamiento_id, data):
+       
+        tratamiento = Tratamiento.query.get(tratamiento_id)
+        if tratamiento:
+            tratamiento.nombre = data['nombre']
+            tratamiento.descripcion = data['descripcion']
+            tratamiento.costo = data['costo']
+            db.session.commit()
+            return True
+        return False
+
+    @staticmethod
+    def eliminar(tratamiento_id):
+       
+        tratamiento = Tratamiento.query.get(tratamiento_id)
+        if tratamiento:
+            db.session.delete(tratamiento)
+            db.session.commit()
+            return True
+        return False
+    

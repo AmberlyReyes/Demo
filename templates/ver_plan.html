@@ -1,0 +1,106 @@
+{% extends "baseAdmin.html" %}
+
+{% block title %}Detalle del Plan - {{ plan.nombre_plan }}{% endblock %}
+{% block page_title %}Detalle del Plan: {{ plan.nombre_plan }}{% endblock %}
+
+{% block admin_content %}
+<style>
+    .plan-details-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 30px; }
+    .section-box { background-color: #f8fafc; border: 1px solid var(--color-borde); border-radius: 12px; padding: 25px; }
+    .section-box h3 { color: var(--color-sidebar); margin-top: 0; margin-bottom: 20px; border-bottom: 1px solid var(--color-borde); padding-bottom: 10px; }
+    .info-list li { display: flex; justify-content: space-between; padding: 8px 0; list-style: none; }
+    .info-list li span:first-child { font-weight: bold; }
+    .data-table { width: 100%; border-collapse: collapse; }
+    .data-table th, .data-table td { padding: 10px; text-align: left; border-bottom: 1px solid var(--color-borde); }
+    .status-badge { padding: 5px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; color: white; }
+    .status-pendiente { background-color: #f39c12; }
+    .status-pagada { background-color: #27ae60; }
+    .status-vencida { background-color: #e74c3c; }
+    .summary-card { text-align: center; padding: 20px; border-radius: 8px; color: white; }
+    .summary-total { background: var(--color-principal); }
+    .summary-pagado { background: #27ae60; }
+    .summary-pendiente { background: #e74c3c; }
+    .summary-card .label { font-size: 14px; opacity: 0.9; }
+    .summary-card .amount { font-size: 28px; font-weight: bold; }
+</style>
+
+<!-- Resumen Financiero -->
+<div class="plan-details-grid" style="margin-bottom: 30px;">
+    <div class="summary-card summary-total">
+        <div class="label">Costo Total del Plan</div>
+        <div class="amount">${{ "%.2f"|format(plan.costo_total) }}</div>
+    </div>
+    <div class="summary-card summary-pagado">
+        <div class="label">Total Pagado</div>
+        <div class="amount">${{ "%.2f"|format(total_pagado) }}</div>
+    </div>
+    <div class="summary-card summary-pendiente">
+        <div class="label">Saldo Pendiente</div>
+        <div class="amount">${{ "%.2f"|format(plan.costo_total - total_pagado) }}</div>
+    </div>
+</div>
+
+<div class="plan-details-grid">
+    <!-- Columna Izquierda: Detalles y Cuotas -->
+    <div>
+        <div class="section-box" style="margin-bottom: 30px;">
+            <h3><i class="fas fa-info-circle"></i> Información General</h3>
+            <ul class="info-list">
+                <li><span>Paciente:</span> <span>{{ plan.paciente.nombre }}</span></li>
+                <li><span>Doctor Asignado:</span> <span>{{ plan.doctor.nombre }}</span></li>
+                <li><span>Fecha de Inicio:</span> <span>{{ plan.fecha_inicio.strftime('%d/%m/%Y') }}</span></li>
+                <li><span>Estado del Plan:</span> <span>{{ plan.estado }}</span></li>
+            </ul>
+        </div>
+
+        <div class="section-box">
+            <h3><i class="fas fa-tasks"></i> Tratamientos Incluidos</h3>
+            <table class="data-table">
+                <tbody>
+                    {% for detalle in plan.detalles %}
+                    <tr>
+                        <td>{{ detalle.tratamiento.nombre }} (x{{ detalle.cantidad }})</td>
+                        <td style="text-align: right;">${{ "%.2f"|format(detalle.costo_aplicado * detalle.cantidad) }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <!-- Columna Derecha: Plan de Pagos -->
+    <div class="section-box">
+        <h3><i class="fas fa-dollar-sign"></i> Plan de Pagos</h3>
+        <table class="data-table">
+            <thead><tr><th>#</th><th>Vencimiento</th><th>Monto</th><th>Estado</th><th>Acción</th></tr></thead>
+            <tbody>
+                {% for cuota in plan.cuotas %}
+                <tr>
+                    <td>{{ cuota.numero_cuota }}</td>
+                    <td>{{ cuota.fecha_vencimiento.strftime('%d/%m/%Y') }}</td>
+                    <td>${{ "%.2f"|format(cuota.monto) }}</td>
+                    <td>
+                        <span class="status-badge 
+                            {% if cuota.estado == 'Pagada' %}status-pagada
+                            {% elif cuota.estado == 'Vencida' %}status-vencida
+                            {% else %}status-pendiente{% endif %}">
+                            {{ cuota.estado }}
+                        </span>
+                    </td>
+                    <td>
+                        {% if cuota.estado == 'Pendiente' %}
+                        <a href="#" class="btn btn-primary" style="padding: 5px 10px; font-size: 12px;">Facturar</a>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="form-actions" style="margin-top: 30px;">
+    <a href="{{ url_for('listar_planes_paciente', paciente_id=plan.paciente_id) }}" class="btn btn-back">Volver a la Lista</a>
+    <a href="{{ url_for('editar_plan_paciente', paciente_id=plan.paciente_id, plan_id=plan.id) }}" class="btn btn-primary">Editar Plan</a>
+</div>
+{% endblock %}

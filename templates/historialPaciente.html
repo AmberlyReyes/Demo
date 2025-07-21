@@ -290,6 +290,10 @@
             color: white;
             border-color: #e74c3c;
         }
+        .consulta-item.highlight {
+            background: #fffae6;
+            transition: background 0.5s ease;
+        }
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 </head>
@@ -322,10 +326,12 @@
             </div>
             <div class="consultas-list">
                 {% if consultas and consultas|length > 0 %}
-                    {% for consulta in consultas %}
-                        <div class="consulta-item" onclick="verConsulta({{ consulta.id }})">
-                            <div class="consulta-fecha">{{ consulta.fecha.strftime('%d de %B, %Y') }}</div>
-                            <p>Dr. {{ consulta.doctor.nombre if consulta.doctor else 'Reyes' }} - {{ consulta.hora or '' }}</p>
+                    {% for c in consultas %}
+                        <div id="consulta-{{ c.id }}"
+                             class="consulta-item {% if c.id == last_consulta_id %}highlight{% endif %}"
+                             onclick="verConsulta({{ c.id }})">
+                            <strong>{{ c.fecha.strftime('%d/%m/%Y') }}</strong> —
+                            {{ c.diagnostico or 'Consulta General' }}
                         </div>
                     {% endfor %}
                 {% else %}
@@ -415,6 +421,20 @@
                     });
             }
         }
+
+        // Resaltar y hacer scroll a la última consulta
+        document.addEventListener('DOMContentLoaded', function() {
+            const lastConsulta = document.querySelector('.consulta-item.highlight');
+            if (lastConsulta) {
+                // Hacemos scroll suave hasta el elemento
+                lastConsulta.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+                // Opcional: quitar el resaltado después de unos segundos
+                setTimeout(() => {
+                    lastConsulta.classList.remove('highlight');
+                }, 2500); // Se quita después de 2.5 segundos
+            }
+        });
     </script>
 </body>
 </html>

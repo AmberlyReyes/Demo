@@ -369,11 +369,7 @@
                     <span class="detail-label">Aseguradora:</span>
                     <span class="detail-value">${patient.aseguradora}</span>
                 </div>
-                <div class="detail-item">
-                    <span class="detail-icon">🎂</span>
-                    <span class="detail-label">Nacimiento:</span>
-                    <span class="detail-value">${patient.nacimiento}</span>
-                </div>
+                
             `;
         }
 
@@ -419,8 +415,7 @@
                 alert('Debe seleccionar un paciente primero');
                 return;
             }
-            // En el futuro apunta a la ruta de gestión de tratamientos
-            alert('Módulo de gestión de tratamientos - Próximamente');
+            window.location.href = `/paciente/${currentPatient.id}/planes`;
         }
 
         function openModificar() {

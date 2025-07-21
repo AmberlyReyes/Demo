@@ -1,0 +1,78 @@
+{% extends "baseAdmin.html" %}
+
+{% block title %}Planes de Tratamiento - {{ paciente.nombre }}{% endblock %}
+{% block page_title %}Planes de Tratamiento: {{ paciente.nombre }}{% endblock %}
+
+{% block admin_content %}
+<style>
+    .table-actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .data-table { width: 100%; border-collapse: collapse; }
+    .data-table th, .data-table td { padding: 12px 15px; text-align: left; border-bottom: 1px solid var(--color-borde); }
+    .data-table th { background-color: #f8fafc; font-size: 14px; text-transform: uppercase; color: #64748b; }
+    .data-table .actions a { margin-right: 10px; color: var(--color-secundario); }
+    .status-badge { padding: 5px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; color: white; }
+    .status-activo { background-color: #27ae60; }
+    .status-presupuesto { background-color: #f39c12; }
+    .status-finalizado { background-color: #6c757d; }
+    .empty-state { text-align: center; padding: 40px; color: #666; }
+</style>
+
+<div class="table-actions">
+    <p>Visualiza y gestiona todos los planes de tratamiento asociados a este paciente.</p>
+    <a href="{{ url_for('crear_plan_paciente', paciente_id=paciente.id) }}" class="btn btn-primary"><i class="fas fa-plus"></i> Crear Nuevo Plan</a>
+</div>
+
+{% if planes and planes|length > 0 %}
+<table class="data-table">
+    <thead>
+        <tr>
+            <th>Nombre del Plan</th>
+            <th>Doctor Asignado</th>
+            <th>Fecha de Inicio</th>
+            <th>Costo Total</th>
+            <th>Estado</th>
+            <th class="actions">Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for plan in planes %}
+        <tr>
+            <td>{{ plan.nombre_plan }}</td>
+            <td>{{ plan.doctor.nombre }}</td>
+            <td>{{ plan.fecha_inicio.strftime('%d/%m/%Y') }}</td>
+            <td>${{ "%.2f"|format(plan.costo_total) }}</td>
+            <td>
+                <span class="status-badge 
+                    {% if plan.estado == 'Activo' %}status-activo
+                    {% elif plan.estado == 'Presupuesto' %}status-presupuesto
+                    {% else %}status-finalizado{% endif %}">
+                    {{ plan.estado }}
+                </span>
+            </td>
+            <td class="actions">
+                <a href="{{ url_for('ver_plan_paciente', paciente_id=paciente.id, plan_id=plan.id) }}">
+                  <i class="fas fa-eye"></i>
+                </a>
+                <a href="{{ url_for('editar_plan_paciente', paciente_id=paciente.id, plan_id=plan.id) }}">
+                  <i class="fas fa-edit"></i>
+                </a>
+                <form action="{{ url_for('eliminar_plan_paciente', paciente_id=paciente.id, plan_id=plan.id) }}"
+                      method="post" style="display:inline">
+                  <button type="submit"
+                          onclick="return confirm('¿Eliminar este plan?')"
+                          style="background:none; border:none; color: var(--color-danger);">
+                    <i class="fas fa-trash"></i>
+                  </button>
+                </form>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% else %}
+<div class="empty-state">
+    <h4>Este paciente aún no tiene planes de tratamiento.</h4>
+    <p>Haz clic en "Crear Nuevo Plan" para empezar.</p>
+</div>
+{% endif %}
+{% endblock %}

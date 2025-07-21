@@ -1,0 +1,35 @@
+{% extends "baseAdmin.html" %}
+
+{% block title %}Editar Tratamiento{% endblock %}
+{% block page_title %}Editar Tratamiento{% endblock %}
+
+{% block admin_content %}
+<style>
+    .form-grid { display: grid; gap: 20px; }
+    .form-group { display: flex; flex-direction: column; }
+    .form-group label { font-weight: bold; margin-bottom: 8px; color: var(--color-texto); }
+    .form-group input, .form-group textarea { padding: 12px; border: 1px solid var(--color-borde); border-radius: 8px; font-size: 16px; }
+    .form-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; }
+</style>
+
+<form method="POST" action="{{ url_for('editar_tratamiento', id=tratamiento.id) }}">
+    <div class="form-grid">
+        <div class="form-group">
+            <label for="nombre">Nombre del Tratamiento</label>
+            <input type="text" id="nombre" name="nombre" value="{{ tratamiento.nombre }}" required>
+        </div>
+        <div class="form-group">
+            <label for="costo">Costo ($)</label>
+            <input type="number" step="0.01" id="costo" name="costo" value="{{ tratamiento.costo }}" required>
+        </div>
+        <div class="form-group">
+            <label for="descripcion">Descripción</label>
+            <textarea id="descripcion" name="descripcion" rows="4">{{ tratamiento.descripcion or '' }}</textarea>
+        </div>
+    </div>
+    <div class="form-actions">
+        <a href="{{ url_for('listar_tratamientos') }}" class="btn btn-back">Cancelar</a>
+        <button type="submit" class="btn btn-primary">Guardar Cambios</button>
+    </div>
+</form>
+{% endblock %}

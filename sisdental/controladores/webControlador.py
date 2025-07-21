@@ -7,6 +7,7 @@ from sisdental.controladores.usuarioControlador import UsuarioControlador
 from sisdental.controladores.DoctorControlador import DoctorControlador
 from sisdental.controladores.HistorialControlador import HistorialControlador
 from sisdental.controladores.TratamientoControlador import TratamientoControlador
+from sisdental.controladores.PlanTratamientoControlador import PlanTratamientoControlador
 from sisdental.modelos import Persona
 from datetime import datetime
 from sisdental.modelos.Doctor import Doctor
@@ -199,49 +200,67 @@ def register_routes(app):
     @app.route('/crearCita', methods=('GET', 'POST'))
     def crearCita():
         error = None
+        planes_activos = PlanTratamientoControlador.obtener_todos_activos()
+        doctores= DoctorControlador.obtener_todos()
 
         if request.method == 'POST':
-            try:
-                # 1. Verificar que el paciente existe
-                Paci = PacienteControlador.obtener_por_cedula(request.form['paciente_cedula'])
-                if not Paci:
-                    error = "El paciente no existe"
-                    return render_template('crearCita.html', error=error)
+            cedula = request.form['paciente_cedula']
+            cedula_limpia = cedula.strip() 
+            # 1) Buscar paciente por cédula
+            Paci = PacienteControlador.obtener_por_cedula(cedula_limpia)
+            if not Paci:
+                error = f"No existe paciente con cédula {cedula}"
+                return render_template(
+                    'crearCita.html',
+                    error=error,
+                    planes_activos=planes_activos
+                )
 
-                # 2. Verificar que el doctor existe
-                doctor_id = request.form['doctor_id']
-                doctor = DoctorControlador.obtener_por_id(doctor_id)  # Necesitarás implementar este método
-                if not doctor:
-                    error = "El doctor especificado no existe"
-                    return render_template('crearCita.html', error=error)
+            doctor_id = request.form['doctor_id']
+            plan_id   = request.form.get('plan_tratamiento_id') or None
 
-                # Preparar datos de la cita
-                data = {
-                    'paciente_id': Paci.id,
-                    'doctor_id': doctor_id,
-                    'fecha': request.form['fecha'],
-                    'hora': request.form['hora'],
-                }
+            data = {
+                'paciente_id': Paci.id,
+                'doctor_id': doctor_id,
+                'fecha': request.form['fecha'],
+                'hora': request.form['hora'],
+                'plan_tratamiento_id': plan_id
+            }
 
-                # 3. Verificar disponibilidad del doctor (fecha y hora única)
-                if citaControlador.check_cita_doctor(data['doctor_id'], data['fecha'], data['hora']):
-                    error = "El doctor ya tiene una cita programada en esa fecha y hora"
-                    return render_template('crearCita.html', error=error)
+            citaControlador.crear_cita(data)
+            return redirect(url_for('indexCita'))
 
-                # 4. Verificar que el paciente no tenga otra cita a la misma hora
-                if citaControlador.check_cita_paciente(data['paciente_id'], data['fecha'], data['hora']):
-                    error = "El paciente ya tiene una cita programada en esa fecha y hora"
-                    return render_template('crearCita.html', error=error)
+        # GET
+        return render_template(
+            'crearCita.html',
+            error=error,
+            planes_activos=planes_activos, 
+            doctores=doctores
+        )
 
-                # Si pasa todas las validaciones, crear la cita
-                citaControlador.crear_cita(data)
-                return redirect(url_for('indexCita'))
 
-            except Exception as e:
-                error = f"Error al procesar la cita: {str(e)}"
-                return render_template('crearCita.html', error=error)
+    @app.route('/<int:id>/editarCita', methods=('GET', 'POST'))
+    def editarCita(id):
+        cita = citaControlador.obtener_por_id(id)
+        if not cita:
+            return "Cita no encontrada", 404
 
-        return render_template('crearCita.html', error=error)
+        planes_activos = PlanTratamientoControlador.obtener_por_paciente(cita.paciente_id)
+
+        if request.method == 'POST':
+            # validar fecha/hora…
+            plan_id = request.form.get('plan_tratamiento_id') or None
+            nuevos_datos = {
+                'fecha': request.form['fecha'],
+                'hora': request.form['hora'],
+                'plan_tratamiento_id': plan_id
+            }
+            citaControlador.actualizar_cita(id, nuevos_datos)
+            return redirect(url_for('indexCita'))
+
+        return render_template('editarCita.html',
+                               pacientes=cita,
+                               planes_activos=planes_activos)
 
     @app.route('/gestionPaciente')
     def gestion_paciente():
@@ -273,37 +292,6 @@ def register_routes(app):
             return redirect(url_for('gestion_paciente',patientId=id))
 
         return render_template('editar.html', pacientes=paciente)
-
-    # Editar Cita
-    @app.route('/<int:id>/editarCita', methods=('GET', 'POST'))
-    def editarCita(id):
-        paciente = citaControlador.obtener_por_id(id)
-        if not paciente:
-            return "Cita no encontrado", 404
-
-        if request.method == 'POST':
-            fecha_original = request.form['fecha']  # Ej. "31/01/2025"
-            # Separa por '/'
-            dia, mes, anio = fecha_original.split('/')
-
-            # Ajusta al formato "YYYY-MM-DD" (si es el que usas en DB)
-            fecha_formateada = f"{anio}-{mes}-{dia}"
-
-            # Convierte la hora en objeto time
-            hora_str = request.form['hora']  # Ej. "13:30"
-            hora_python = datetime.strptime(hora_str, '%H:%M').time()
-            hora_formateada = hora_python.strftime("%H:%M")
-
-            nuevos_datos = {
-                'paciente_cedula': request.form['paciente_cedula'],
-                'doctor_id': request.form['doctor_id'],
-                'fecha': fecha_formateada,  # Ahora en "YYYY-MM-DD"
-                'hora': hora_formateada
-            }
-            citaControlador.actualizar_cita(id, nuevos_datos)
-            return redirect(url_for('indexCita'))
-
-        return render_template('editarCita.html', pacientes=paciente)
 
     # Eliminar pacientes
     @app.route('/<int:id>/eliminar', methods=('POST',))
@@ -372,16 +360,27 @@ def register_routes(app):
         }, 200
 
     @app.route('/nuevaConsulta', methods=['GET'])
+    @login_required
     def nueva_consulta():
         patient_id = request.args.get('patientId')
         if not patient_id:
             return "Paciente no especificado", 400
 
-        # Obtener lista de consultas ordenada por fecha descendente
+        #  Traer paciente
+        paciente = PacienteControlador.obtener_por_id(patient_id)
+        if not paciente:
+            flash("Paciente no encontrado", "danger")
+            return redirect(url_for('gestion_paciente', patientId=patient_id))
+
+        # Traer o crear historial
+        historial = HistorialControlador.obtener_por_paciente(patient_id) \
+                   or HistorialControlador.crear_historial(patient_id)
+
+        # Última consulta
         consultas = ConsultaControlador.obtener_por_paciente(patient_id)
-        if consultas and len(consultas) > 0:
+        if consultas:
             fecha_ultima = consultas[0].fecha.strftime('%Y-%m-%d')
-            ultima_id   = consultas[0].id
+            ultima_id    = consultas[0].id
         else:
             from datetime import date
             fecha_ultima = date.today().strftime('%Y-%m-%d')
@@ -389,6 +388,8 @@ def register_routes(app):
 
         return render_template(
             'nuevaConsulta.html',
+            paciente=paciente,
+            historial=historial,
             ultima_consulta=fecha_ultima,
             ultima_consulta_id=ultima_id
         )
@@ -399,64 +400,45 @@ def register_routes(app):
     @app.route('/api/consulta', methods=['POST'])
     def api_crear_consulta():
         data = request.get_json()
-        print("Datos recibidos:", data)  # Log de datos recibidos
-
         if not data:
-            error_msg = 'No se enviaron datos'
-            print("Error:", error_msg)
-            return jsonify({'error': error_msg}), 400
+            return jsonify({'error': 'No se recibieron datos'}), 400
 
-        if 'paciente_id' not in data:
-            error_msg = 'Falta paciente_id en los datos'
-            print("Error:", error_msg)
-            return jsonify({'error': error_msg}), 400
+        # Campos obligatorios
+        required = ['paciente_id', 'historial_clinico_id', 'doctor_id', 'fecha']
+        missing = [f for f in required if f not in data]
+        if missing:
+            return jsonify({'error': f'Faltan campos: {", ".join(missing)}'}), 400
 
-        from sisdental.modelos.HistorialClinico import HistorialClinico
-
-        # Procesar fechas
+        # Parseo de fechas
         try:
-            fecha = datetime.strptime(data['fecha'], '%Y-%m-%d').date() if data.get('fecha') else None
-            ultima_consulta = datetime.strptime(data['ultima_consulta'], '%Y-%m-%d').date() if data.get('ultima_consulta') else None
-        except Exception as exc:
-            error_msg = f'Formato de fecha inválido: {exc}'
-            print("Error:", error_msg)
-            return jsonify({'error': error_msg}), 400
-
-        # Buscar o crear el Historial
-        historial = HistorialClinico.query.filter_by(paciente_id=data['paciente_id']).first()
-        if not historial:
-            historial = HistorialClinico(paciente_id=data['paciente_id'])
-            db.session.add(historial)
-            db.session.commit()
-            print("Historial clínico creado con id:", historial.id)
-        else:
-            print("Historial clínico existente id:", historial.id)
-
-        # Usar la cédula del doctor para la prueba
-        doctor = Doctor.query.filter_by(cedula='402-12345678').first()
-        if not doctor:
-            error_msg = 'El doctor con cédula tal no existe'
-            print("Error:", error_msg)
-            return jsonify({'error': error_msg}), 400
+            fecha = datetime.strptime(data['fecha'], '%Y-%m-%d').date()
+            ultima_consulta = (
+                datetime.strptime(data['ultima_consulta'], '%Y-%m-%d').date()
+                if data.get('ultima_consulta') else None
+            )
+        except ValueError as e:
+            return jsonify({'error': f'Formato de fecha inválido: {e}'}), 400
 
         consulta_data = {
             'paciente_id': data['paciente_id'],
-            'historial_clinico_id': historial.id,
-            'doctor_id': doctor.id,
+            'historial_clinico_id': data['historial_clinico_id'],
+            'doctor_id': data['doctor_id'],
             'fecha': fecha,
             'presion_arterial': data.get('presion_arterial'),
             'ultima_consulta': ultima_consulta,
             'diagnostico': data.get('diagnostico'),
             'notas': data.get('notas'),
         }
-       
 
         try:
-            ConsultaControlador.crear_consulta(consulta_data)
-            return jsonify({'success': True}), 201
+            nueva_consulta = ConsultaControlador.crear_consulta(consulta_data)
+            return jsonify({
+                'success': True,
+                'consulta_id': nueva_consulta.id
+            }), 201
+
         except Exception as e:
             error_msg = f'Ocurrió un error al guardar la consulta: {e}'
-            print("Error:", error_msg)
             return jsonify({'error': error_msg}), 500
 
    
@@ -563,32 +545,151 @@ def register_routes(app):
             return redirect(url_for('listar_tratamientos'))
         return render_template('crearTratamiento.html')
     
-    # En webControlador.py
 
     @app.route('/historial', methods=['GET'])
     def historial():
         patient_id = request.args.get('patientId')
-        paciente = PacienteControlador.obtener_por_id(patient_id)
+        paciente   = PacienteControlador.obtener_por_id(patient_id)
         if not paciente:
             return "Paciente no encontrado", 404
 
-        # Obtener o crear el historial clínico
-        historial = HistorialControlador.obtener_por_paciente(patient_id)
-        if not historial:
-            historial = HistorialControlador.crear_historial(patient_id)
+        historial = HistorialControlador.obtener_por_paciente(patient_id) \
+                or HistorialControlador.crear_historial(patient_id)
 
-        # Obtener las consultas
         consultas = ConsultaControlador.obtener_por_paciente(patient_id)
-
-        # === NUEVO: OBTENER LOS ARCHIVOS DEL HISTORIAL ===
         archivos = HistorialControlador.listar_archivos(historial.id)
 
-        # Pasar todas las variables al template
+        
+        # Obtenemos el ID de la consulta a resaltar desde la URL.
+        last_consulta_id_str = request.args.get('last_consulta_id')
+        last_consulta_id = int(last_consulta_id_str) if last_consulta_id_str else None
+
         return render_template(
             'historialPaciente.html',
             paciente=paciente,
             historial=historial,
             consultas=consultas,
-            archivos=archivos  # <-- Pasamos la nueva variable de archivos
+            archivos=archivos,
+            # Pasamos el ID a la plantilla.
+            last_consulta_id=last_consulta_id
+        )
+        
+
+    @app.route('/paciente/<int:paciente_id>/planes')
+    @login_required
+    def listar_planes_paciente(paciente_id):
+        paciente = PacienteControlador.obtener_por_id(paciente_id)
+        planes=PlanTratamientoControlador.obtener_por_paciente(paciente_id)
+        return render_template('listar_planes.html', paciente=paciente, planes=planes)
+
+    @app.route('/paciente/<int:paciente_id>/planes/crear', methods=['GET','POST'])
+    @login_required
+    def crear_plan_paciente(paciente_id):
+        if request.method == 'POST':
+            # 1) Datos cabecera
+            nombre_plan   = request.form['nombre_plan']
+            doctor_id     = int(request.form['doctor_id'])
+            fecha_inicio  = datetime.strptime(request.form['fecha_inicio'], '%Y-%m-%d').date()
+            numero_cuotas = int(request.form['numero_cuotas'])
+            # 2) Detalles paralelos
+            ids        = request.form.getlist('detalle_tratamiento_id')
+            costos     = request.form.getlist('detalle_costo')
+            cantidades = request.form.getlist('detalle_cantidad')
+            detalles = [
+                {'tratamiento_id': int(tid), 'costo': float(c), 'cantidad': int(q)}
+                for tid, c, q in zip(ids, costos, cantidades)
+            ]
+            # 3) Llamar al controlador
+            data = {
+                'paciente_id': paciente_id,
+                'doctor_id': doctor_id,
+                'nombre_plan': nombre_plan,
+                'fecha_inicio': fecha_inicio,
+                'numero_cuotas': numero_cuotas,
+                'detalles': detalles
+            }
+            plan = PlanTratamientoControlador.crear_plan_completo(data)
+            flash('Plan creado.' if plan else 'Error al crear plan', 'success' if plan else 'danger')
+            return redirect(url_for('listar_planes_paciente', paciente_id=paciente_id))
+
+        # GET: mostrar form
+        paciente     = PacienteControlador.obtener_por_id(paciente_id)
+        tratamientos = TratamientoControlador.obtener_todos()
+        doctores     = DoctorControlador.obtener_todos()
+        return render_template(
+            'crear_plan.html',
+            paciente=paciente,
+            tratamientos=tratamientos,
+            doctores=doctores
         )
 
+    @app.route('/paciente/<int:paciente_id>/planes/<int:plan_id>/editar', methods=['GET','POST'])
+    @login_required
+    def editar_plan_paciente(paciente_id, plan_id):
+        plan = PlanTratamientoControlador.obtener_por_id(plan_id)
+        if request.method == 'POST':
+            datos = {
+                'nombre_plan': request.form['nombre_plan'],
+                'fecha_inicio': datetime.strptime(request.form['fecha_inicio'], '%Y-%m-%d').date(),
+                'numero_cuotas': int(request.form['numero_cuotas']),
+                # … otros campos si aplica …
+            }
+            PlanTratamientoControlador.actualizar_plan(plan_id, datos)
+            return redirect(url_for('listar_planes_paciente', paciente_id=paciente_id))
+        return render_template('editar_plan.html',
+                               paciente_id=paciente_id,
+                               plan=plan,
+                               doctores=DoctorControlador.obtener_todos(),
+                               tratamientos=TratamientoControlador.obtener_todos())
+
+    @app.route('/paciente/<int:paciente_id>/planes/<int:plan_id>/eliminar', methods=['POST'])
+    @login_required
+    def eliminar_plan_paciente(paciente_id, plan_id):
+        PlanTratamientoControlador.eliminar_plan(plan_id)
+        return redirect(url_for('listar_planes_paciente', paciente_id=paciente_id))
+    
+    @app.route('/paciente/<int:paciente_id>/planes/<int:plan_id>')
+    @login_required
+    def ver_plan_paciente(paciente_id, plan_id):
+        plan = PlanTratamientoControlador.obtener_por_id(plan_id)
+        if not plan:
+            flash("Plan de tratamiento no encontrado.", "danger")
+            return redirect(url_for('listar_planes_paciente', paciente_id=paciente_id))
+        
+        
+        total_pagado = PlanTratamientoControlador.calcular_total_pagado(plan_id)
+
+        return render_template('ver_plan.html', plan=plan, total_pagado=total_pagado)
+    
+    @app.route('/admin/tratamientos/<int:id>/editar', methods=['GET', 'POST'])
+    @login_required
+    @admin_required
+    def editar_tratamiento(id):
+        """Muestra el formulario para editar un tratamiento y procesa los cambios."""
+        tratamiento = TratamientoControlador.obtener_por_id(id)
+        if not tratamiento:
+            flash("Tratamiento no encontrado.", "danger")
+            return redirect(url_for('listar_tratamientos'))
+
+        if request.method == 'POST':
+            data = {
+                'nombre': request.form['nombre'],
+                'descripcion': request.form['descripcion'],
+                'costo': float(request.form['costo'])
+            }
+            TratamientoControlador.actualizar(id, data)
+            flash('Tratamiento actualizado con éxito.', 'success')
+            return redirect(url_for('listar_tratamientos'))
+
+        return render_template('editarTratamiento.html', tratamiento=tratamiento)
+
+    @app.route('/admin/tratamientos/<int:id>/eliminar', methods=['POST'])
+    @login_required
+    @admin_required
+    def eliminar_tratamiento(id):
+        
+        if TratamientoControlador.eliminar(id):
+            flash('Tratamiento eliminado correctamente.', 'success')
+        else:
+            flash('Error al eliminar el tratamiento.', 'danger')
+        return redirect(url_for('listar_tratamientos'))

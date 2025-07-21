@@ -170,8 +170,9 @@
             <div class="form-group">
                 <label for="paciente_cedula" class="form-label">👤 Cédula del Paciente</label>
                 <div class="input-icon" data-icon="👤">
-                    <input type="number" class="form-control" id="paciente_cedula" name="paciente_cedula" 
-                           required min="1" placeholder="Ingrese la cédula del paciente">
+                    <input type="text" class="form-control" id="paciente_cedula" name="paciente_cedula"
+                           required placeholder="Ej: 402-3456197-1"
+                           pattern="[0-9\-]+" title="Sólo dígitos y guiones">
                 </div>
             </div>
 
@@ -198,6 +199,16 @@
                 </div>
                 <div class="form-hint">Seleccione la hora de la cita</div>
             </div>
+
+            <div class="form-group">
+                <label for="plan_id" class="form-label">📋 Asociar a Plan de Tratamiento (Opcional)</label>
+                <select class="form-control" id="plan_id" name="plan_tratamiento_id">
+                  <option value="">-- Ninguno --</option>
+                  {% for plan in planes_activos %}
+                    <option value="{{ plan.id }}">{{ plan.nombre_plan }}</option>
+                  {% endfor %}
+                </select>
+              </div>
 
             <div class="form-actions">
                 <a href="{{ url_for('indexCita') }}" class="btn-cancelar">

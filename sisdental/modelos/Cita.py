@@ -1,16 +1,22 @@
 from sisdental import db
+from datetime import datetime
 
 class Cita(db.Model):
-    __tablename__ = "citas"
+    __tablename__ = 'citas'
 
-    id = db.Column(db.Integer, primary_key=True, index=True)
-
-    #Todo esto de aqui hay que revisarlo cuando el import de la db funcione bien
-    #tambien asignarle a ambos ID que sean foreign keys
-    #doctorId = db.Column(db.Integer, nullable=False)
-    #pacienteId = db.Column(db.Integer, nullable=False)
-    paciente_id = db.Column(db.Integer, db.ForeignKey('pacientes.id'))
-    doctor_id = db.Column(db.Integer, db.ForeignKey('doctores.id'))
-    fecha = db.Column(db.Date)
-    hora = db.Column(db.Time(150))
+    id = db.Column(db.Integer, primary_key=True)
+    paciente_id = db.Column(db.Integer, db.ForeignKey('personas.id'), nullable=False)
+    doctor_id = db.Column(db.Integer, db.ForeignKey('personas.id'), nullable=False)
+    
+    plan_tratamiento_id = db.Column(db.Integer, db.ForeignKey('planes_tratamiento.id'), nullable=True)
+    
+    fecha = db.Column(db.Date, nullable=False)
+    hora = db.Column(db.Time, nullable=False)
+    estado = db.Column(db.String(50), default='Programada') # Ej: Programada, Confirmada, Cancelada, Realizada
+    paciente = db.relationship('Paciente', backref='citas', foreign_keys=[paciente_id])
+    # Relación con el Doctor
+    doctor = db.relationship('Doctor', backref='citas', foreign_keys=[doctor_id])
+    plan = db.relationship('PlanTratamiento', backref='citas_asociadas')
+    def __repr__(self):
+        return f'<Cita {self.id} del {self.fecha} a las {self.hora}>'
     

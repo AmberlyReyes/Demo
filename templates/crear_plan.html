@@ -1,0 +1,138 @@
+{% extends "baseAdmin.html" %}
+
+{% block title %}Crear Plan de Tratamiento{% endblock %}
+{% block page_title %}Crear Plan para: {{ paciente.nombre }}{% endblock %}
+
+{% block admin_content %}
+<style>
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 25px; }
+    .form-group { display: flex; flex-direction: column; }
+    .form-group label { font-weight: bold; margin-bottom: 8px; color: var(--color-texto); }
+    .form-group input, .form-group select, .form-group textarea { padding: 12px; border: 1px solid var(--color-borde); border-radius: 8px; font-size: 16px; }
+    .form-actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 30px; padding-top: 20px; border-top: 1px solid var(--color-borde); }
+    
+    .tratamientos-section { grid-column: 1 / -1; }
+    .tratamientos-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; }
+    #tratamientos-table { width: 100%; border-collapse: collapse; }
+    #tratamientos-table th, #tratamientos-table td { padding: 10px; text-align: left; border-bottom: 1px solid var(--color-borde); }
+    .total-section { grid-column: 1 / -1; text-align: right; margin-top: 20px; }
+    .total-section h3 { color: var(--color-principal); }
+</style>
+
+<form method="POST" action="{{ url_for('crear_plan_paciente', paciente_id=paciente.id) }}">
+    <div class="form-grid">
+        <div class="form-group">
+            <label for="nombre_plan">Nombre del Plan</label>
+            <input type="text" id="nombre_plan" name="nombre_plan" placeholder="Ej: Plan de Ortodoncia Completa" required>
+        </div>
+        <div class="form-group">
+            <label for="doctor_id">Doctor Asignado</label>
+            <select id="doctor_id" name="doctor_id" required>
+                <option value="" disabled selected>-- Seleccione un doctor --</option>
+                {% for doctor in doctores %}
+                <option value="{{ doctor.id }}">{{ doctor.nombre }}</option>
+                {% endfor %}
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="fecha_inicio">Fecha de Inicio del Plan</label>
+            <input type="date" id="fecha_inicio" name="fecha_inicio" required>
+        </div>
+        <div class="form-group">
+            <label for="numero_cuotas">Número de Cuotas de Pago</label>
+            <input type="number" id="numero_cuotas" name="numero_cuotas" value="1" min="1" required>
+        </div>
+    </div>
+
+    <div class="tratamientos-section" style="margin-top: 30px;">
+        <div class="tratamientos-header">
+            <h4>Tratamientos Incluidos en el Plan</h4>
+            <div>
+                <select id="tratamiento-selector" style="padding: 8px; border-radius: 6px;">
+                    <option value="" disabled selected>-- Añadir tratamiento --</option>
+                    {% for t in tratamientos %}
+                    <option value="{{ t.id }}" data-nombre="{{ t.nombre }}" data-costo="{{ t.costo }}">{{ t.nombre }} - ${{ "%.2f"|format(t.costo) }}</option>
+                    {% endfor %}
+                </select>
+                <button type="button" class="btn btn-primary" onclick="addTratamiento()">Añadir</button>
+            </div>
+        </div>
+        <table id="tratamientos-table">
+            <thead><tr><th>Tratamiento</th><th>Cantidad</th><th>Costo Unitario</th><th>Subtotal</th><th>Acción</th></tr></thead>
+            <tbody>
+                </tbody>
+        </table>
+    </div>
+    
+    <div class="total-section">
+        <h3>Costo Total del Plan: <span id="costo-total">$0.00</span></h3>
+    </div>
+
+    <div class="form-actions">
+        <a href="{{ url_for('listar_planes_paciente', paciente_id=paciente.id) }}" class="btn btn-back">Cancelar</a>
+        <button type="submit" class="btn btn-primary">Guardar Plan de Tratamiento</button>
+    </div>
+</form>
+
+<script>
+    let totalPlan = 0;
+    const tablaBody = document.querySelector("#tratamientos-table tbody");
+    const totalDisplay = document.getElementById("costo-total");
+    const selector = document.getElementById("tratamiento-selector");
+
+    function addTratamiento() {
+        const selectedOption = selector.options[selector.selectedIndex];
+        if (!selectedOption.value) return;
+
+        const id = selectedOption.value;
+        const nombre = selectedOption.dataset.nombre;
+        const costo = parseFloat(selectedOption.dataset.costo);
+        const cantidad = 1;
+
+        // Crear una nueva fila en la tabla
+        const newRow = document.createElement("tr");
+        newRow.dataset.id = id;
+        newRow.innerHTML = `
+            <td>
+                ${nombre}
+                <input type="hidden" name="detalle_tratamiento_id" value="${id}">
+                <input type="hidden" name="detalle_costo" value="${costo}">
+            </td>
+            <td>
+                <input type="number" name="detalle_cantidad" value="${cantidad}" min="1" style="width: 60px;" onchange="updateSubtotal(this)">
+            </td>
+            <td>$${costo.toFixed(2)}</td>
+            <td class="subtotal">$${(costo * cantidad).toFixed(2)}</td>
+            <td><button type="button" class="btn btn-danger" onclick="removeTratamiento(this)" style="background:var(--color-danger); color:white; border:none; padding:5px 10px; border-radius:5px;">X</button></td>
+        `;
+        tablaBody.appendChild(newRow);
+        updateTotal();
+    }
+
+    function removeTratamiento(button) {
+        button.closest("tr").remove();
+        updateTotal();
+    }
+
+    function updateSubtotal(inputCantidad) {
+        const fila = inputCantidad.closest("tr");
+        const costoUnitario = parseFloat(fila.querySelector('input[name="detalle_costo"]').value);
+        const cantidad = parseInt(inputCantidad.value);
+        const subtotalCell = fila.querySelector(".subtotal");
+        
+        const subtotal = costoUnitario * cantidad;
+        subtotalCell.textContent = `$${subtotal.toFixed(2)}`;
+        updateTotal();
+    }
+
+    function updateTotal() {
+        totalPlan = 0;
+        document.querySelectorAll("#tratamientos-table tbody tr").forEach(fila => {
+            const costo = parseFloat(fila.querySelector('input[name="detalle_costo"]').value);
+            const cantidad = parseInt(fila.querySelector('input[name="detalle_cantidad"]').value);
+            totalPlan += costo * cantidad;
+        });
+        totalDisplay.textContent = `$${totalPlan.toFixed(2)}`;
+    }
+</script>
+{% endblock %}

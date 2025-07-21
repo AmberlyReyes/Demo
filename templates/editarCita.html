@@ -30,6 +30,19 @@
             value="{% if pacientes['hora'] %}{{ pacientes['hora'].strftime('%H:%M') }}{% endif %}">
         </div>
 
+        <div class="mb-3">
+            <label for="plan_tratamiento_id" class="form-label">📋 Plan de Tratamiento (Opcional)</label>
+            <select class="form-control" id="plan_tratamiento_id" name="plan_tratamiento_id">
+              <option value="">-- Ninguno --</option>
+              {% for plan in planes_activos %}
+                <option value="{{ plan.id }}"
+                  {% if pacientes.plan_tratamiento_id == plan.id %}selected{% endif %}>
+                  {{ plan.nombre_plan }}
+                </option>
+              {% endfor %}
+            </select>
+          </div>
+
         <div class="d-grid gap-2 d-md-flex justify-content-md-end">
             <a href="{{ url_for('indexCita') }}" class="btn btn-secondary me-md-2">Cancelar</a>
             <button type="submit" class="btn btn-primary">Guardar</button>

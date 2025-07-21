@@ -330,18 +330,20 @@
                     <div class="form-group">
                         <label>Última Consulta</label>
                         {% if ultima_consulta_id %}
-                          <a href="{{ url_for('ver_consulta', consulta_id=ultima_consulta_id) }}"
-                             class="link-ultima-consulta">
+                            <a href="{{ url_for('historial',
+                                                patientId=paciente.id,
+                                                last_consulta_id=ultima_consulta_id) }}"
+                            class="link-ultima-consulta">
                             {{ ultima_consulta }}
-                          </a>
+                            </a>
                         {% else %}
-                          <input type="date"
-                                 id="ultima_consulta"
-                                 name="ultima_consulta"
-                                 value="{{ ultima_consulta }}">
+                            <input type="date"
+                                id="ultima_consulta"
+                                name="ultima_consulta"
+                                value="{{ ultima_consulta }}">
                         {% endif %}
-                    </div>
-
+                        </div>
+                    
                     <div class="form-group">
                         <label for="diagnostico"> Diagnóstico</label>
                         <input type="text" id="diagnostico" name="diagnostico" placeholder="Diagnóstico principal" maxlength="200">
@@ -352,6 +354,7 @@
                         <textarea id="notas" name="notas" placeholder="Observaciones adicionales, síntomas, recomendaciones..."></textarea>
                     </div>
                 </div>
+                <input type="hidden" id="historial_id_hidden" name="historial_clinico_id" value="{{ historial.id }}">
 
                 <div class="form-actions">
                     <button type="button" class="btn btn-secondary" onclick="limpiarFormulario()">
@@ -426,60 +429,34 @@
         // Manejar envío del formulario
         document.getElementById('consultaForm').addEventListener('submit', function(e) {
             e.preventDefault();
-            guardarConsulta();
-        });
+            const formData = new FormData(e.target);
+            const payload = Object.fromEntries(formData.entries());
 
-        // Función para guardar la consulta
-        function guardarConsulta() {
-            if (!patientId) {
-                showMessage('Error: No hay paciente seleccionado', 'error');
-                return;
-            }
-
-            const form = document.getElementById('consultaForm');
-            const formData = new FormData(form);
+            // Añadimos el ID del paciente
+            payload.paciente_id = patientId;
+            // Asegúrate de tener un <input type="hidden" id="historial_id_hidden" value="{{ historial.id }}">
+            payload.historial_clinico_id = document.getElementById('historial_id_hidden').value;
             
-            // Convertir FormData a objeto
-            const consultaData = {};
-            for (let [key, value] of formData.entries()) {
-                consultaData[key] = value || null;
-            }
-
-            // Agregar IDs necesarios
-            consultaData.paciente_id = patientId;
-            
-            // Deshabilitar formulario durante envío
-            form.classList.add('loading');
-
-            // Enviar datos al backend
             fetch('/api/consulta', {
                 method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(consultaData)
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
             })
-            .then(response => {
-                if (!response.ok) {
-                    throw new Error('Error al guardar la consulta');
-                }
-                return response.json();
-            })
+            .then(resp => resp.json())
             .then(data => {
-                showMessage('Consulta guardada exitosamente', 'success');
-                // Opcional: redirigir después de un delay
-                setTimeout(() => {
-                    window.location.href = `/historial?patientId=${patientId}`;
-                }, 2000);
+                if (data.success) {
+                
+                    // Redirigimos al historial, pasando el ID de la nueva consulta
+                    window.location.href = `/historial?patientId=${patientId}&last_consulta_id=${data.consulta_id}`;
+                } else {
+                    showMessage('Error: ' + (data.error || 'Desconocido'), 'error');
+                }
             })
             .catch(err => {
                 console.error(err);
-                showMessage('Error al guardar la consulta', 'error');
-            })
-            .finally(() => {
-                form.classList.remove('loading');
+                showMessage('Error de comunicación con el servidor.', 'error');
             });
-        }
+        });
 
         // Función para mostrar mensajes
         function showMessage(message, type) {

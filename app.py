@@ -21,7 +21,7 @@ Usuario.__bases__ = (UserMixin,) + Usuario.__bases__
 
 @login_manager.user_loader
 def load_user(user_id):
-    return Usuario.query.get(int(user_id))
+    return db.session.get(Usuario, int(user_id))
 
 # Configuración de carpeta de subida
 upload_folder = os.path.join(app.root_path, 'uploads')
