@@ -9,10 +9,13 @@ from sisdental.controladores.DoctorControlador import DoctorControlador
 from sisdental.controladores.HistorialControlador import HistorialControlador
 from sisdental.controladores.TratamientoControlador import TratamientoControlador
 from sisdental.controladores.PlanTratamientoControlador import PlanTratamientoControlador
+from sisdental.controladores.FacturacionControlador import FacturacionControlador
+from sisdental.modelos.Factura import Factura
 from sisdental.modelos import Persona
 from datetime import datetime
 from sisdental.modelos.Doctor import Doctor
 from sisdental.modelos.Usuario import Usuario
+from sisdental.modelos.Cuota import Cuota
 from datetime import date, timedelta
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from sqlalchemy import extract
@@ -825,3 +828,115 @@ def register_routes(app):
         return redirect(url_for('listar_personas'))
 
 
+    @app.route('/cuota/<int:cuota_id>/facturar', methods=['GET'])
+    @login_required
+    def facturar_cuota(cuota_id):
+        cuota = db.session.get(Cuota, cuota_id)
+        if not cuota:
+            flash("Cuota no encontrada.", "danger")
+            return redirect(request.referrer or url_for('admin_dashboard'))
+
+        nueva_factura = FacturacionControlador.crear_factura_desde_cuota(cuota_id)
+
+        if nueva_factura:
+            flash(f"Factura #{nueva_factura.id} generada exitosamente para la cuota #{cuota.numero_cuota}.", "success")
+        else:
+            flash("Error al generar la factura. La cuota podría no estar pendiente.", "danger")
+        
+        
+        return redirect(url_for('ver_plan_paciente', 
+                                paciente_id=cuota.plan.paciente_id, 
+                                plan_id=cuota.plan_id))
+    
+    @app.route('/factura/<int:factura_id>/registrar_pago', methods=['GET', 'POST'])
+    @login_required
+    def registrar_pago(factura_id):
+        factura = db.session.get(Factura, factura_id)
+        if not factura:
+            flash("Factura no encontrada.", "danger")
+            return redirect(url_for('admin_dashboard'))
+
+        if request.method == 'POST':
+            monto = float(request.form['monto'])
+            fecha_pago_str = request.form['fecha_pago']
+            fecha_pago = datetime.strptime(fecha_pago_str, '%Y-%m-%d').date()
+            
+            pago = FacturacionControlador.registrar_pago(factura_id, monto, fecha_pago)
+
+            if pago:
+                flash(f"Pago de ${monto} registrado para la Factura #{factura.id}.", "success")
+            else:
+                flash("Error al registrar el pago.", "danger")
+            
+            # === FIX: obtener la cuota asociada y su plan ===
+            from sisdental.modelos.Cuota import Cuota
+            cuota = Cuota.query.filter_by(factura_id=factura.id).first()
+            if cuota:
+                plan = cuota.plan
+                return redirect(url_for(
+                    'ver_plan_paciente',
+                    paciente_id=plan.paciente_id,
+                    plan_id=plan.id
+                ))
+            return redirect(url_for('admin_dashboard'))
+
+        now = datetime.now()
+        return render_template('registrar_pago.html', factura=factura, now=now)
+
+    @app.route('/paciente/<int:paciente_id>/estado-cuenta')
+    @login_required # Accesible para admin y asistente
+    def estado_cuenta_paciente(paciente_id):
+        paciente = PacienteControlador.obtener_por_id(paciente_id)
+        if not paciente:
+            flash("Paciente no encontrado.", "danger")
+            return redirect(url_for('mainpage'))
+
+        facturas = Factura.query.filter_by(paciente_id=paciente_id) \
+                                .order_by(Factura.fecha_emision.desc()).all()
+        planes   = PlanTratamientoControlador.obtener_por_paciente(paciente_id)
+
+        total_facturado = sum(f.total for f in facturas)
+        total_pagado    = sum(p.monto for f in facturas for p in f.pagos)
+        balance         = total_facturado - total_pagado
+
+        return render_template('estado_cuenta.html',
+                               paciente=paciente,
+                               facturas=facturas,
+                               planes=planes,
+                               total_facturado=total_facturado,
+                               total_pagado=total_pagado,
+                               balance=balance)
+    
+    @app.route('/admin/facturas')
+    @login_required
+    @admin_required
+    def listar_facturas():
+        query = request.args.get('q', '').strip()
+        page = request.args.get('page', 1, type=int)
+        PER_PAGE = 15 # Facturas por página
+        facturas_query = Factura.query.order_by(Factura.fecha_emision.desc())
+        if query:
+            facturas_query = facturas_query.join(Factura.paciente).filter(
+                (Factura.id.like(f'%{query}%')) |
+                (Persona.nombre.ilike(f'%{query}%'))
+            )
+        
+        facturas_paginadas = facturas_query.paginate(page=page, per_page=PER_PAGE, error_out=False)
+
+        return render_template('listar_facturas.html', 
+                            facturas_paginacion=facturas_paginadas, 
+                            query=query)
+    
+    @app.route('/factura/<int:factura_id>')
+    @login_required
+    def ver_factura(factura_id):
+        factura = Factura.query.get_or_404(factura_id)
+
+    
+        total_pagado = sum(pago.monto for pago in factura.pagos)
+        saldo_pendiente = factura.total - total_pagado
+
+        return render_template('ver_factura.html', 
+                            factura=factura,
+                            total_pagado=total_pagado,
+                            saldo_pendiente=saldo_pendiente)

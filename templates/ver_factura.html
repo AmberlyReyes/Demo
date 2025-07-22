@@ -1,0 +1,104 @@
+{% extends "baseAdmin.html" %}
+{% block title %}Detalle de Factura #{{ factura.id }}{% endblock %}
+{% block page_title %}Detalle de Factura #{{ factura.id }}{% endblock %}
+
+{% block admin_content %}
+<style>
+    .invoice-grid { display: grid; grid-template-columns: 2fr 1fr; gap: 30px; }
+    .invoice-box { background: white; padding: 30px; border-radius: 8px; box-shadow: 0 4px 8px rgba(0,0,0,0.05); }
+    .invoice-header { display: flex; justify-content: space-between; border-bottom: 2px solid var(--color-principal); padding-bottom: 15px; margin-bottom: 20px; }
+    .invoice-header h3 { margin: 0; color: var(--color-principal); }
+    .info-section { margin-bottom: 20px; }
+    .info-section h4 { color: var(--color-sidebar); margin-bottom: 10px; font-size: 16px; }
+    .info-section p { margin: 4px 0; color: #666; }
+    .items-table { width: 100%; border-collapse: collapse; margin-bottom: 20px; }
+    .items-table th, .items-table td { padding: 12px; text-align: left; border-bottom: 1px solid var(--color-borde); }
+    .items-table th { background: #f8fafc; }
+    .items-table .text-right { text-align: right; }
+    .totals-summary { margin-top: 20px; padding-top: 20px; border-top: 2px solid var(--color-principal); }
+    .totals-summary div { display: flex; justify-content: space-between; padding: 5px 0; font-size: 16px; }
+    .totals-summary .grand-total { font-weight: bold; font-size: 18px; color: var(--color-principal); }
+    .form-group label { font-weight: bold; margin-bottom: 5px; display: block; }
+    .form-group input { width: 100%; padding: 10px; border: 1px solid var(--color-borde); border-radius: 6px; }
+</style>
+
+<div class="invoice-grid">
+    <div class="invoice-box">
+        <div class="invoice-header">
+            <h3>Factura #{{ factura.id }}</h3>
+            <span><strong>Fecha:</strong> {{ factura.fecha_emision.strftime('%d/%m/%Y') }}</span>
+        </div>
+
+        <div class="info-section">
+            <h4>Facturado a:</h4>
+            <p><strong>{{ factura.paciente.nombre }}</strong></p>
+            <p>{{ factura.paciente.cedula }}</p>
+            <p>{{ factura.paciente.email }}</p>
+        </div>
+
+        <table class="items-table">
+            <thead><tr><th>Descripción</th><th class="text-right">Total</th></tr></thead>
+            <tbody>
+                <tr>
+                    <td>
+                        {% if factura.cuota_asociada %}
+                            Cuota #{{ factura.cuota_asociada.numero_cuota }} del plan "{{ factura.cuota_asociada.plan.nombre_plan }}"
+                        {% else %}
+                            Servicios Varios
+                        {% endif %}
+                    </td>
+                    <td class="text-right">${{ "%.2f"|format(factura.total) }}</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div class="totals-summary">
+            <div><span>Subtotal</span> <span>${{ "%.2f"|format(factura.total) }}</span></div>
+            <div class="grand-total"><span>TOTAL</span> <span>${{ "%.2f"|format(factura.total) }}</span></div>
+            <hr>
+            <div><span>Total Pagado</span> <span>${{ "%.2f"|format(total_pagado) }}</span></div>
+            <div class="grand-total" style="color: {% if saldo_pendiente > 0 %}#e74c3c{% else %}#27ae60{% endif %};">
+                <span>SALDO PENDIENTE</span>
+                <span>${{ "%.2f"|format(saldo_pendiente) }}</span>
+            </div>
+        </div>
+    </div>
+
+    <div>
+        <div class="invoice-box">
+            <h4><i class="fas fa-hand-holding-usd"></i> Registrar Nuevo Pago</h4>
+            {% if factura.estado == 'Pendiente' %}
+                <form method="POST" action="{{ url_for('registrar_pago', factura_id=factura.id) }}">
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label for="monto">Monto</label>
+                        <input type="number" step="0.01" id="monto" name="monto" value="{{ '%.2f'|format(saldo_pendiente) }}" required>
+                    </div>
+                    <div class="form-group" style="margin-bottom: 15px;">
+                        <label for="fecha_pago">Fecha</label>
+                        <input type="date" id="fecha_pago" name="fecha_pago" value="{{ now.strftime('%Y-%m-%d') }}" required>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width: 100%;">Confirmar Pago</button>
+                </form>
+            {% else %}
+                <p style="text-align:center; color: #27ae60; font-weight: bold;">✅ Esta factura ya ha sido pagada en su totalidad.</p>
+            {% endif %}
+        </div>
+
+        <div class="invoice-box" style="margin-top: 20px;">
+            <h4><i class="fas fa-history"></i> Historial de Pagos</h4>
+            {% if factura.pagos.all() %}
+                <table style="width:100%;">
+                {% for pago in factura.pagos %}
+                    <tr>
+                        <td>{{ pago.fecha_pago.strftime('%d/%m/%Y') }}</td>
+                        <td style="text-align:right;">${{ "%.2f"|format(pago.monto) }}</td>
+                    </tr>
+                {% endfor %}
+                </table>
+            {% else %}
+                <p>No hay pagos registrados para esta factura.</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+{% endblock %}

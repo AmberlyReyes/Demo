@@ -88,8 +88,12 @@
                         </span>
                     </td>
                     <td>
-                        {% if cuota.estado == 'Pendiente' %}
-                        <a href="#" class="btn btn-primary" style="padding: 5px 10px; font-size: 12px;">Facturar</a>
+                        {% if cuota.estado == 'Pendiente' or cuota.estado == 'Vencida' %}
+                            <a href="{{ url_for('facturar_cuota', cuota_id=cuota.id) }}" class="btn btn-primary" style="padding: 5px 10px; font-size: 12px;">Facturar</a>
+                        {% elif cuota.factura_id %}
+                            <a href="{{ url_for('ver_factura', factura_id=cuota.factura_id) }}" title="Ver Factura #{{ cuota.factura_id }}" style="color: #27ae60;">
+                                <i class="fas fa-file-invoice"></i>
+                            </a>
                         {% endif %}
                     </td>
                 </tr>
