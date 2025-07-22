@@ -202,12 +202,14 @@ def register_routes(app):
                     planes_activos=planes_activos
                 )
 
-            doctor_id = request.form['doctor_id']
+            doctor_cedula = request.form['doctor_cedula']
+            doc_ced_limpia = doctor_cedula.strip()
+            doc = DoctorControlador.obtener_por_cedula(doc_ced_limpia)
             plan_id   = request.form.get('plan_tratamiento_id') or None
 
             data = {
                 'paciente_id': Paci.id,
-                'doctor_id': doctor_id,
+                'doctor_id': doc.id,
                 'fecha': request.form['fecha'],
                 'hora': request.form['hora'],
                 'plan_tratamiento_id': plan_id

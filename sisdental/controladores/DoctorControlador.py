@@ -25,6 +25,10 @@ class DoctorControlador:
     @staticmethod
     def obtener_por_id(doctor_id):
         return Doctor.query.get(doctor_id)
+    
+    @staticmethod
+    def obtener_por_cedula(doctor_cedula):
+         return Doctor.query.filter_by(cedula=doctor_cedula).first()
 
     @staticmethod
     def actualizar_doctor(doctor_id, nuevos_datos):
