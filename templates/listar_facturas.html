@@ -1,0 +1,83 @@
+{% extends "baseAdmin.html" %}
+{% block title %}Gestión de Facturas{% endblock %}
+{% block page_title %}Gestión de Facturas{% endblock %}
+
+{% block admin_content %}
+<style>
+    /* Estilos de tabla y búsqueda (puedes reutilizarlos) */
+    .table-actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .search-form input { padding: 10px; border: 1px solid var(--color-borde); border-radius: 6px; width: 300px; }
+    .data-table { width: 100%; border-collapse: collapse; }
+    .data-table th, .data-table td { padding: 12px 15px; text-align: left; border-bottom: 1px solid var(--color-borde); }
+    .status-badge { padding: 5px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; color: white; }
+    .status-pendiente { background-color: #f39c12; }
+    .status-pagada { background-color: #27ae60; }
+    .status-anulada { background-color: #7f8c8d; }
+    .pagination-nav { display: flex; justify-content: center; gap: 15px; margin-top: 25px; }
+    .pagination-nav a, .pagination-nav span { background: #f1f5f9; color: #334155; padding: 8px 16px; border-radius: 6px; text-decoration: none; font-weight: 600; }
+    .pagination-nav .active { background: var(--color-principal); color: white; }
+</style>
+
+<div class="table-actions">
+    <p>Visualiza y gestiona todas las facturas emitidas en el sistema.</p>
+    <form class="search-form" method="GET" action="{{ url_for('listar_facturas') }}">
+        <input type="search" name="q" placeholder="Buscar por # Factura o Paciente..." value="{{ query or '' }}">
+        <button type="submit" class="btn btn-primary">Buscar</button>
+    </form>
+</div>
+
+<table class="data-table">
+    <thead>
+        <tr>
+            <th># Factura</th>
+            <th>Paciente</th>
+            <th>Fecha Emisión</th>
+            <th>Total</th>
+            <th>Estado</th>
+            <th>Acciones</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for factura in facturas_paginacion.items %}
+        <tr>
+            <td>{{ factura.id }}</td>
+            <td>{{ factura.paciente.nombre }}</td>
+            <td>{{ factura.fecha_emision.strftime('%d/%m/%Y') }}</td>
+            <td>${{ "%.2f"|format(factura.total) }}</td>
+            <td>
+                <span class="status-badge 
+                    {% if factura.estado == 'Pagada' %}status-pagada
+                    {% elif factura.estado == 'Anulada' %}status-anulada
+                    {% else %}status-pendiente{% endif %}">
+                    {{ factura.estado }}
+                </span>
+            </td>
+            <td>
+                <a href="{{ url_for('ver_factura', factura_id=factura.id) }}" title="Ver Detalle" style="margin-right: 10px;">
+                    <i class="fas fa-eye"></i>
+                </a>
+                {% if factura.estado == 'Pendiente' %}
+                    <a href="{{ url_for('registrar_pago', factura_id=factura.id) }}" class="btn" style="padding: 5px 10px; font-size:12px; background-color: #eafaf1; color: #27ae60;">
+                        Registrar Pago
+                    </a>
+                {% endif %}
+                <a href="#" title="Ver PDF" style="margin-left: 10px;">
+                    <i class="fas fa-file-pdf"></i>
+                </a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+
+<div class="pagination-nav">
+    {% if facturas_paginacion.has_prev %}
+        <a href="{{ url_for('listar_facturas', page=facturas_paginacion.prev_num, q=query) }}">&laquo; Anterior</a>
+    {% endif %}
+    <span class="active">Página {{ facturas_paginacion.page }} de {{ facturas_paginacion.pages }}</span>
+    {% if facturas_paginacion.has_next %}
+        <a href="{{ url_for('listar_facturas', page=facturas_paginacion.next_num, q=query) }}">Siguiente &raquo;</a>
+    {% endif %}
+</div>
+
+{% endblock %}

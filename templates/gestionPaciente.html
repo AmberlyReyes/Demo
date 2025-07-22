@@ -398,7 +398,7 @@
                 return;
             }
             // Redirigir a la página de estado de cuenta
-            window.location.href = `/estado-cuenta?patientId=${currentPatient.id}`;
+            window.location.href = `/paciente/${currentPatient.id}/estado-cuenta`;
         }
 
         function openNuevaConsulta() {

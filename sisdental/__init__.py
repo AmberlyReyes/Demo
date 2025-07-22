@@ -1,23 +1,26 @@
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import LoginManager
-
+from dotenv import load_dotenv
 import os
 
 db = SQLAlchemy()
 login_manager = LoginManager()
 
 def crear_app():
+    load_dotenv() 
+    
     app = Flask(
         __name__,
-        template_folder=os.path.join(os.path.dirname(__file__), '..', 'templates')
+        template_folder=os.path.join(os.path.dirname(__file__), '..', 'templates'),
+        static_folder=os.path.join(os.path.dirname(__file__), '..', 'static')
     )
     app.config['SQLALCHEMY_DATABASE_URI'] = f"postgresql://{os.getenv('DB_USER')}:{os.getenv('DB_PASSWORD')}@{os.getenv('DB_HOST')}:{os.getenv('DB_PORT')}/{os.getenv('DB_NAME')}"
-     
+    app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'a_default_secret_key')
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
     # Carpeta de subida DENTRO de static/
-    upload_folder = os.path.join(app.root_path, 'static', 'uploads')
+    upload_folder = os.path.join(app.root_path, '..', 'static', 'uploads')
     os.makedirs(upload_folder, exist_ok=True)
     app.config['UPLOAD_FOLDER'] = upload_folder
 
