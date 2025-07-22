@@ -1,19 +1,52 @@
 {% extends "baseAdmin.html" %}
+{% block title %}Crear Persona{% endblock %}
+{% block page_title %}Crear Nueva Persona{% endblock %}
+
 {% block admin_content %}
-<h2>Crear Persona</h2>
-<form method="post">
-  <label>Nombre:      <input name="nombre"      required></label><br>
-  <label>Cédula:      <input name="cedula"      required></label><br>
-  <label>Teléfono:    <input name="telefono"></label><br>
-  <label>Dirección:   <input name="direccion"></label><br>
-  <label>Email:       <input name="email" type="email"></label><br>
-  <label>Tipo:
-    <select name="tipo">
-      <option value="paciente">Paciente</option>
-      <option value="doctor">Doctor</option>
-      <option value="asistente">Asistente</option>
-    </select>
-  </label><br>
-  <button type="submit">Guardar</button>
+<style>
+  
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .form-group { display: flex; flex-direction: column; }
+    .form-group label { font-weight: bold; margin-bottom: 8px; }
+    .form-group input, .form-group select { padding: 12px; border: 1px solid var(--color-borde, #e3e6f0); border-radius: 8px; font-size: 16px; }
+    .form-group.full-width { grid-column: 1 / -1; }
+    .form-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; }
+</style>
+
+<form method="POST" action="{{ url_for('crear_persona') }}">
+    <div class="form-grid">
+        <div class="form-group">
+            <label for="nombre">Nombre Completo</label>
+            <input type="text" id="nombre" name="nombre" required>
+        </div>
+        <div class="form-group">
+            <label for="cedula">Cédula</label>
+            <input type="text" id="cedula" name="cedula" required>
+        </div>
+        <div class="form-group">
+            <label for="telefono">Teléfono</label>
+            <input type="tel" id="telefono" name="telefono">
+        </div>
+        <div class="form-group">
+            <label for="email">Email</label>
+            <input type="email" id="email" name="email">
+        </div>
+        <div class="form-group full-width">
+            <label for="direccion">Dirección</label>
+            <input type="text" id="direccion" name="direccion">
+        </div>
+        <div class="form-group full-width">
+            <label for="tipo">Tipo de Persona</label>
+            <select id="tipo" name="tipo">
+                <option value="paciente">Paciente</option>
+                <option value="doctor">Doctor</option>
+                <option value="asistente">Asistente</option>
+            </select>
+        </div>
+    </div>
+    <div class="form-actions">
+        <a href="{{ url_for('listar_personas') }}" class="btn btn-back">Cancelar</a>
+        <button type="submit" class="btn btn-primary">Guardar Persona</button>
+    </div>
 </form>
 {% endblock %}

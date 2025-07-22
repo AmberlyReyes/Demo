@@ -1,67 +1,74 @@
 {% extends 'base.html' %}
+{% block title %}Lista de Pacientes{% endblock %}
 
 {% block content %}
+<style>
+    
+    .table-container { max-width: 1200px; margin: auto; padding: 2rem; }
+    .table-actions { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; }
+    .data-table { width: 100%; border-collapse: collapse; background-color: #fff; box-shadow: 0 4px 12px rgba(0,0,0,0.05); border-radius: 8px; overflow: hidden; }
+    .data-table th, .data-table td { padding: 12px 15px; text-align: left; border-bottom: 1px solid #e3e6f0; }
+    .data-table th { background-color: #f8fafc; font-size: 14px; text-transform: uppercase; color: #64748b; }
+    .data-table .actions a, .data-table .actions button { 
+        margin-right: 10px; 
+        color: #4e73df; 
+        background: none; 
+        border: none; 
+        cursor: pointer; 
+        padding: 0; 
+        font-size: 16px;
+    }
+    .data-table .actions button { color: #e74a3b; }
+    .btn-gestion {
+        background-color: #1cc88a;
+        color: white;
+        padding: 5px 10px;
+        border-radius: 5px;
+        text-decoration: none;
+        font-size: 14px;
+    }
+</style>
+
 <div class="table-container">
-    <div class="d-flex justify-content-between mb-4">
+    <div class="table-actions">
         <h2>Lista de Pacientes</h2>
-        <a href="{{ url_for('crear') }}" class="btn btn-success">
-            <i class="bi bi-plus-circle"></i> Nuevo Paciente
-        </a>
+        <a href="{{ url_for('crear') }}" class="btn btn-primary"><i class="fas fa-plus"></i> Nuevo Paciente</a>
     </div>
     
-    <div class="table-responsive">
-        <table class="table table-striped table-hover">
-            <thead class="table-dark">
-                <tr>
-                    <th>ID</th>
-                    <th>Cédula</th>
-                    <th>Nombre</th>
-                    <th>Teléfono</th>
-                    <th>Acciones</th>
-                </tr>
-            </thead>
-            <tbody>
-                {% for p in pacientes %}
-                <tr>
-                    <td>{{ p.id }}</td>
-                    <td>{{ p.cedula }}</td>
-                    <td>{{ p.nombre }}</td>
-                    <td>{{ p.telefono }}</td>
-                    <td class="action-buttons">
-                        
-                        <!-- Botón para ver más detalles -->
-                        <a href="{{ url_for('detalle_paciente', id=p.id) }}" 
-                           class="btn btn-sm btn-info">
-                            Ver Más
-                        </a>
-
-                        <!-- Editar -->
-                        <a href="{{ url_for('editar', id=p.id) }}" 
-                           class="btn btn-sm btn-warning">
-                            Editar
-                        </a>
-
-                        <!-- Eliminar -->
-                        <form action="{{ url_for('eliminar', id=p.id) }}" 
-                              method="post" 
-                              class="d-inline">
-                            <button type="submit" class="btn btn-sm btn-danger" 
-                                    onclick="return confirm('¿Estás seguro de eliminar este paciente?')">
-                                Eliminar
-                            </button>
-                        </form>
-                    </td>
-                </tr>
-                {% else %}
-                <tr>
-                    <td colspan="5" class="text-center">No hay pacientes registrados</td>
-                </tr>
-                {% endfor %}
-            </tbody>
-        </table>
-    </div>
-    <a href="/" class="btn btn-success">
-        <i class="bi bi-plus-circle"></i> Atras
-    </a>
+    <table class="data-table">
+        <thead>
+            <tr>
+                <th>ID</th>
+                <th>Cédula</th>
+                <th>Nombre</th>
+                <th>Teléfono</th>
+                <th class="actions">Acciones</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for p in pacientes %}
+            <tr>
+                <td>{{ p.id }}</td>
+                <td>{{ p.cedula }}</td>
+                <td>{{ p.nombre }}</td>
+                <td>{{ p.telefono }}</td>
+                <td class="actions">
+                    <a href="{{ url_for('gestion_paciente', patientId=p.id) }}" class="btn-gestion">Gestionar</a>
+                    <a href="{{ url_for('editar', id=p.id) }}" title="Editar"><i class="fas fa-edit"></i></a>
+                    <form action="{{ url_for('eliminar', id=p.id) }}" method="post" style="display:inline;" onsubmit="return confirm('¿Estás seguro de eliminar este paciente?')">
+                        <button type="submit" title="Eliminar"><i class="fas fa-trash-alt" style="color: #e74a3b;"></i></button>
+                    </form>
+                </td>
+            </tr>
+            {% else %}
+            <tr>
+                <td colspan="5" class="text-center">No hay pacientes registrados</td>
+            </tr>
+            {% endfor %}
+        </tbody>
+    </table>
 </div>
+<a href="/" class="btn btn-success">
+    <i class="bi bi-plus-circle"></i> Atras
+</a>
 {% endblock %}
