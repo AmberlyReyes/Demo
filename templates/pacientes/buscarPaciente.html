@@ -375,10 +375,10 @@
         // Función para seleccionar un paciente
         function selectPatient(patientId, patientName) {
             // Opción 1: Abrir en nueva ventana
-            window.open(`/gestionPaciente?patientId=${patientId}&patientName=${encodeURIComponent(patientName)}`, '_blank');
+            //window.open(`/gestionPaciente?patientId=${patientId}&patientName=${encodeURIComponent(patientName)}`, '_blank');
             
             // Opción 2: Redirigir en la misma ventana
-            // window.location.href = `/gestion-paciente?patientId=${patientId}&patientName=${encodeURIComponent(patientName)}`;
+            window.location.href = `/gestionPaciente?patientId=${patientId}&patientName=${encodeURIComponent(patientName)}`, `_blank`;
         }
 
         // Cerrar modal al hacer clic fuera de él

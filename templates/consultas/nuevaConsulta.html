@@ -292,7 +292,7 @@
                 <h1>📋 Nueva Consulta</h1>
                 <div class="subtitle">Dr. Reyes - Centro Odontológico</div>
             </div>
-            <button class="exit-btn" onclick="goBack()">← Volver</button>
+            <button class="exit-btn" onclick="javascript:window.history.back();">← Volver</button>
         </div>
 
         <!-- Información del paciente -->
@@ -480,14 +480,6 @@
             }
         }
 
-        // Función para volver atrás
-        function goBack() {
-            if (patientId) {
-                window.location.href = `/gestionPaciente?patientId=${patientId}`;
-            } else {
-                window.location.href = '/';
-            }
-        }
     </script>
 </body>
 </html>

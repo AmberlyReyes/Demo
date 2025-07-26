@@ -355,11 +355,8 @@
         </form>
 
         <div class="login-footer">
-            <div class="signup-link">
-                ¿No tienes cuenta? <a href="{{ url_for('register') }}">Regístrate aquí</a>
-            </div>
             <div class="back-link">
-                <a href="{{ url_for('mainpage') }}" class="btn-back">← Atrás</a>
+                <a href="javascript:window.history.back();" class="btn-back">← Atrás</a>
             </div>
         </div>
     </div>

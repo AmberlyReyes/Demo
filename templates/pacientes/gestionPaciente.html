@@ -228,7 +228,7 @@
                 <h1> Gestión de Pacientes</h1>
                 <div class="subtitle">Dr. Reyes - Centro Odontológico</div>
             </div>
-            <button class="exit-btn" onclick="goBack()">← Salir</button>
+            <button class="exit-btn" onclick="javascript:window.history.back();">← Atrás</button>
         </div>
 
         <!-- Panel de información del paciente -->
@@ -425,11 +425,6 @@
             }
             // Redirigir a la página de edición
             window.location.href = `/${currentPatient.id}/editar`;
-        }
-
-        // Función para regresar
-        function goBack() {
-            window.location.href = '/';
         }
 
         // Cargar paciente al inicializar la página
