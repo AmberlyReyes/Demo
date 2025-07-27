@@ -25,7 +25,7 @@
         </div>
         <div class="form-group full-width">
             <label for="persona_id">Asociar a Persona (Doctor/Asistente)</label>
-            <select id="persona_id" name="persona_id">
+            <select id="persona_id" name="persona_id" required>
                 <option value="">-- Ninguno --</option>
                 {% if usuario and usuario.persona %}
                 <option value="{{ usuario.persona.id }}" selected>{{ usuario.persona.nombre }} (Actual)</option>

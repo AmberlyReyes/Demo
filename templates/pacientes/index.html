@@ -28,8 +28,21 @@
         font-size: 14px;
     }
 </style>
-<a href="javascript:window.history.back();" class="btn btn-success">
+<a href="#" onclick="goUpOneLevel()" class="btn btn-success">
     <i class="bi bi-plus-circle"></i> Atras
+        <script>
+            function goUpOneLevel() {
+                const currentPath = window.location.pathname;
+                const segments = currentPath.split('/').filter(Boolean);
+                const lastSegment = segments[segments.length - 1];
+
+                if (lastSegment === 'editar' || !isNaN(lastSegment)) {
+                    window.history.back();
+                } else {
+                    window.location.href = '/' + segments.slice(0, -1).join('/');
+                }
+            }
+        </script>
 </a>
 <div class="table-container">
     <div class="table-actions">

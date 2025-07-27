@@ -322,9 +322,22 @@
     </div>
 
     <!-- Botón atrás -->
-    <a href="javascript:window.history.back();" class="btn-atras">
+    <a href="#" onclick="goUpOneLevel()" class="btn-atras">
         ⬅️ Volver
     </a>
+        <script>
+            function goUpOneLevel() {
+                const currentPath = window.location.pathname;
+                const segments = currentPath.split('/').filter(Boolean);
+                const lastSegment = segments[segments.length - 1];
+
+                if (lastSegment === 'editar' || !isNaN(lastSegment)) {
+                    window.history.back();
+                } else {
+                    window.location.href = '/' + segments.slice(0, -1).join('/');
+                }
+            }
+        </script>
 </div>
 
 {% endblock %}
