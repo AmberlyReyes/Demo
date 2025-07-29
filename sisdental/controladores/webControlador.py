@@ -18,7 +18,7 @@ from sisdental.modelos.Usuario import Usuario
 from sisdental.modelos.Cuota import Cuota
 from datetime import date, timedelta
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
-from sqlalchemy import extract, or_
+from sqlalchemy import extract, or_, func
 from sisdental.modelos.ArchivoHistorial import ArchivoHistorial
 import os
 from werkzeug.utils import secure_filename
@@ -320,31 +320,35 @@ def register_routes(app):
             return "Cita no encontrada", 404
         return render_template('citas/detalleCita.html', paciente=paciente)
     
+    # webControlador.py
+
     @app.route('/pacientes')
     @login_required
     def listar_pacientes():
-    
         query = request.args.get('q', '').strip()
-        
+        #  Obtenemos el número de página de la URL, por defecto es la página 1
+        page = request.args.get('page', 1, type=int)
+        # Definimos el número de pacientes a mostrar por página
+        PER_PAGE = 6
+
         pacientes_query = Paciente.query
 
         if query:
-            # Si hay búsqueda, filtrar por nombre o cédula
-            search_term = f"%{query}%"
+            search_term_nombre = f"%{query}%"
+            cedula_sin_guiones = query.replace('-', '')
+            search_term_cedula = f"%{cedula_sin_guiones}%"
             pacientes_query = pacientes_query.filter(
                 or_(
-                    Paciente.nombre.ilike(search_term),
-                    Paciente.cedula.ilike(search_term)
+                    Paciente.nombre.ilike(search_term_nombre),
+                    func.replace(Paciente.cedula, '-', '').ilike(search_term_cedula)
                 )
             )
-        
-        # Ordenar alfabéticamente y obtener todos los resultados
-        pacientes = pacientes_query.order_by(Paciente.nombre).all()
-
-        # Renderizar la nueva plantilla
+        pacientes_paginados = pacientes_query.order_by(Paciente.nombre).paginate(
+            page=page, per_page=PER_PAGE, error_out=False
+        )
         return render_template('pacientes/listar_pacientes.html', 
-                               pacientes=pacientes, 
-                               search_query=query)
+                            pacientes_paginados=pacientes_paginados, 
+                            search_query=query)
 
     
     @app.route('/api/paciente/<int:paciente_id>', methods=['GET'])

@@ -4,13 +4,13 @@
 
 {% block admin_content %}
 <style>
+    /* ESTILOS ORIGINALES - SIN CAMBIOS */
     .search-container {
         margin-bottom: 30px;
         display: flex;
         gap: 15px;
         align-items: center;
     }
-
     .search-input {
         flex-grow: 1;
         padding: 12px 20px;
@@ -19,13 +19,11 @@
         font-size: 16px;
         background-color: white;
     }
-
     .search-input:focus {
         outline: none;
         border-color: var(--color-principal);
         box-shadow: 0 0 0 3px rgba(1, 138, 190, 0.2);
     }
-
     .btn-search {
         background-color: var(--color-principal);
         color: white;
@@ -36,12 +34,10 @@
         font-weight: 600;
         transition: all 0.3s ease;
     }
-
     .btn-search:hover {
         background-color: var(--color-secundario);
         transform: translateY(-1px);
     }
-
     .btn-add {
         background-color: #10b981;
         color: white;
@@ -54,21 +50,18 @@
         align-items: center;
         gap: 8px;
     }
-
     .btn-add:hover {
         background-color: #059669;
         transform: translateY(-1px);
         color: white;
         text-decoration: none;
     }
-
     .patient-grid {
         display: grid;
         grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
         gap: 20px;
         margin-top: 20px;
     }
-
     .patient-card {
         background-color: var(--color-blanco);
         border: 1px solid var(--color-borde);
@@ -81,7 +74,6 @@
         position: relative;
         overflow: hidden;
     }
-
     .patient-card::before {
         content: '';
         position: absolute;
@@ -93,7 +85,6 @@
         transform: scaleY(0);
         transition: transform 0.3s ease;
     }
-
     .patient-card:hover {
         transform: translateY(-5px);
         box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
@@ -101,18 +92,15 @@
         text-decoration: none;
         color: var(--color-texto);
     }
-
     .patient-card:hover::before {
         transform: scaleY(1);
     }
-
     .patient-card-header {
         display: flex;
         align-items: center;
         gap: 15px;
         margin-bottom: 15px;
     }
-
     .patient-avatar {
         width: 50px;
         height: 50px;
@@ -126,14 +114,12 @@
         font-weight: bold;
         text-transform: uppercase;
     }
-
     .patient-name {
         font-size: 18px;
         font-weight: 600;
         color: var(--color-sidebar);
         margin: 0;
     }
-
     .patient-details {
         font-size: 14px;
         color: #64748b;
@@ -141,18 +127,15 @@
         flex-direction: column;
         gap: 8px;
     }
-    
     .patient-details span {
         display: flex;
         align-items: center;
         gap: 10px;
     }
-
     .patient-details i {
         width: 16px;
         color: var(--color-principal);
     }
-
     .no-results {
         grid-column: 1 / -1;
         text-align: center;
@@ -162,12 +145,10 @@
         border-radius: 12px;
         border: 2px dashed var(--color-borde);
     }
-
     .no-results h3 {
         margin-bottom: 10px;
         color: var(--color-sidebar);
     }
-
     .results-count {
         color: #64748b;
         font-size: 14px;
@@ -175,7 +156,6 @@
     }
 </style>
 
-<!-- Barra de Búsqueda y Acciones -->
 <div class="search-container">
     <form method="GET" action="{{ url_for('listar_pacientes') }}" style="display: flex; gap: 15px; flex-grow: 1;">
         <input 
@@ -194,20 +174,16 @@
     </a>
 </div>
 
-<!-- Contador de Resultados -->
-{% if search_query %}
-    <div class="results-count">
-        <strong>{{ pacientes|length }}</strong> paciente(s) encontrado(s) para "{{ search_query }}"
-    </div>
-{% else %}
-    <div class="results-count">
-        <strong>{{ pacientes|length }}</strong> pacientes registrados en total
-    </div>
-{% endif %}
+<div class="results-count">
+    {% if search_query %}
+        <strong>{{ pacientes_paginados.total }}</strong> paciente(s) encontrado(s) para "{{ search_query }}"
+    {% else %}
+        <strong>{{ pacientes_paginados.total }}</strong> pacientes registrados en total
+    {% endif %}
+</div>
 
-<!-- Listado de Pacientes -->
 <div class="patient-grid">
-    {% for paciente in pacientes %}
+    {% for paciente in pacientes_paginados.items %}
         <a href="{{ url_for('gestion_paciente', patientId=paciente.id) }}" class="patient-card">
             <div class="patient-card-header">
                 <div class="patient-avatar">{{ paciente.nombre[0]|upper }}</div>
@@ -236,4 +212,29 @@
         </div>
     {% endfor %}
 </div>
+
+<div style="text-align: center; margin-top: 25px;">
+{% if pacientes_paginados.pages > 1 %}
+    {% if pacientes_paginados.has_prev %}
+        <a href="{{ url_for('listar_pacientes', page=pacientes_paginados.prev_num, q=search_query) }}" style="margin: 0 5px; text-decoration: none;">&laquo; Anterior</a>
+    {% endif %}
+
+    {% for page_num in pacientes_paginados.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+        {% if page_num %}
+            {% if page_num != pacientes_paginados.page %}
+                <a href="{{ url_for('listar_pacientes', page=page_num, q=search_query) }}" style="margin: 0 5px; text-decoration: none;">{{ page_num }}</a>
+            {% else %}
+                <strong style="margin: 0 5px;">{{ page_num }}</strong>
+            {% endif %}
+        {% else %}
+            <span style="margin: 0 5px;">...</span>
+        {% endif %}
+    {% endfor %}
+    
+    {% if pacientes_paginados.has_next %}
+        <a href="{{ url_for('listar_pacientes', page=pacientes_paginados.next_num, q=search_query) }}" style="margin: 0 5px; text-decoration: none;">Siguiente &raquo;</a>
+    {% endif %}
+{% endif %}
+</div>
+
 {% endblock %}
