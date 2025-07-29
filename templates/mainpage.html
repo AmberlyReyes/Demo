@@ -206,7 +206,7 @@
            <nav class="sidebar-nav">
                 <ul>
                     <li class="active"><a href="#"><i class="fas fa-home"></i> <span>Inicio</span></a></li>
-                    <li><a href="{{ url_for('buscarPaciente') }}"><i class="fas fa-users"></i> <span>Pacientes</span></a></li>
+                    <li><a href="{{ url_for('listar_pacientes') }}"><i class="fas fa-users"></i> <span>Pacientes</span></a></li>
                     <li><a href="{{ url_for('indexCita') }}"><i class="fas fa-calendar-plus"></i> <span>Citas</span></a></li>
                     <li><a href="{{ url_for('calendario') }}"><i class="fas fa-calendar-alt"></i> <span>Calendario</span></a></li>
                     
@@ -247,7 +247,7 @@
                     <p class="kpi-number">15</p> <span class="kpi-footer">Total: $4,800</span>
                 </div>
                  <div class="kpi-card add-new">
-                    <a href="{{ url_for('index') }}" class="add-new-link">
+                    <a href="{{ url_for('crear') }}" class="add-new-link">
                         <i class="fas fa-user-plus"></i>
                         <span>Agregar Paciente</span>
                     </a>

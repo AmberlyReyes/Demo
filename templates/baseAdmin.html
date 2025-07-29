@@ -41,6 +41,9 @@
         .admin-header h1 {
             color: var(--color-sidebar);
             margin: 0;
+            display: flex;
+            align-items: center;
+            gap: 12px;
         }
 
         .btn {
@@ -51,6 +54,9 @@
             border: none;
             cursor: pointer;
             transition: all 0.3s;
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
         }
 
         .btn-primary {
@@ -60,19 +66,51 @@
 
         .btn-primary:hover {
             background-color: var(--color-secundario);
+            transform: translateY(-1px);
         }
 
         .btn-back {
-            background-color: #f1f5f9;
-            color: var(--color-texto);
+            background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+            color: var(--color-sidebar);
+            border: 1px solid var(--color-borde);
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
         }
 
-        /* Estilos para tablas, formularios, etc. se añadirán aquí */
+        .btn-back:hover {
+            background: linear-gradient(135deg, #e2e8f0, #cbd5e1);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            color: var(--color-sidebar);
+            text-decoration: none;
+        }
+
         .content-card {
             background: var(--color-blanco);
             padding: 30px;
             border-radius: 12px;
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+        }
+
+        /* Navegación breadcrumb mejorada */
+        .breadcrumb {
+            background: none;
+            padding: 0;
+            margin-bottom: 20px;
+            font-size: 14px;
+        }
+
+        .breadcrumb a {
+            color: var(--color-principal);
+            text-decoration: none;
+        }
+
+        .breadcrumb a:hover {
+            text-decoration: underline;
+        }
+
+        .breadcrumb-separator {
+            color: #64748b;
+            margin: 0 8px;
         }
     </style>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
@@ -82,18 +120,22 @@
     <div class="admin-container">
         <header class="admin-header">
             <h1><i class="fas fa-shield-alt"></i> {% block page_title %}Panel de Administración{% endblock %}</h1>
-            <a href="#" onclick="goUpOneLevel()" class="btn btn-back">← Atrás</a>
+            <div style="display: flex; gap: 10px;">
+                <a href="{{ url_for('mainpage') }}" class="btn btn-back">
+                    <i class="fas fa-home"></i> Inicio
+                </a>
+                <a href="#" onclick="goBack()" class="btn btn-back">
+                    <i class="fas fa-arrow-left"></i> Atrás
+                </a>
+            </div>
         </header>
-        <script>
-            function goUpOneLevel() {
-                const currentPath = window.location.pathname;
-                const segments = currentPath.split('/').filter(Boolean);
-                const lastSegment = segments[segments.length - 1];
 
-                if (lastSegment === 'editar' || !isNaN(lastSegment)) {
+        <script>
+            function goBack() {
+                if (window.history.length > 1) {
                     window.history.back();
                 } else {
-                    window.location.href = '/' + segments.slice(0, -1).join('/');
+                    window.location.href = '{{ url_for("mainpage") }}';
                 }
             }
         </script>
