@@ -20,11 +20,12 @@ from sisdental.modelos.Cuota import Cuota
 from sisdental.modelos.Paciente import Paciente
 from datetime import date, timedelta
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
-from sqlalchemy import extract
+from sqlalchemy import extract, or_, func, cast, String
 from sisdental.modelos.ArchivoHistorial import ArchivoHistorial
 import os
 from werkzeug.utils import secure_filename
 from functools import wraps
+from sisdental.modelos.Paciente import Paciente
 
 
 def register_routes(app):
@@ -118,10 +119,6 @@ def register_routes(app):
 
 
     # Listar todos los pacientes
-    @app.route('/pacientes')
-    def index():
-        pacientes = PacienteControlador.obtener_todos()
-        return render_template('pacientes/index.html', pacientes=pacientes)
     
     # Listar Citas
     @app.route('/citas')
@@ -181,7 +178,7 @@ def register_routes(app):
                 error = f"Error insertando paciente: {e}"
                 return render_template('pacientes/crear.html', error=error)
 
-            return redirect(url_for('index'))
+            return redirect(url_for('listar_pacientes'))
 
         return render_template('pacientes/crear.html', error=error)
 
@@ -302,11 +299,23 @@ def register_routes(app):
         return redirect(url_for('indexCita'))
 
     # Detalle de un paciente
-    @app.route('/paciente/<int:id>')
-    def detalle_paciente(id):
-        paciente = PacienteControlador.obtener_por_id(id)
+    @app.route('/paciente/<identificador>')
+    def detalle_paciente(identificador):
+        identificador = identificador.strip()
+        paciente = None
+
+        # 1) Intentar como ID entero (ignorando guiones)
+        numero = identificador.replace('-', '')
+        if numero.isdigit():
+            paciente = PacienteControlador.obtener_por_id(int(numero))
+
+        # 2) Si no hay paciente o no era numérico, buscar por cédula
+        if not paciente:
+            paciente = PacienteControlador.obtener_por_cedula(identificador)
+
         if not paciente:
             return "Paciente no encontrado", 404
+
         return render_template('pacientes/detalle.html', paciente=paciente)
     
     # Detalle de Cita
@@ -316,27 +325,38 @@ def register_routes(app):
         if not paciente:
             return "Cita no encontrada", 404
         return render_template('citas/detalleCita.html', paciente=paciente)
+    
+    # webControlador.py
 
-    @app.route('/buscarPaciente', methods=['GET', 'POST'])
-    def buscarPaciente():
-        if request.method == 'GET':
-            # Muestra solo la plantilla vacía
-            return render_template('pacientes/buscarPaciente.html', pacientes=None)
+    @app.route('/pacientes')
+    @login_required
+    def listar_pacientes():
+        query = request.args.get('q', '').strip()
+        #  Obtenemos el número de página de la URL, por defecto es la página 1
+        page = request.args.get('page', 1, type=int)
+        # Definimos el número de pacientes a mostrar por página
+        PER_PAGE = 6
 
-        
-        valor = request.form.get('valor', '').strip()
-        if not valor:
-            
-            return render_template('pacientes/buscarPaciente.html', pacientes=[])
+        pacientes_query = Paciente.query
 
-       
-        personas = Persona.query.filter(
-            (Persona.nombre.ilike(f"%{valor}%") | Persona.cedula.ilike(f"%{valor}%")),
-            Persona.tipo == 'paciente'
-        ).all()
+        if query:
+            search_term_nombre = f"%{query}%"
+            cedula_sin_guiones = query.replace('-', '')
+            search_term_cedula = f"%{cedula_sin_guiones}%"
+            pacientes_query = pacientes_query.filter(
+                or_(
+                    Paciente.nombre.ilike(search_term_nombre),
+                    func.replace(Paciente.cedula, '-', '').ilike(search_term_cedula)
+                )
+            )
+        pacientes_paginados = pacientes_query.order_by(Paciente.nombre).paginate(
+            page=page, per_page=PER_PAGE, error_out=False
+        )
+        return render_template('pacientes/listar_pacientes.html', 
+                            pacientes_paginados=pacientes_paginados, 
+                            search_query=query)
 
-        return render_template('pacientes/buscarPaciente.html', pacientes=personas)
-
+    
     @app.route('/api/paciente/<int:paciente_id>', methods=['GET'])
     def get_paciente_api(paciente_id):
         paciente = PacienteControlador.obtener_por_id(paciente_id)
@@ -938,7 +958,7 @@ def register_routes(app):
         facturas_query = Factura.query.order_by(Factura.fecha_emision.desc())
         if query:
             facturas_query = facturas_query.join(Factura.paciente).filter(
-                (Factura.id.like(f'%{query}%')) |
+                (cast(Factura.id, String).ilike(f'%{query}%')) |  # <-- aquí el cambio
                 (Persona.nombre.ilike(f'%{query}%'))
             )
         
