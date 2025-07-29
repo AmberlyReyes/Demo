@@ -1,436 +1,144 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Gestión de Pacientes - Dr. Reyes</title>
-    <style>
-        /* Estilos generales */
-        * {
-            margin: 0;
-            padding: 0;
-            box-sizing: border-box;
-        }
+{% extends "baseAdmin.html" %}
 
-        body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-            background: linear-gradient(135deg, #f0f8ff 0%, #e6f3ff 100%);
-            min-height: 100vh;
-            padding: 20px;
-        }
+{% block title %}Gestión de Paciente - {{ paciente.nombre if paciente else '...' }}{% endblock %}
 
-        .container {
-            max-width: 1200px;
-            margin: 0 auto;
-        }
+{% block page_title %}
+    <i class="fas fa-user-injured"></i> Gestión de Paciente
+{% endblock %}
 
-        /* Header */
-        .header {
-            background: linear-gradient(135deg, #2c5aa0 0%, #4a90e2 100%);
-            color: white;
-            padding: 20px 30px;
-            border-radius: 15px;
-            margin-bottom: 30px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
-        }
+{% block admin_content %}
+<style>
+    /* Estilos específicos para esta página */
+    .patient-info-panel {
+        background-color: #f8fafc;
+        border: 1px solid var(--color-borde);
+        border-radius: 12px;
+        padding: 25px;
+        margin-bottom: 30px;
+    }
+    .patient-info-panel h2 {
+        color: var(--color-sidebar);
+        font-size: 20px;
+        margin-top: 0;
+        margin-bottom: 20px;
+        border-bottom: 1px solid var(--color-borde);
+        padding-bottom: 15px;
+    }
+    .patient-details {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 15px 25px;
+    }
+    .detail-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+    .detail-label {
+        font-weight: 600;
+        color: var(--color-texto);
+    }
+    .detail-value {
+        color: #64748b;
+    }
 
-        .header h1 {
-            font-size: 28px;
-            font-weight: 600;
-        }
+    /* Estilo de los botones de acción como tarjetas */
+    .action-buttons {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr); 
+        gap: 20px;
+    }
+    .action-card {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 25px;
+        border-radius: 12px;
+        background-color: white;
+        border: 1px solid var(--color-borde);
+        text-decoration: none;
+        color: var(--color-texto);
+        transition: all 0.3s;
+        box-shadow: 0 4px 6px rgba(0,0,0,0.03);
+    }
+    .action-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 8px 16px rgba(0,0,0,0.08);
+        border-color: var(--color-principal);
+        color: var(--color-principal);
+    }
+    .action-card .icon {
+        font-size: 36px;
+        color: var(--color-principal);
+        margin-bottom: 15px;
+    }
+    .action-card .title {
+        font-size: 16px;
+        font-weight: 600;
+        margin-bottom: 5px;
+    }
+    .action-card .description {
+        font-size: 13px;
+        color: #64748b;
+        line-height: 1.4;
+    }
+    .no-patient-state {
+        text-align: center;
+        padding: 50px;
+        color: #64748b;
+    }
+</style>
 
-        .header .subtitle {
-            font-size: 14px;
-            opacity: 0.9;
-            margin-top: 5px;
-        }
-
-        .exit-btn {
-            background: rgba(255, 255, 255, 0.2);
-            border: none;
-            color: white;
-            padding: 12px 20px;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 14px;
-            font-weight: 500;
-            transition: all 0.3s ease;
-        }
-
-        .exit-btn:hover {
-            background: rgba(255, 255, 255, 0.3);
-            transform: translateY(-2px);
-        }
-
-        /* Panel de información del paciente */
-        .patient-info-panel {
-            background: white;
-            border-radius: 15px;
-            padding: 25px;
-            margin-bottom: 30px;
-            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
-            border: 1px solid #e9ecef;
-        }
-
-        .patient-info-panel h2 {
-            color: #2c5aa0;
-            font-size: 20px;
-            margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .patient-details {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 15px;
-        }
-
-        .detail-item {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            padding: 8px 0;
-        }
-
-        .detail-icon {
-            width: 20px;
-            text-align: center;
-            color: #4a90e2;
-        }
-
-        .detail-label {
-            font-weight: 600;
-            color: #2c5aa0;
-            min-width: 80px;
-        }
-
-        .detail-value {
-            color: #6c757d;
-        }
-
-        /* Botones de acción principales */
-        .action-buttons {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr); 
-            gap: 20px;
-            margin-bottom: 30px;
-        }
-
-        .action-btn {
-            background: white;
-            border: 2px solid #e9ecef;
-            border-radius: 15px;
-            padding: 25px 20px;
-            text-align: center;
-            cursor: pointer;
-            transition: all 0.3s ease;
-            text-decoration: none;
-            color: #2c5aa0;
-        }
-
-        .action-btn:hover {
-            border-color: #4a90e2;
-            background: #f8f9fa;
-            transform: translateY(-3px);
-            box-shadow: 0 8px 25px rgba(74, 144, 226, 0.15);
-        }
-
-        .action-btn .icon {
-            font-size: 40px;
-            margin-bottom: 15px;
-            display: block;
-        }
-
-        .action-btn .title {
-            font-size: 16px;
-            font-weight: 600;
-            margin-bottom: 5px;
-        }
-
-        .action-btn .description {
-            font-size: 12px;
-            color: #6c757d;
-            line-height: 1.4;
-        }
-
-        /* Botón especial para modificar */
-        .modify-btn {
-            background: linear-gradient(135deg, #2c5aa0 0%, #4a90e2 100%);
-            color: white;
-            border: none;
-        }
-
-        .modify-btn:hover {
-            background: linear-gradient(135deg, #1e3d6f 0%, #2c5aa0 100%);
-            border: none;
-        }
-
-        .modify-btn .description {
-            color: rgba(255, 255, 255, 0.8);
-        }
-
-        /* Responsive */
-        @media (max-width: 768px) {
-            .container {
-                padding: 10px;
-            }
-
-            .header {
-                padding: 15px 20px;
-                flex-direction: column;
-                text-align: center;
-                gap: 10px;
-            }
-
-            .action-buttons {
-                grid-template-columns: 1fr;
-            }
-
-            .patient-details {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        /* Estado de carga/sin paciente */
-        .no-patient {
-            text-align: center;
-            padding: 60px 20px;
-            color: #6c757d;
-        }
-
-        .no-patient-icon {
-            font-size: 64px;
-            margin-bottom: 20px;
-            opacity: 0.5;
-        }
-
-        .no-patient-text {
-            font-size: 18px;
-            margin-bottom: 10px;
-        }
-
-        .no-patient-subtext {
-            font-size: 14px;
-            opacity: 0.8;
-        }
-    </style>
-</head>
-<body>
-    <div class="container">
-        <!-- Header -->
-        <div class="header">
-            <div>
-                <h1> Gestión de Pacientes</h1>
-                <div class="subtitle">Dr. Reyes - Centro Odontológico</div>
-            </div>
-            <button class="exit-btn" onclick="javascript:window.history.back();">← Atrás</button>
-        </div>
-
-        <!-- Panel de información del paciente -->
-        <div class="patient-info-panel" id="patientPanel" style="display: none;">
-            <h2> Información del Paciente</h2>
-            <div class="patient-details" id="patientDetails">
-                <!-- Los detalles se llenarán dinámicamente -->
-            </div>
-        </div>
-
-        <!-- Botones de acción -->
-        <div class="action-buttons" id="actionButtons" style="display: none;">
-            <div class="action-btn" onclick="openHistorial()">
-                <span class="icon">📋</span>
-                <div class="title">Historial</div>
-                <div class="description">Ver historial médico completo del paciente</div>
-            </div>
-
-            <div class="action-btn" onclick="openCitas()">
-                <span class="icon">📅</span>
-                <div class="title">Citas</div>
-                <div class="description">Gestionar citas programadas y pasadas</div>
-            </div>
-
-            <div class="action-btn" onclick="openEstadoCuenta()">
-                <span class="icon">💳</span>
-                <div class="title">Estado de Cuenta</div>
-                <div class="description">Ver pagos, facturas y estado financiero</div>
-            </div>
-
-            <div class="action-btn" onclick="openNuevaConsulta()">
-                <span class="icon">📝</span>
-                <div class="title">Nueva Consulta</div>
-                <div class="description">Agregar nueva consulta al paciente</div>
-            </div>
-
-            <div class="action-btn" onclick="openGestionTratamientos()">
-                <span class="icon">🦷</span>
-                <div class="title">Gestión de planes </div>
-                <div class="description">Gestionar planes Odontológicos</div>
-            </div>
-
-            <div class="action-btn modify-btn" onclick="openModificar()">
-                <span class="icon">✏️</span>
-                <div class="title">Modificar</div>
-                <div class="description">Editar información del paciente</div>
-            </div>
-        </div>
-
-        <!-- Estado sin paciente -->
-        <div class="no-patient" id="noPatient">
-            <div class="no-patient-icon">👤</div>
-            <div class="no-patient-text">No hay paciente seleccionado</div>
-            <div class="no-patient-subtext">Seleccione un paciente desde el menú principal</div>
+{% if paciente %}
+    <div class="patient-info-panel">
+        <h2>{{ paciente.nombre }}</h2>
+        <div class="patient-details">
+            <div class="detail-item"><span class="detail-label">Cédula:</span><span class="detail-value">{{ paciente.cedula }}</span></div>
+            <div class="detail-item"><span class="detail-label">Teléfono:</span><span class="detail-value">{{ paciente.telefono }}</span></div>
+            <div class="detail-item"><span class="detail-label">Email:</span><span class="detail-value">{{ paciente.email }}</span></div>
+            <div class="detail-item"><span class="detail-label">Aseguradora:</span><span class="detail-value">{{ paciente.aseguradora }}</span></div>
         </div>
     </div>
 
-    <script>
-        // Variable global para almacenar datos del paciente actual
-        let currentPatient = null;
+    <div class="action-buttons">
+        <a href="{{ url_for('historial', patientId=paciente.id) }}" class="action-card">
+            <span class="icon"><i class="fas fa-notes-medical"></i></span>
+            <div class="title">Historial Clínico</div>
+            <div class="description">Consultas, archivos y antecedentes</div>
+        </a>
+        <a href="{{ url_for('indexCita', patientId=paciente.id) }}" class="action-card">
+            <span class="icon"><i class="fas fa-calendar-alt"></i></span>
+            <div class="title">Ver Citas</div>
+            <div class="description">Consultar el historial de citas</div>
+        </a>
+        <a href="{{ url_for('estado_cuenta_paciente', paciente_id=paciente.id) }}" class="action-card">
+            <span class="icon"><i class="fas fa-file-invoice-dollar"></i></span>
+            <div class="title">Estado de Cuenta</div>
+            <div class="description">Facturas, pagos y planes financieros</div>
+        </a>
+        <a href="{{ url_for('nueva_consulta', patientId=paciente.id) }}" class="action-card">
+            <span class="icon"><i class="fas fa-stethoscope"></i></span>
+            <div class="title">Nueva Consulta</div>
+            <div class="description">Registrar una nueva visita médica</div>
+        </a>
+        <a href="{{ url_for('listar_planes_paciente', paciente_id=paciente.id) }}" class="action-card">
+            <span class="icon"><i class="fas fa-project-diagram"></i></span>
+            <div class="title">Planes de Tratamiento</div>
+            <div class="description">Crear y gestionar planes dentales</div>
+        </a>
+        <a href="{{ url_for('editar', id=paciente.id) }}" class="action-card">
+            <span class="icon"><i class="fas fa-user-edit"></i></span>
+            <div class="title">Editar Paciente</div>
+            <div class="description">Modificar datos personales</div>
+        </a>
+    </div>
+{% else %}
+    <div class="no-patient-state">
+        <h3><i class="fas fa-search"></i> No hay paciente seleccionado</h3>
+        <p>Por favor, busca y selecciona un paciente para ver sus opciones.</p>
+    </div>
+{% endif %}
 
-        // Función para cargar paciente desde URL o localStorage
-        function loadPatient() {
-            const urlParams = new URLSearchParams(window.location.search);
-            const patientId = urlParams.get('patientId');
-
-            if (patientId) {
-                fetch(`/api/paciente/${patientId}`)
-                    .then(response => {
-                        if (!response.ok) {
-                            // Maneja error si el paciente no se encuentra
-                            throw new Error('Paciente no encontrado');
-                        }
-                        return response.json();
-                    })
-                    .then(data => {
-                        currentPatient = data;  // Recibe datos reales del paciente
-                        displayPatient(currentPatient);
-                    })
-                    .catch(err => {
-                        console.error(err);
-                        alert('Error cargando datos del paciente.');
-                    });
-            }
-
-            // Escuchar mensajes del buscador (si lo usas)
-            window.addEventListener('message', function(event) {
-                if (event.data.type === 'patientSelected') {
-                    fetch(`/api/paciente/${event.data.patientId}`)
-                        .then(response => response.json())
-                        .then(data => {
-                            currentPatient = data;
-                            displayPatient(currentPatient);
-                        })
-                        .catch(err => {
-                            console.error(err);
-                            alert('Error cargando datos del paciente.');
-                        });
-                }
-            });
-        }
-
-        // Función para mostrar datos del paciente
-        function displayPatient(patient) {
-            document.getElementById('noPatient').style.display = 'none';
-            document.getElementById('patientPanel').style.display = 'block';
-            document.getElementById('actionButtons').style.display = 'grid';
-
-            const patientDetails = document.getElementById('patientDetails');
-            patientDetails.innerHTML = `
-                <div class="detail-item">
-                    <span class="detail-icon">👤</span>
-                    <span class="detail-label">Nombre:</span>
-                    <span class="detail-value">${patient.nombre}</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-icon">🆔</span>
-                    <span class="detail-label">Cédula:</span>
-                    <span class="detail-value">${patient.cedula}</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-icon">📞</span>
-                    <span class="detail-label">Teléfono:</span>
-                    <span class="detail-value">${patient.telefono}</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-icon">📧</span>
-                    <span class="detail-label">Email:</span>
-                    <span class="detail-value">${patient.email}</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-icon">🏠</span>
-                    <span class="detail-label">Dirección:</span>
-                    <span class="detail-value">${patient.direccion}</span>
-                </div>
-                <div class="detail-item">
-                    <span class="detail-icon">🏥</span>
-                    <span class="detail-label">Aseguradora:</span>
-                    <span class="detail-value">${patient.aseguradora}</span>
-                </div>
-                
-            `;
-        }
-
-        // Funciones para abrir diferentes módulos
-        function openHistorial() {
-            if (!currentPatient) {
-                alert('Debe seleccionar un paciente primero');
-                return;
-            }
-            // Redirigir a la página de historial con el ID del paciente
-            window.location.href = `/historial?patientId=${currentPatient.id}`;
-        }
-
-        function openCitas() {
-            if (!currentPatient) {
-                alert('Debe seleccionar un paciente primero');
-                return;
-            }
-            // Redirigir a la página de citas
-            window.location.href = `/citas?patientId=${currentPatient.id}`;
-        }
-
-        function openEstadoCuenta() {
-            if (!currentPatient) {
-                alert('Debe seleccionar un paciente primero');
-                return;
-            }
-            // Redirigir a la página de estado de cuenta
-            window.location.href = `/paciente/${currentPatient.id}/estado-cuenta`;
-        }
-
-        function openNuevaConsulta() {
-            if (!currentPatient) {
-                alert('Debe seleccionar un paciente primero');
-                return;
-            }
-            window.location.href = `/nuevaConsulta?patientId=${currentPatient.id}`;
-        }
-
-        
-        function openGestionTratamientos() {
-            if (!currentPatient) {
-                alert('Debe seleccionar un paciente primero');
-                return;
-            }
-            window.location.href = `/paciente/${currentPatient.id}/planes`;
-        }
-
-        function openModificar() {
-            if (!currentPatient) {
-                alert('Debe seleccionar un paciente primero');
-                return;
-            }
-            // Redirigir a la página de edición
-            window.location.href = `/${currentPatient.id}/editar`;
-        }
-
-        // Cargar paciente al inicializar la página
-        document.addEventListener('DOMContentLoaded', function() {
-            loadPatient();
-        });
-    </script>
-</body>
-</html>
+{% endblock %}

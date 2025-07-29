@@ -4,7 +4,7 @@
 
 {% block admin_content %}
 <style>
-    /* ESTILOS ORIGINALES - SIN CAMBIOS */
+   
     .search-container {
         margin-bottom: 30px;
         display: flex;
@@ -216,7 +216,7 @@
 <div style="text-align: center; margin-top: 25px;">
 {% if pacientes_paginados.pages > 1 %}
     {% if pacientes_paginados.has_prev %}
-        <a href="{{ url_for('listar_pacientes', page=pacientes_paginados.prev_num, q=search_query) }}" style="margin: 0 5px; text-decoration: none;">&laquo; Anterior</a>
+        <a href="{{ url_for('listar_pacientes', page=pacientes_paginados.prev_num, q=search_query) }}" style="margin: 0 5px; text-decoration: none; color: var(--color-principal);">&laquo; Anterior</a>
     {% endif %}
 
     {% for page_num in pacientes_paginados.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
@@ -232,7 +232,7 @@
     {% endfor %}
     
     {% if pacientes_paginados.has_next %}
-        <a href="{{ url_for('listar_pacientes', page=pacientes_paginados.next_num, q=search_query) }}" style="margin: 0 5px; text-decoration: none;">Siguiente &raquo;</a>
+        <a href="{{ url_for('listar_pacientes', page=pacientes_paginados.next_num, q=search_query) }}" style="margin: 0 5px; text-decoration: none; color: var(--color-principal);">Siguiente &raquo;</a>
     {% endif %}
 {% endif %}
 </div>

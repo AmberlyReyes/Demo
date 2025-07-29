@@ -18,7 +18,7 @@ from sisdental.modelos.Usuario import Usuario
 from sisdental.modelos.Cuota import Cuota
 from datetime import date, timedelta
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
-from sqlalchemy import extract, or_, func
+from sqlalchemy import extract, or_, func, cast, String
 from sisdental.modelos.ArchivoHistorial import ArchivoHistorial
 import os
 from werkzeug.utils import secure_filename
@@ -934,7 +934,7 @@ def register_routes(app):
         facturas_query = Factura.query.order_by(Factura.fecha_emision.desc())
         if query:
             facturas_query = facturas_query.join(Factura.paciente).filter(
-                (Factura.id.like(f'%{query}%')) |
+                (cast(Factura.id, String).ilike(f'%{query}%')) |  # <-- aquí el cambio
                 (Persona.nombre.ilike(f'%{query}%'))
             )
         
