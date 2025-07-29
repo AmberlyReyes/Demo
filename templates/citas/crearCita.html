@@ -177,12 +177,21 @@
             </div>
 
             <div class="form-group">
-                <label for="doctor_cedula" class="form-label">👨‍⚕️ ID Doctor</label>
-                <div class="input-icon" data-icon="👨‍⚕️">
-                    <input type="text" class="form-control" id="doctor_cedula" name="doctor_cedula" 
-                           required min="0" placeholder="Ingrese el ID del doctor">
-                </div>
-            </div>
+            <label for="doctor_id">Doctor</label>
+            <select class= "form-control" id="doctor_id" name="doctor_id" required>
+                <option value="">-- Ninguno --</option>
+                <!-- Parte editar -->
+                {% if docSelected %}
+                <option value="{{ docSelected.id }}" selected>{{ docSelected.nombre }} (Actual)</option>
+                {% endif %}
+                <!-- Lista -->
+                {% for persona in doctores %}
+                    <option value="{{ persona.id }}">
+                        {{ persona.nombre }}
+                    </option>
+                {% endfor %}
+            </select>
+        </div>
 
             <div class="form-group">
                 <label for="fecha" class="form-label">📅 Fecha</label>

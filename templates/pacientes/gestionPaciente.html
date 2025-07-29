@@ -228,8 +228,22 @@
                 <h1> Gestión de Pacientes</h1>
                 <div class="subtitle">Dr. Reyes - Centro Odontológico</div>
             </div>
-            <button class="exit-btn" onclick="javascript:window.history.back();">← Atrás</button>
+            <button class="exit-btn" onclick="goUpOneLevel()">← Atrás</button>
         </div>
+        </header>
+        <script>
+            function goUpOneLevel() {
+                const currentPath = window.location.pathname;
+                const segments = currentPath.split('/').filter(Boolean);
+                const lastSegment = segments[segments.length - 1];
+
+                if (lastSegment === 'editar' || !isNaN(lastSegment)) {
+                    window.history.back();
+                } else {
+                    window.location.href = '/' + segments.slice(0, -1).join('/');
+                }
+            }
+        </script>
 
         <!-- Panel de información del paciente -->
         <div class="patient-info-panel" id="patientPanel" style="display: none;">

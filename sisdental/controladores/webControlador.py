@@ -10,12 +10,14 @@ from sisdental.controladores.HistorialControlador import HistorialControlador
 from sisdental.controladores.TratamientoControlador import TratamientoControlador
 from sisdental.controladores.PlanTratamientoControlador import PlanTratamientoControlador
 from sisdental.controladores.FacturacionControlador import FacturacionControlador
+from sisdental.controladores.AsistenteControlador import AsistenteControlador
 from sisdental.modelos.Factura import Factura
 from sisdental.modelos import Persona
 from datetime import datetime
 from sisdental.modelos.Doctor import Doctor
 from sisdental.modelos.Usuario import Usuario
 from sisdental.modelos.Cuota import Cuota
+from sisdental.modelos.Paciente import Paciente
 from datetime import date, timedelta
 from flask_login import LoginManager, UserMixin, login_user, login_required, logout_user, current_user
 from sqlalchemy import extract
@@ -203,14 +205,12 @@ def register_routes(app):
                     planes_activos=planes_activos
                 )
 
-            doctor_cedula = request.form['doctor_cedula']
-            doc_ced_limpia = doctor_cedula.strip()
-            doc = DoctorControlador.obtener_por_cedula(doc_ced_limpia)
+            doctor_id = request.form['doctor_id']
             plan_id   = request.form.get('plan_tratamiento_id') or None
 
             data = {
                 'paciente_id': Paci.id,
-                'doctor_id': doc.id,
+                'doctor_id': doctor_id,
                 'fecha': request.form['fecha'],
                 'hora': request.form['hora'],
                 'plan_tratamiento_id': plan_id
@@ -246,10 +246,16 @@ def register_routes(app):
             }
             citaControlador.actualizar_cita(id, nuevos_datos)
             return redirect(url_for('indexCita'))
+        
+        doctores = DoctorControlador.obtener_todos()
 
-        return render_template('citas/editarCita.html',
-                               pacientes=cita,
-                               planes_activos=planes_activos)
+        return render_template(
+            'citas/editarCita.html',
+            pacientes=cita,
+            planes_activos=planes_activos, 
+            doctores=doctores,
+            docSelected=DoctorControlador.obtener_por_id(cita.doctor_id)
+        )
 
     @app.route('/gestionPaciente')
     def gestion_paciente():
@@ -763,7 +769,9 @@ def register_routes(app):
         if id == current_user.id:
             flash('No puedes eliminar tu propia cuenta de administrador.', 'danger')
             return redirect(url_for('listar_usuarios'))
-            
+        
+
+        
         UsuarioControlador.eliminar_usuario(id)
         flash('Usuario eliminado con éxito.', 'info')
         return redirect(url_for('listar_usuarios'))
@@ -781,16 +789,26 @@ def register_routes(app):
     @admin_required
     def crear_persona():
         if request.method == 'POST':
+            tipo = request.form['tipo']
             data = {
                 'nombre':   request.form['nombre'],
                 'cedula':   request.form['cedula'],
                 'telefono': request.form['telefono'],
                 'direccion':request.form['direccion'],
                 'email':    request.form['email'],
-                'tipo':     request.form['tipo']
             }
-            PersonaControlador.crear_persona(data)
+            #PersonaControlador.crear_persona(data)
+            #person = PersonaControlador.obtener_por_cedula(data['cedula'])
+
+            if tipo == 'paciente':
+                PacienteControlador.crear_paciente(data)
+            elif tipo == 'doctor':
+                DoctorControlador.crear_doctor(data)
+            elif tipo == 'asistente':
+                AsistenteControlador.crear(data)
+
             flash('Persona creada.', 'success')
+
             return redirect(url_for('listar_personas'))
         return render_template('personas/crear_persona.html')
 
@@ -820,6 +838,12 @@ def register_routes(app):
     @login_required
     @admin_required
     def eliminar_persona(id):
+
+        persona = PersonaControlador.obtener_por_id(id)
+        if persona is Paciente:
+            #Manejar borrado de tratamientos y planes
+            flash('No puedes eliminar un paciente directamente. Usa el módulo de pacientes.', 'danger')
+        
         PersonaControlador.eliminar_persona(id)
         flash('Persona eliminada.', 'info')
         return redirect(url_for('listar_personas'))

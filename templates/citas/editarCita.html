@@ -11,10 +11,21 @@
                 value="{{ pacientes['paciente_cedula'] }}">
         </div>
 
-        <div class="mb-3">
-            <label for="doctor_id" class="form-label">ID Doctor</label>
-            <input type="number" class="form-control" name="doctor_id" id="doctor_id" required
-                value="{{ pacientes['doctor_id'] }}">
+            <div class="form-group">
+            <label for="doctor_id">Doctor</label>
+            <select class= "form-control" id="doctor_id" name="doctor_id" required>
+                <option value="">-- Ninguno --</option>
+                <!-- Parte editar -->
+                {% if docSelected %}
+                <option value="{{ docSelected.id }}" selected>{{ docSelected.nombre }} (Actual)</option>
+                {% endif %}
+                <!-- Lista -->
+                {% for persona in doctores %}
+                    <option value="{{ persona.id }}">
+                        {{ persona.nombre }}
+                    </option>
+                {% endfor %}
+            </select>
         </div>
 
         <div class="mb-3">

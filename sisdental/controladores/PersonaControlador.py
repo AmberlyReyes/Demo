@@ -14,6 +14,10 @@ class PersonaControlador:
         return Persona.query.get(id)
 
     @staticmethod
+    def obtener_por_cedula(ced):
+         return Persona.query.filter_by(cedula=ced).first()
+
+    @staticmethod
     def actualizar_persona(id, datos):
         p = Persona.query.get(id)
         for k, v in datos.items():
