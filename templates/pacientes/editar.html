@@ -41,7 +41,9 @@
             </div>
             <div class="form-group">
                 <label for="aseguradora">Aseguradora</label>
-                <select id="aseguradora" name="aseguradora" required>
+                <select id="aseguradora" name="aseguradora">
+                    <option value="">-- Seleccione --</option>
+                    <option value="Ninguna">Ninguna</option>
                     <option value="ARS Primera" {% if pacientes.aseguradora == 'ARS Primera' %}selected{% endif %}>ARS Primera</option>
                     <option value="ARS Humano" {% if pacientes.aseguradora == 'ARS Humano' %}selected{% endif %}>ARS Humano</option>
                     <option value="MAPFRE SALUD ARS" {% if pacientes.aseguradora == 'MAPFRE SALUD ARS' %}selected{% endif %}>MAPFRE SALUD ARS</option>

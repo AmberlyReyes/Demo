@@ -45,8 +45,9 @@
             </div>
             <div class="form-group">
                 <label for="aseguradora">Aseguradora</label>
-                <select id="aseguradora" name="aseguradora" required>
+                <select id="aseguradora" name="aseguradora">
                     <option value="">-- Seleccione --</option>
+                    <option value="Ninguna">Ninguna</option>
                     <option value="ARS Primera">ARS Primera</option>
                     <option value="ARS Humano">ARS Humano</option>
                     <option value="MAPFRE SALUD ARS">MAPFRE SALUD ARS</option>
@@ -56,7 +57,7 @@
                     <option value="ARSSENASA">ARSSENASA</option>
                 </select>
             </div>
-            <div class="form-group">
+            <div class="form-group" id="num_aseguradora_group">
                 <label for="num_aseguradora">Número de Afiliado</label>
                 <input type="text" id="num_aseguradora" name="num_aseguradora">
             </div>
@@ -71,4 +72,21 @@
         </div>
     </form>
 </div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const aseguradora = document.getElementById('aseguradora');
+    const numAseguradoraGroup = document.getElementById('num_aseguradora').closest('.form-group');
+    function toggleNumAseguradora() {
+        if (aseguradora.value === 'Ninguna') {
+            numAseguradoraGroup.style.display = 'none';
+            document.getElementById('num_aseguradora').value = '';
+        } else {
+            numAseguradoraGroup.style.display = '';
+        }
+    }
+    aseguradora.addEventListener('change', toggleNumAseguradora);
+    toggleNumAseguradora();
+});
+</script>
 {% endblock %}
