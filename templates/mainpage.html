@@ -243,6 +243,7 @@
             left: 50%;
             transform: translateX(-50%);
         }
+
         .calendar-table td:not(.empty):hover {
             background-color: #f5f5f5;
         }
@@ -375,10 +376,10 @@
                         </tbody>
                     </table>
                     <div style="display: flex; justify-content: space-between; align-items: center;padding: 20px;">
-                        <a href="{{ url_for('mainpage', fecha='%04d-%02d-%02d'|format(hoy.year, hoy.month - 1, hoy.day)) }}"
-                            class="kpi-card"> &lt; Mes Anterior</a>
-                        <a href="{{ url_for('mainpage', fecha='%04d-%02d-%02d'|format(hoy.year, hoy.month + 1, hoy.day)) }}"
-                            class="kpi-card">Mes Siguiente &gt; </a>
+                        <a href="{{ url_for('mainpage', fecha=mes_anterior.strftime('%Y-%m-%d')) }}" class="kpi-card">&lt;
+                            Mes Anterior</a>
+                        <a href="{{ url_for('mainpage', fecha=mes_siguiente.strftime('%Y-%m-%d')) }}" class="kpi-card">Mes
+                            Siguiente &gt;</a>
                     </div>
                 </div>
             </div>

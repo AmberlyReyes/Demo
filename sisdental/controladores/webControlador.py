@@ -54,6 +54,15 @@ def register_routes(app):
         # Suma de todos los pagos registrados
         ganancias = sum(p.monto for p in Pago.query.all())
 
+        # Obtener fecha del query string o usar hoy
+        fecha_str = request.args.get('fecha')
+        fecha_actual = datetime.strptime(fecha_str, '%Y-%m-%d') if fecha_str else datetime.now()
+    
+    # Calcular mes anterior y siguiente correctamente
+        mes_anterior = (fecha_seleccionada.replace(day=1) - timedelta(days=1)).replace(day=1)
+        mes_siguiente = (fecha_seleccionada.replace(day=28) + timedelta(days=4)).replace(day=1)
+
+
         return render_template('mainpage.html',
             user=current_user,
             matriz_mes=matriz_mes,
@@ -64,6 +73,8 @@ def register_routes(app):
             facturas=len(facturas),
             faturas_sum=faturas_sum,
             ganancias=ganancias,
+            mes_anterior=mes_anterior,
+            mes_siguiente=mes_siguiente
         )
     def admin_required(f):
         @wraps(f)
