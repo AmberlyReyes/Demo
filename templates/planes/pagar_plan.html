@@ -1,0 +1,56 @@
+{% extends "baseAdmin.html" %}
+{% block title %}Registrar Pago para Plan{% endblock %}
+{% block page_title %}Registrar Pago: {{ plan.nombre_plan }}{% endblock %}
+
+{% block admin_content %}
+<style>
+    .payment-table { width: 100%; border-collapse: collapse; }
+    .payment-table th, .payment-table td { padding: 12px; text-align: left; border-bottom: 1px solid var(--color-borde); }
+    .payment-table input[type="number"] { width: 120px; padding: 8px; border-radius: 6px; border: 1px solid #ccc; text-align: right; }
+    .total-row td { font-weight: bold; border-top: 2px solid var(--color-sidebar); }
+</style>
+
+<form method="POST">
+    <table class="payment-table">
+        <thead>
+            <tr>
+                <th>Descripción (Cuota)</th>
+                <th>Vencimiento</th>
+                <th>Saldo Pendiente</th>
+                <th>Monto a Pagar</th>
+            </tr>
+        </thead>
+        <tbody>
+            {% for cuota in cuotas %}
+            <tr>
+                <td>Cuota #{{ cuota.numero_cuota }}</td>
+                <td>{{ cuota.fecha_vencimiento.strftime('%d/%m/%Y') }}</td>
+                <td>${{ "%.2f"|format(cuota.monto) }}</td>
+                <td>
+                    <input type="number" step="0.01" name="monto_{{ cuota.id }}" placeholder="0.00" oninput="updateTotal()">
+                </td>
+            </tr>
+            {% endfor %}
+        </tbody>
+        <tfoot>
+            <tr class="total-row">
+                <td colspan="3" style="text-align: right;">Total a Pagar:</td>
+                <td id="total-a-pagar">$0.00</td>
+            </tr>
+        </tfoot>
+    </table>
+    <div class="form-actions">
+        <button type="submit" class="btn btn-primary">Realizar Pago</button>
+    </div>
+</form>
+
+<script>
+function updateTotal() {
+    let total = 0;
+    document.querySelectorAll('input[name^="monto_"]').forEach(input => {
+        total += parseFloat(input.value) || 0;
+    });
+    document.getElementById('total-a-pagar').textContent = `$${total.toFixed(2)}`;
+}
+</script>
+{% endblock %}

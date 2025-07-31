@@ -38,15 +38,25 @@ class FacturacionControlador:
 
     @staticmethod
     def registrar_pago(factura_id, monto, fecha_pago):
-        
-       # Registra un pago para una factura y actualiza los estados.
-        
         factura = Factura.query.get(factura_id)
         if not factura:
-            return None
+            # Devolvemos un mensaje de error específico
+            return {'success': False, 'error': 'Factura no encontrada.'}
+
+        total_ya_pagado = sum(p.monto for p in factura.pagos)
+        saldo_pendiente = round(factura.total - total_ya_pagado, 2)
+
+        # --- LÓGICA MEJORADA ---
+        if monto > saldo_pendiente:
+            # En lugar de corregir, devolvemos un error claro.
+            error_msg = f"El monto a pagar (${monto}) excede el saldo pendiente (${saldo_pendiente})."
+            return {'success': False, 'error': error_msg}
+
+        if monto <= 0:
+            return {'success': False, 'error': 'El monto a pagar debe ser mayor a cero.'}
 
         try:
-            #  Crear el registro del pago
+            # Crear el registro del pago
             nuevo_pago = Pago(
                 factura_id=factura.id,
                 monto=monto,
@@ -54,16 +64,16 @@ class FacturacionControlador:
             )
             db.session.add(nuevo_pago)
 
-            #  Actualizar el estado de la factura y la cuota asociada
-            total_pagado = sum(p.monto for p in factura.pagos) + monto
+            # Actualizar el estado de la factura y la cuota asociada
+            total_pagado = total_ya_pagado + monto
             if total_pagado >= factura.total:
                 factura.estado = 'Pagada'
                 # Si la factura está pagada, la cuota también
                 if factura.cuota_asociada:
                     factura.cuota_asociada.estado = 'Pagada'
-            
+
             db.session.commit()
-            return nuevo_pago
+            return {'success': True, 'pago': nuevo_pago}
         except Exception as e:
             db.session.rollback()
             print(f"Error al registrar pago: {e}")

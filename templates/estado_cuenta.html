@@ -27,8 +27,8 @@
     </div>
     <div class="summary-card"
          style="background-color: {{ '#e74c3c' if balance > 0 else '#27ae60' }};">
-        <div class="label">Balance Actual</div>
-        <div class="amount">${{ "%.2f"|format(balance) }}</div>
+        <div class="label">{{ 'Balance Actual (Deuda)' if balance > 0 else 'Saldo a Favor' }}</div>
+        <div class="amount">${{ "%.2f"|format(balance|abs) }}</div>
     </div>
 </div>
 

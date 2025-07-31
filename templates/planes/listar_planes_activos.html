@@ -1,0 +1,43 @@
+{% extends "baseAdmin.html" %}
+{% block title %}Seleccionar Plan para Pagar{% endblock %}
+{% block page_title %}Seleccionar Plan para Registrar Pago{% endblock %}
+
+{% block admin_content %}
+<style>
+    
+    .data-table { width: 100%; border-collapse: collapse; }
+    .data-table th, .data-table td { padding: 12px 15px; text-align: left; border-bottom: 1px solid var(--color-borde); }
+    .data-table th { background-color: #f8fafc; font-size: 14px; text-transform: uppercase; color: #64748b; }
+</style>
+
+<div class="table-actions">
+    <p>Selecciona el plan de tratamiento al que deseas registrar un pago.</p>
+</div>
+
+<table class="data-table">
+    <thead>
+        <tr>
+            <th>Nombre del Plan</th>
+            <th>Paciente</th>
+            <th>Doctor</th>
+            <th>Costo Total</th>
+            <th>Acción</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for plan in planes %}
+        <tr>
+            <td>{{ plan.nombre_plan }}</td>
+            <td>{{ plan.paciente.nombre }}</td>
+            <td>{{ plan.doctor.nombre }}</td>
+            <td>${{ "%.2f"|format(plan.costo_total) }}</td>
+            <td>
+                <a href="{{ url_for('pagar_plan', plan_id=plan.id) }}" class="btn btn-primary">
+                    Seleccionar y Pagar
+                </a>
+            </td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

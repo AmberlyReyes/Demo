@@ -1,4 +1,4 @@
-from flask import flash, render_template, request, redirect, url_for, jsonify, current_app, send_from_directory
+from flask import flash, render_template, request, redirect, url_for, jsonify, current_app, send_from_directory, abort
 from sisdental import db
 from sisdental.controladores.PacienteControlador import PacienteControlador
 from sisdental.controladores.citaControlador import citaControlador
@@ -26,14 +26,29 @@ import os
 from werkzeug.utils import secure_filename
 from functools import wraps
 from sisdental.modelos.Paciente import Paciente
-
+import calendar
 
 def register_routes(app):
-    # Ruta principal
+
     @app.route('/')
+    @login_required # Es buena idea que el dashboard principal requiera login
     def mainpage():
-        return render_template('mainpage.html', user=current_user)
-    
+        hoy = date.today()
+        ano = hoy.year
+        mes = hoy.month
+        matriz_mes = calendar.monthcalendar(ano, mes)
+
+        citas_del_mes = citaControlador.obtener_por_mes_y_ano(mes, ano)
+        dias_con_citas = {cita.fecha.day for cita in citas_del_mes}
+
+        return render_template('mainpage.html', 
+                               user=current_user,
+                               matriz_mes=matriz_mes,
+                               hoy=hoy,
+                               mes_actual_nombre=hoy.strftime('%B'),
+                               ano_actual=ano,
+                               dias_con_citas=dias_con_citas)
+
     def admin_required(f):
         @wraps(f)
         def decorated_function(*args, **kwargs):
@@ -902,24 +917,25 @@ def register_routes(app):
             fecha_pago_str = request.form['fecha_pago']
             fecha_pago = datetime.strptime(fecha_pago_str, '%Y-%m-%d').date()
             
-            pago = FacturacionControlador.registrar_pago(factura_id, monto, fecha_pago)
+            resultado = FacturacionControlador.registrar_pago(factura_id, monto, fecha_pago)
 
-            if pago:
-                flash(f"Pago de ${monto} registrado para la Factura #{factura.id}.", "success")
+            if resultado['success']:
+                flash(f"Pago registrado para la Factura #{factura.id}.", "success")
+                # === FIX: obtener la cuota asociada y su plan ===
+                from sisdental.modelos.Cuota import Cuota
+                cuota = Cuota.query.filter_by(factura_id=factura.id).first()
+                if cuota:
+                    plan = cuota.plan
+                    return redirect(url_for(
+                        'ver_plan_paciente',
+                        paciente_id=plan.paciente_id,
+                        plan_id=plan.id
+                    ))
+                return redirect(url_for('admin_dashboard'))
             else:
-                flash("Error al registrar el pago.", "danger")
-            
-            # === FIX: obtener la cuota asociada y su plan ===
-            from sisdental.modelos.Cuota import Cuota
-            cuota = Cuota.query.filter_by(factura_id=factura.id).first()
-            if cuota:
-                plan = cuota.plan
-                return redirect(url_for(
-                    'ver_plan_paciente',
-                    paciente_id=plan.paciente_id,
-                    plan_id=plan.id
-                ))
-            return redirect(url_for('admin_dashboard'))
+                # Mostramos el error específico que nos dio el controlador.
+                flash(resultado['error'], "danger")
+                return redirect(url_for('registrar_pago', factura_id=factura_id))
 
         now = datetime.now()
         return render_template('registrar_pago.html', factura=factura, now=now)
@@ -976,8 +992,37 @@ def register_routes(app):
     
         total_pagado = sum(pago.monto for pago in factura.pagos)
         saldo_pendiente = factura.total - total_pagado
-
+        now=datetime.now()
         return render_template('facturas/ver_factura.html', 
                             factura=factura,
                             total_pagado=total_pagado,
-                            saldo_pendiente=saldo_pendiente)
+                            saldo_pendiente=saldo_pendiente,
+                            now=now)
+
+    
+    @app.route('/plan/<int:plan_id>/pagar', methods=['GET', 'POST'])
+    @login_required
+    def pagar_plan(plan_id):
+        plan = PlanTratamientoControlador.obtener_por_id(plan_id)
+        if not plan:
+            abort(404)
+
+        if request.method == 'POST':
+            # Procesaremos los pagos aquí en el futuro
+            flash("Funcionalidad de procesamiento de pago múltiple en desarrollo.", "info")
+            return redirect(url_for('ver_plan_paciente', paciente_id=plan.paciente_id, plan_id=plan.id))
+        
+        # Obtenemos solo las cuotas que no están completamente pagadas
+        cuotas_pendientes = Cuota.query.filter(
+            Cuota.plan_id == plan_id,
+            Cuota.estado != 'Pagada'
+        ).order_by(Cuota.fecha_vencimiento).all()
+
+        return render_template('planes/pagar_plan.html', plan=plan, cuotas=cuotas_pendientes)
+    # En webControlador.py
+
+    @app.route('/planes-activos')
+    @login_required # O @asistente_required 
+    def listar_planes_activos():
+        planes_activos = PlanTratamientoControlador.obtener_todos_activos()
+        return render_template('planes/listar_planes_activos.html', planes=planes_activos)

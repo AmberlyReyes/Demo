@@ -1,6 +1,6 @@
 from sisdental import db
 from sisdental.modelos.Cita import Cita
-
+from sqlalchemy import extract
 class citaControlador:
 
     @staticmethod
@@ -80,3 +80,9 @@ class citaControlador:
             db.session.commit()
             return True
         return False
+    @staticmethod
+    def obtener_por_mes_y_ano(mes, ano):
+        return Cita.query.filter(
+            extract('month', Cita.fecha) == mes,
+            extract('year', Cita.fecha) == ano
+        ).all()

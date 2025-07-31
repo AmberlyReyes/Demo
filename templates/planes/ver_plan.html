@@ -41,7 +41,7 @@
 </div>
 
 <div class="plan-details-grid">
-    <!-- Columna Izquierda: Detalles y Cuotas -->
+    <!-- Columna Izquierda: Detalles, Cuotas y Citas -->
     <div>
         <div class="section-box" style="margin-bottom: 30px;">
             <h3><i class="fas fa-info-circle"></i> Información General</h3>
@@ -65,6 +65,17 @@
                     {% endfor %}
                 </tbody>
             </table>
+        </div>
+
+        <div class="section-box">
+            <h3><i class="fas fa-calendar-check"></i> Citas Asociadas al Plan</h3>
+            <ul>
+            {% for cita in plan.citas_asociadas %}
+                <li>{{ cita.fecha.strftime('%d/%m/%Y') }} - {{ cita.estado }}</li>
+            {% else %}
+                <li>No hay citas asociadas.</li>
+            {% endfor %}
+            </ul>
         </div>
     </div>
 
