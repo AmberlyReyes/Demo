@@ -4,8 +4,9 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Calendario de Citas</title>
-    <!--
+    
     <style>
+
         :root {
             --color-principal: #2c5aa0;
             --color-secundario: #4a90e2;
@@ -16,7 +17,6 @@
             font-family: 'Segoe UI', sans-serif;
             background-color: #f4f7fa;
             color: #333;
-            padding: 30px;
         }
         .calendario-container {
             max-width: 900px;
@@ -50,7 +50,7 @@
         }
         .nav-btn:hover {
             background-color: #3a80d2;
-        }
+    }
         .agenda-diaria {
             padding: 20px;
         }
@@ -63,7 +63,7 @@
         }
         .hora {
             width: 100px;
-            padding: 15px;
+            padding: 10px;
             text-align: right;
             flex-shrink: 0;
             background-color: var(--color-fondo-hora);
@@ -72,15 +72,15 @@
         }
         .cita-info {
             flex-grow: 1;
-            padding: 10px;
+            padding: 5px;
             display: flex;
             flex-direction: column;
-            gap: 10px; /* Espacio entre citas a la misma hora */
+            gap: 5px; /* Espacio entre citas a la misma hora */
         }
         .cita-card {
             background-color: #eef4ff;
             border-left: 5px solid var(--color-secundario);
-            padding: 15px;
+            padding: 10px;
             border-radius: 5px;
         }
         .cita-card strong {
@@ -91,13 +91,11 @@
             margin: 5px 0 0 0;
             color: #444;
         }
-    </style>-->
+    </style>
 </head>
 <body>
 
 <div class="calendario-container">
-
-
     <div class="agenda-diaria">
         {% for hour in range(8, 18) %}
             <div class="timeslot">

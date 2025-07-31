@@ -34,15 +34,21 @@ def register_routes(app):
     @app.route('/')
     @login_required
     def mainpage():
-        hoy = date.today()
-        ano = hoy.year
-        mes = hoy.month
-        matriz_mes = calendar.monthcalendar(ano, mes)
-        citas_del_mes = citaControlador.obtener_por_mes_y_ano(mes, ano)
+        
+        fecha_str = request.args.get('fecha', date.today().strftime('%Y-%m-%d'))
+        try:
+            fecha_seleccionada = datetime.strptime(fecha_str, '%Y-%m-%d').date()
+        except ValueError:
+            flash("Formato de fecha inválido. Usando fecha de hoy.", 'warning')
+            fecha_seleccionada = date.today()
+
+        matriz_mes = calendar.monthcalendar(fecha_seleccionada.year, fecha_seleccionada.month)
+        citas_del_mes = citaControlador.obtener_por_mes_y_ano(fecha_seleccionada.month, fecha_seleccionada.year)
         dias_con_citas = {cita.fecha.day for cita in citas_del_mes}
 
         # KPIs dinámicos
-        citas_hoy = citaControlador.obtener_por_fecha(fecha=hoy).all()
+        citas_hoy = citaControlador.obtener_por_fecha(fecha=fecha_seleccionada).all()
+
         facturas = Factura.query.filter(Factura.estado == 'Pendiente').all()
         faturas_sum = sum(f.total for f in facturas)
         # Suma de todos los pagos registrados
@@ -51,14 +57,13 @@ def register_routes(app):
         return render_template('mainpage.html',
             user=current_user,
             matriz_mes=matriz_mes,
-            hoy=hoy,
-            mes_actual_nombre=hoy.strftime('%B'),
-            ano_actual=ano,
+            hoy=fecha_seleccionada,
             dias_con_citas=dias_con_citas,
+            citas=citas_hoy,
             citas_hoy=len(citas_hoy),
             facturas=len(facturas),
             faturas_sum=faturas_sum,
-            ganancias=ganancias
+            ganancias=ganancias,
         )
     def admin_required(f):
         @wraps(f)
@@ -500,8 +505,6 @@ def register_routes(app):
     def calendario():
 
         data = procesar_calendario()
-
-        # Renderizar la nueva plantilla del calendario
         return render_template('calendario.html', 
                                citas=data.get('citas'),
                                fecha_mostrada=data.get('fecha_mostrada'),
@@ -513,16 +516,13 @@ def register_routes(app):
         fecha_str = request.args.get('fecha', date.today().strftime('%Y-%m-%d'))
         
         try:
-            # Convertir el string de la fecha a un objeto date de Python
             fecha_seleccionada = datetime.strptime(fecha_str, '%Y-%m-%d').date()
         except ValueError:
             flash("Formato de fecha inválido. Usando fecha de hoy.", 'warning')
             fecha_seleccionada = date.today()
 
-        # Usar el controlador para obtener las citas de esa fecha
         citas_del_dia = citaControlador.obtener_por_fecha(fecha=fecha_seleccionada).all()
 
-        # Calcular fechas para los botones "Anterior" y "Siguiente"
         fecha_anterior = (fecha_seleccionada - timedelta(days=1)).strftime('%Y-%m-%d')
         fecha_siguiente = (fecha_seleccionada + timedelta(days=1)).strftime('%Y-%m-%d')
 
