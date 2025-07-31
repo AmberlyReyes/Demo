@@ -81,15 +81,26 @@
             <div class="kpi-cards-container">
                 <div class="kpi-card">
                     <div class="kpi-icon" style="background-color: #e3f8ff; color: #018ABE;"><i class="fas fa-calendar-check"></i></div>
-                    <div class="kpi-info"><div class="kpi-number">8</div><div class="kpi-label">Citas para Hoy</div></div>
+                    <div class="kpi-info">
+                        <div class="kpi-number">{{ citas_hoy }}</div>
+                        <div class="kpi-label">Citas para Hoy</div>
+                    </div>
                 </div>
                 <div class="kpi-card">
                     <div class="kpi-icon" style="background-color: #eafaf1; color: #27ae60;"><i class="fas fa-dollar-sign"></i></div>
-                    <div class="kpi-info"><div class="kpi-number">$12,540</div><div class="kpi-label">Ingresos del Mes</div></div>
+                    <div class="kpi-info">
+                        <div class="kpi-number">${{ ganancias }}</div>
+                        <div class="kpi-label">Ingresos del Mes</div>
+                        <span class="kpi-footer">+5% vs mes anterior</span>
+                    </div>
                 </div>
                 <div class="kpi-card">
                     <div class="kpi-icon" style="background-color: #fff8e1; color: #f39c12;"><i class="fas fa-file-invoice"></i></div>
-                    <div class="kpi-info"><div class="kpi-number">15</div><div class="kpi-label">Facturas Pendientes</div></div>
+                    <div class="kpi-info">
+                        <div class="kpi-number">{{ facturas }}</div>
+                        <div class="kpi-label">Facturas Pendientes</div>
+                        <span class="kpi-footer">Total: ${{ faturas_sum }}</span>
+                    </div>
                 </div>
                 <a href="{{ url_for('crear') }}" class="kpi-card action-card">
                     <div class="kpi-icon" style="background-color: #e0e7ff; color: #4f46e5;"><i class="fas fa-user-plus"></i></div>
@@ -103,8 +114,11 @@
 
             <div class="main-data-area">
                 <div class="chart-container">
+                    <!-- Aquí puedes incluir un gráfico de Chart.js u otro
                     <h4>Actividad de Citas (Últimos 30 días)</h4>
-                    <canvas id="citasChart"></canvas>
+                    <canvas id="citasChart"></canvas> -->
+                    <h4>Calendario de Citas</h4>
+                    {% include 'calendario.html' %}
                 </div>
 
                 <div class="calendar-widget-container">
