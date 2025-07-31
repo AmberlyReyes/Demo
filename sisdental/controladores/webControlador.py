@@ -12,6 +12,7 @@ from sisdental.controladores.PlanTratamientoControlador import PlanTratamientoCo
 from sisdental.controladores.FacturacionControlador import FacturacionControlador
 from sisdental.controladores.AsistenteControlador import AsistenteControlador
 from sisdental.modelos.Factura import Factura
+from sisdental.modelos.Pago import Pago
 from sisdental.modelos import Persona
 from datetime import datetime
 from sisdental.modelos.Doctor import Doctor
@@ -32,7 +33,23 @@ def register_routes(app):
     # Ruta principal
     @app.route('/')
     def mainpage():
-        return render_template('mainpage.html', user=current_user)
+        data = procesar_calendario()
+        citas_hoy = citaControlador.obtener_por_fecha(fecha=date.today()).all()
+        facturas = Factura.query.filter(Factura.estado == 'Pendiente').all()
+        faturas_sum = sum(f.total for f in facturas)
+        ganancias = sum(Pago.query.all())
+
+        return render_template('mainpage.html', 
+                               user=current_user, 
+                               citas=data.get('citas'),
+                               fecha_mostrada=data.get('fecha_mostrada'),
+                               fecha_anterior=data.get('fecha_anterior'),
+                               fecha_siguiente=data.get('fecha_siguiente'),
+                               citas_hoy=len(citas_hoy),
+                               facturas=len(facturas),
+                                faturas_sum=faturas_sum,
+                                 ganancias=ganancias
+                               )
     
     def admin_required(f):
         @wraps(f)
@@ -472,6 +489,17 @@ def register_routes(app):
     @app.route('/calendario')
     @login_required
     def calendario():
+
+        data = procesar_calendario()
+
+        # Renderizar la nueva plantilla del calendario
+        return render_template('calendario.html', 
+                               citas=data.get('citas'),
+                               fecha_mostrada=data.get('fecha_mostrada'),
+                               fecha_anterior=data.get('fecha_anterior'),
+                               fecha_siguiente=data.get('fecha_siguiente'))
+
+    def procesar_calendario():
         # Obtener la fecha de la URL, si no se provee, usar la fecha de hoy.
         fecha_str = request.args.get('fecha', date.today().strftime('%Y-%m-%d'))
         
@@ -488,13 +516,15 @@ def register_routes(app):
         # Calcular fechas para los botones "Anterior" y "Siguiente"
         fecha_anterior = (fecha_seleccionada - timedelta(days=1)).strftime('%Y-%m-%d')
         fecha_siguiente = (fecha_seleccionada + timedelta(days=1)).strftime('%Y-%m-%d')
-        
-        # Renderizar la nueva plantilla del calendario
-        return render_template('calendario.html', 
-                               citas=citas_del_dia, 
-                               fecha_mostrada=fecha_seleccionada,
-                               fecha_anterior=fecha_anterior,
-                               fecha_siguiente=fecha_siguiente)
+
+        data = {
+            'citas': citas_del_dia,
+            'fecha_mostrada': fecha_seleccionada,
+            'fecha_anterior': fecha_anterior,
+            'fecha_siguiente': fecha_siguiente
+        }
+        return data
+
 
     @app.route('/historial/<int:historial_id>/update', methods=['POST'])
     def actualizar_historial(historial_id):

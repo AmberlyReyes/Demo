@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Calendario de Citas</title>
+    <!---->
     <style>
         :root {
             --color-principal: #2c5aa0;
@@ -96,9 +97,9 @@
 
 <div class="calendario-container">
     <header class="calendario-header">
-        <a href="{{ url_for('calendario', fecha=fecha_anterior) }}" class="nav-btn"> &lt; Día Anterior</a>
-        <h2>Citas para el {{ fecha_mostrada.strftime('%A, %d de %B de %Y') }}</h2>
-        <a href="{{ url_for('calendario', fecha=fecha_siguiente) }}" class="nav-btn">Día Siguiente &gt; </a>
+        <a href="{{ url_for('mainpage', fecha=fecha_anterior) }}" class="nav-btn"> &lt; Día Anterior</a>
+        <h2>{{ fecha_mostrada.strftime('%A, %d de %B de %Y') }}</h2>
+        <a href="{{ url_for('mainpage', fecha=fecha_siguiente) }}" class="nav-btn">Día Siguiente &gt; </a>
     </header>
 
     <div class="agenda-diaria">

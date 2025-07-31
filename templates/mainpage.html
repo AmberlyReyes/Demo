@@ -231,22 +231,22 @@
             <header class="main-header">
                 <h2>Dashboard Principal</h2>
                 <div class="user-info">
-                    <span>Bienvenido, <strong>@usuario</strong></span>
+                    <span>Bienvenido, <strong>{{user.username}}</strong></span>
                 </div>
             </header>
 
             <div class="kpi-cards-container">
                 <div class="kpi-card">
                     <h4>Citas para Hoy</h4>
-                    <p class="kpi-number">8</p></span>
+                    <p class="kpi-number">{{citas_hoy}}</p></span>
                 </div>
                 <div class="kpi-card">
                     <h4>Ingresos del Mes</h4>
-                    <p class="kpi-number">$12,540</p> <span class="kpi-footer">+5% vs mes anterior</span>
+                    <p class="kpi-number">${{ganancias}}</p> <span class="kpi-footer">+5% vs mes anterior</span>
                 </div>
                 <div class="kpi-card">
                     <h4>Facturas Pendientes</h4>
-                    <p class="kpi-number">15</p> <span class="kpi-footer">Total: $4,800</span>
+                    <p class="kpi-number">{{facturas}}</p> <span class="kpi-footer">Total: ${{faturas_sum}}</span>
                 </div>
                  <div class="kpi-card add-new">
                     <a href="{{ url_for('crear') }}" class="add-new-link">
@@ -258,8 +258,11 @@
 
             <div class="main-data-area">
                 <div class="chart-container">
+                    <!-- Aquí puedes incluir un gráfico de Chart.js u otro
                     <h4>Actividad de Citas (Últimos 30 días)</h4>
-                    <canvas id="citasChart"></canvas>
+                    <canvas id="citasChart"></canvas> -->
+                    <h4>Calendario de Citas</h4>
+                    {% include 'calendario.html' %}
                 </div>
                 <div class="recent-activity">
                     <h4>Actividad Reciente</h4>
