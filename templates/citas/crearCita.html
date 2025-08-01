@@ -1,234 +1,59 @@
-{% extends 'base.html' %}
+{% extends "baseAdmin.html" %}
 
-{% block content %}
+{% block title %}Nueva Cita{% endblock %}
+{% block page_title %}<i class="fas fa-calendar-plus"></i> Nueva Cita{% endblock %}
+
+{% block admin_content %}
 <style>
-    .form-header {
-        background: linear-gradient(135deg, #2c5aa0 0%, #4a7bc8 100%);
-        padding: 2rem;
-        border-radius: 15px;
-        margin-bottom: 2rem;
-        color: white;
-        text-align: center;
-        box-shadow: 0 8px 25px rgba(44, 90, 160, 0.3);
-    }
-    
-    .form-title {
-        font-size: 2.2rem;
-        font-weight: 600;
-        margin: 0;
-        display: flex;
-        align-items: center;
-        justify-content: center;
-        gap: 15px;
-    }
-    
-    .form-container {
-        background: white;
-        padding: 2.5rem;
-        border-radius: 15px;
-        box-shadow: 0 8px 30px rgba(44, 90, 160, 0.1);
-        border: 1px solid #e1ecf7;
-        max-width: 600px;
-        margin: 0 auto;
-    }
-    
-    .alert-error {
-        background: #fee;
-        border: 1px solid #fcc;
-        color: #c66;
-        padding: 1rem;
-        border-radius: 8px;
-        margin-bottom: 1.5rem;
-        display: flex;
-        align-items: center;
-        gap: 10px;
-    }
-    
-    .form-group {
-        margin-bottom: 1.5rem;
-    }
-    
-    .form-label {
-        display: block;
-        margin-bottom: 0.5rem;
-        color: #2c5aa0;
-        font-weight: 600;
-        font-size: 1rem;
-    }
-    
-    .form-control {
-        width: 100%;
-        padding: 12px 16px;
-        border: 2px solid #d1e0f0;
-        border-radius: 8px;
-        font-size: 1rem;
-        transition: all 0.3s ease;
-        background: #fafbfc;
-    }
-    
-    .form-control:focus {
-        outline: none;
-        border-color: #2c5aa0;
-        box-shadow: 0 0 0 3px rgba(44, 90, 160, 0.1);
-        background: white;
-    }
-    
-    .form-actions {
-        display: flex;
-        gap: 15px;
-        justify-content: center;
-        margin-top: 2rem;
-        padding-top: 1.5rem;
-        border-top: 1px solid #e1ecf7;
-    }
-    
-    .btn-cancelar {
-        background: #6c757d;
-        color: white;
-        border: none;
-        padding: 12px 24px;
-        border-radius: 25px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        text-decoration: none;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-    }
-    
-    .btn-cancelar:hover {
-        background: #5a6268;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 15px rgba(108, 117, 125, 0.3);
-        color: white;
-        text-decoration: none;
-    }
-    
-    .btn-guardar {
-        background: #2c5aa0;
-        color: white;
-        border: none;
-        padding: 12px 24px;
-        border-radius: 25px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: all 0.3s ease;
-        display: inline-flex;
-        align-items: center;
-        gap: 8px;
-    }
-    
-    .btn-guardar:hover {
-        background: #1a3d73;
-        transform: translateY(-2px);
-        box-shadow: 0 4px 15px rgba(44, 90, 160, 0.3);
-    }
-    
-    .input-icon {
-        position: relative;
-    }
-    
-    .input-icon::before {
-        content: attr(data-icon);
-        position: absolute;
-        left: 12px;
-        top: 50%;
-        transform: translateY(-50%);
-        color: #2c5aa0;
-        z-index: 1;
-    }
-    
-    .input-icon .form-control {
-        padding-left: 40px;
-    }
-    
-    .form-hint {
-        font-size: 0.85rem;
-        color: #6c757d;
-        margin-top: 0.25rem;
-    }
+    .form-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .form-group { display: flex; flex-direction: column; }
+    .form-group label { font-weight: bold; margin-bottom: 8px; }
+    .form-group input, .form-group select { padding: 12px; border: 1px solid var(--color-borde); border-radius: 8px; font-size: 16px; }
+    .form-actions { display: flex; justify-content: flex-end; gap: 10px; margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--color-borde); }
 </style>
 
-<div class="container-fluid px-4">
-    <!-- Header -->
-    <div class="form-header">
-        <h1 class="form-title">
-            📅 Nueva Cita
-        </h1>
-    </div>
+{% if error %}
+<div class="alert alert-danger" style="background: #f8d7da; color: #721c24; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+    {{ error }}
+</div>
+{% endif %}
 
-    <!-- Formulario -->
-    <div class="form-container">
-        {% if error %}
-        <div class="alert-error">
-            ⚠️ {{ error }}
+<form action="{{ url_for('crearCita') }}" method="post">
+    <div class="form-grid">
+        <div class="form-group">
+            <label for="paciente_cedula">Cédula del Paciente</label>
+            <input type="text" class="form-control" id="paciente_cedula" name="paciente_cedula" required placeholder="Ej: 402-3456197-1">
         </div>
-        {% endif %}
-
-        <form action="{{ url_for('crearCita') }}" method="post">
-            <div class="form-group">
-                <label for="paciente_cedula" class="form-label">👤 Cédula del Paciente</label>
-                <div class="input-icon" data-icon="👤">
-                    <input type="text" class="form-control" id="paciente_cedula" name="paciente_cedula"
-                           required placeholder="Ej: 402-3456197-1"
-                           pattern="[0-9\-]+" title="Sólo dígitos y guiones">
-                </div>
-            </div>
-
-            <div class="form-group">
+        <div class="form-group">
             <label for="doctor_id">Doctor</label>
-            <select class= "form-control" id="doctor_id" name="doctor_id" required>
-                <option value="">-- Ninguno --</option>
-                <!-- Parte editar -->
-                {% if docSelected %}
-                <option value="{{ docSelected.id }}" selected>{{ docSelected.nombre }} (Actual)</option>
-                {% endif %}
-                <!-- Lista -->
+            <select class="form-control" id="doctor_id" name="doctor_id" required>
+                <option value="" disabled selected>-- Seleccione un doctor --</option>
                 {% for persona in doctores %}
-                    <option value="{{ persona.id }}">
-                        {{ persona.nombre }}
-                    </option>
+                    <option value="{{ persona.id }}">{{ persona.nombre }}</option>
                 {% endfor %}
             </select>
         </div>
-
-            <div class="form-group">
-                <label for="fecha" class="form-label">📅 Fecha</label>
-                <div class="input-icon" data-icon="📅">
-                    <input type="date" class="form-control" id="fecha" name="fecha" required>
-                </div>
-                <div class="form-hint">Seleccione la fecha de la cita</div>
-            </div>
-
-            <div class="form-group">
-                <label for="hora" class="form-label">🕐 Hora</label>
-                <div class="input-icon" data-icon="🕐">
-                    <input type="time" class="form-control" id="hora" name="hora" min="08:00" max="18:00" required>
-                </div>
-                <div class="form-hint">Seleccione la hora de la cita</div>
-            </div>
-
-            <div class="form-group">
-                <label for="plan_id" class="form-label">📋 Asociar a Plan de Tratamiento (Opcional)</label>
-                <select class="form-control" id="plan_id" name="plan_tratamiento_id">
-                  <option value="">-- Ninguno --</option>
-                  {% for plan in planes_activos %}
-                    <option value="{{ plan.id }}">{{ plan.nombre_plan }}</option>
-                  {% endfor %}
-                </select>
-              </div>
-
-            <div class="form-actions">
-                <a href="{{ url_for('indexCita') }}" class="btn-cancelar">
-                    ❌ Cancelar
-                </a>
-                <button type="submit" class="btn-guardar">
-                    💾 Guardar Cita
-                </button>
-            </div>
-        </form>
+        <div class="form-group">
+            <label for="fecha">Fecha</label>
+            <input type="date" class="form-control" id="fecha" name="fecha" required>
+        </div>
+        <div class="form-group">
+            <label for="hora">Hora</label>
+            <input type="time" class="form-control" id="hora" name="hora" min="08:00" max="18:00" required>
+        </div>
     </div>
-</div>
-
+    <div class="form-group" style="margin-top: 20px;">
+        <label for="plan_id">Asociar a Plan de Tratamiento (Opcional)</label>
+        <select class="form-control" id="plan_id" name="plan_tratamiento_id">
+            <option value="">-- Ninguno --</option>
+            {% for plan in planes_activos %}
+                <option value="{{ plan.id }}">{{ plan.nombre_plan }} ({{ plan.paciente.nombre }})</option>
+            {% endfor %}
+        </select>
+    </div>
+    <div class="form-actions">
+        <a href="{{ url_for('indexCita') }}" class="btn btn-back">Cancelar</a>
+        <button type="submit" class="btn btn-primary">Guardar Cita</button>
+    </div>
+</form>
 {% endblock %}

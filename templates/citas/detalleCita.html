@@ -1,31 +1,40 @@
-{% extends 'base.html' %}
+{% extends "baseAdmin.html" %}
 
-{% block content %}
-<div class="table-container">
-    <h2 class="mb-4">Detalles de la Cita</h2>
-    
-    <div class="row mb-2">
-        <div class="col-3"><strong>Cédula del Doctor:</strong></div>
-        <div class="col-9">{{ paciente.doctor_id }}</div>
+{% block title %}Detalle de Cita{% endblock %}
+{% block page_title %}<i class="fas fa-calendar-check"></i> Detalle de Cita #{{ paciente.id }}{% endblock %}
+
+{% block admin_content %}
+<style>
+    .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+    .detail-item { padding: 15px; background: #f8fafc; border-radius: 8px; }
+    .detail-label { font-weight: bold; color: var(--color-texto); font-size: 16px; margin-bottom: 5px; }
+    .detail-value { color: #64748b; font-size: 15px; }
+</style>
+
+<div class="detail-grid">
+    <div class="detail-item">
+        <div class="detail-label">Paciente</div>
+        <div class="detail-value">{{ paciente.paciente.nombre if paciente.paciente else 'No disponible' }}</div>
     </div>
-
-    <div class="row mb-2">
-        <div class="col-3"><strong>Cédula del paciente:</strong></div>
-        <div class="col-9">{{ paciente.pacient_id }}</div>
+    <div class="detail-item">
+        <div class="detail-label">Doctor</div>
+        <div class="detail-value">{{ paciente.doctor.nombre if paciente.doctor else 'No disponible' }}</div>
     </div>
-
-    <div class="row mb-2">
-        <div class="col-3"><strong>Fecha:</strong></div>
-        <div class="col-9">{{ paciente.fecha }}</div>
+    <div class="detail-item">
+        <div class="detail-label">Fecha</div>
+        <div class="detail-value">{{ paciente.fecha.strftime('%d de %B de %Y') if paciente.fecha else '' }}</div>
     </div>
-
-    <div class="row mb-2">
-        <div class="col-3"><strong>Hora:</strong></div>
-        <div class="col-9">{{ paciente.hora }}</div>
+    <div class="detail-item">
+        <div class="detail-label">Hora</div>
+        <div class="detail-value">{{ paciente.hora.strftime('%I:%M %p') if paciente.hora else '' }}</div>
     </div>
-
-    <div class="mt-4">
-        <a href="{{ url_for('indexCita') }}" class="btn btn-secondary">Volver</a>
+    <div class="detail-item">
+        <div class="detail-label">Estado</div>
+        <div class="detail-value">{{ paciente.estado }}</div>
+    </div>
+    <div class="detail-item">
+        <div class="detail-label">Plan Asociado</div>
+        <div class="detail-value">{{ paciente.plan.nombre_plan if paciente.plan else 'Ninguno' }}</div>
     </div>
 </div>
 {% endblock %}
