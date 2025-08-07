@@ -28,6 +28,9 @@ from werkzeug.utils import secure_filename
 from functools import wraps
 from sisdental.modelos.Paciente import Paciente
 import calendar
+import locale
+
+locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')
 
 def register_routes(app):
 
@@ -39,43 +42,38 @@ def register_routes(app):
         try:
             fecha_seleccionada = datetime.strptime(fecha_str, '%Y-%m-%d').date()
         except ValueError:
-            flash("Formato de fecha inválido. Usando fecha de hoy.", 'warning')
             fecha_seleccionada = date.today()
 
         matriz_mes = calendar.monthcalendar(fecha_seleccionada.year, fecha_seleccionada.month)
         citas_del_mes = citaControlador.obtener_por_mes_y_ano(fecha_seleccionada.month, fecha_seleccionada.year)
         dias_con_citas = {cita.fecha.day for cita in citas_del_mes}
 
-        # KPIs dinámicos
-        citas_hoy = citaControlador.obtener_por_fecha(fecha=fecha_seleccionada).all()
+        citas_del_dia_seleccionado = citaControlador.obtener_por_fecha(fecha=fecha_seleccionada).all()
 
-        facturas = Factura.query.filter(Factura.estado == 'Pendiente').all()
-        faturas_sum = sum(f.total for f in facturas)
-        # Suma de todos los pagos registrados
-        ganancias = sum(p.monto for p in Pago.query.all())
-
-        # Obtener fecha del query string o usar hoy
-        fecha_str = request.args.get('fecha')
-        fecha_actual = datetime.strptime(fecha_str, '%Y-%m-%d') if fecha_str else datetime.now()
-    
-    # Calcular mes anterior y siguiente correctamente
-        mes_anterior = (fecha_seleccionada.replace(day=1) - timedelta(days=1)).replace(day=1)
+        citas_hoy_num = citaControlador.obtener_por_fecha(fecha=date.today()).count() # Citas para el día de hoy real
+        facturas_pendientes = Factura.query.filter(Factura.estado == 'Pendiente').all()
+        ganancias = db.session.query(func.sum(Pago.monto)).scalar() or 0
+        mes_anterior = (fecha_seleccionada.replace(day=1) - timedelta(days=1))
         mes_siguiente = (fecha_seleccionada.replace(day=28) + timedelta(days=4)).replace(day=1)
-
 
         return render_template('mainpage.html',
             user=current_user,
             matriz_mes=matriz_mes,
             hoy=fecha_seleccionada,
+            mes_actual_nombre=fecha_seleccionada.strftime('%B').capitalize(),
+            ano_actual=fecha_seleccionada.year,
             dias_con_citas=dias_con_citas,
-            citas=citas_hoy,
-            citas_hoy=len(citas_hoy),
-            facturas=len(facturas),
-            faturas_sum=faturas_sum,
+            citas_del_dia=citas_del_dia_seleccionado, 
+            citas_hoy=citas_hoy_num,
+            facturas=len(facturas_pendientes),
+            faturas_sum=sum(f.total for f in facturas_pendientes),
             ganancias=ganancias,
             mes_anterior=mes_anterior,
             mes_siguiente=mes_siguiente
         )
+
+
+        
     def admin_required(f):
         @wraps(f)
         def decorated_function(*args, **kwargs):

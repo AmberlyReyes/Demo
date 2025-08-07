@@ -181,71 +181,81 @@
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
         }
 
-        /* Estilos para el nuevo Calendario Widget */
-        .calendar-widget-header {
+            .calendar-widget-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            text-align: center;
             margin-bottom: 15px;
         }
-
+        .calendar-nav-btn {
+            background: #f1f5f9;
+            color: var(--color-texto);
+            border-radius: 50%;
+            width: 32px;
+            height: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-decoration: none;
+            transition: all 0.3s;
+        }
+        .calendar-nav-btn:hover {
+            background-color: var(--color-principal);
+            color: white;
+        }
         .calendar-widget-header h4 {
             text-transform: capitalize;
             color: var(--color-principal);
             font-size: 18px;
+            margin: 0;
         }
-
         .calendar-table {
             width: 100%;
             border-collapse: collapse;
             text-align: center;
         }
-
         .calendar-table th {
-            padding: 8px;
-            font-size: 12px;
+            padding-bottom: 10px;
+            font-size: 13px;
+            font-weight: 600;
             color: #64748b;
+            border-bottom: 1px solid var(--color-borde);
         }
-
         .calendar-table td {
-            padding: 8px;
+            padding: 10px 0;
             font-size: 14px;
-            border: 1px solid var(--color-borde);
+            cursor: pointer;
         }
-
+        .calendar-table td a {
+            text-decoration: none;
+            color: inherit;
+            display: block;
+            line-height: 24px;
+            width: 24px;
+            height: 24px;
+            margin: auto;
+            border-radius: 50%;
+        }
+        .calendar-table td a:hover {
+            background-color: #e3f8ff;
+        }
         .calendar-table td.empty {
-            background-color: #f8fafc;
+            background-color: transparent;
         }
-
-        .calendar-table td.today {
+        .calendar-table td.today a {
             background-color: var(--color-principal);
             color: white;
-            border-radius: 50%;
             font-weight: bold;
         }
-
-        .calendar-table td.has-event {
+        .calendar-table td.has-event a {
             font-weight: bold;
             color: var(--color-rojo);
             position: relative;
         }
-
-        .calendar-table td.has-event::after {
-            content: '';
-            display: block;
-            width: 5px;
-            height: 5px;
-            border-radius: 50%;
-            background-color: var(--color-rojo);
-            position: absolute;
-            bottom: 5px;
-            left: 50%;
-            transform: translateX(-50%);
-        }
-
-        .calendar-table td:not(.empty):hover {
-            background-color: #f5f5f5;
+        .calendar-table td.has-event a::after {
+            content: ''; display: block; width: 5px; height: 5px;
+            border-radius: 50%; background-color: var(--color-rojo);
+            position: absolute; bottom: -4px; left: 50%; transform: translateX(-50%);
         }
     </style>
 </head>
@@ -338,60 +348,41 @@
                     <h4>Calendario de Citas</h4>
                     {% include 'calendario.html' %}
                 </div>
-
-                <div class="calendar-widget-container">
+      
+         <div class="calendar-widget-container">
                     <div class="calendar-widget-header">
-                        <h4>{{ hoy.strftime('%B') }} {{ hoy.year }}</h4>
+                        <a href="{{ url_for('mainpage', fecha=mes_anterior.strftime('%Y-%m-%d')) }}" class="calendar-nav-btn" title="Mes Anterior">&lt;</a>
+                        <h4>{{ mes_actual_nombre }} {{ ano_actual }}</h4>
+                        <a href="{{ url_for('mainpage', fecha=mes_siguiente.strftime('%Y-%m-%d')) }}" class="calendar-nav-btn" title="Mes Siguiente">&gt;</a>
                     </div>
                     <table class="calendar-table">
-                        <thead>
-                            <tr>
-                                <th>L</th>
-                                <th>M</th>
-                                <th>X</th>
-                                <th>J</th>
-                                <th>V</th>
-                                <th>S</th>
-                                <th>D</th>
-                            </tr>
-                        </thead>
+                        <thead><tr><th>L</th><th>M</th><th>X</th><th>J</th><th>V</th><th>S</th><th>D</th></tr></thead>
                         <tbody>
                             {% for semana in matriz_mes %}
                             <tr>
                                 {% for dia in semana %}
-                                {% if dia == 0 %}
-                                <td class="empty"></td>
-                                {% else %}
-                                <td class="
-                                            {% if hoy.day == dia%}today{% endif %}
-                                            {% if dia in dias_con_citas %}has-event{% endif %}">
-                                    <a href="{{ url_for('mainpage', fecha='%04d-%02d-%02d'|format(hoy.year, hoy.month, dia)) }}"
-                                        style="text-decoration: none; color: inherit;">
-                                        {{ dia }}</a>
-                                </td>
-                                {% endif %}
+                                    {% if dia == 0 %}
+                                        <td class="empty"></td>
+                                    {% else %}
+                                        <td class="
+                                            {% if hoy.day == dia %}today{% endif %}
+                                            {% if hoy.day == dia %}selected{% endif %}
+                                            {% if dia in dias_con_citas %}has-event{% endif %}
+                                        ">
+                                            <a href="{{ url_for('mainpage', fecha='%04d-%02d-%02d'|format(ano_actual, hoy.month, dia)) }}">
+                                                {{ dia }}
+                                            </a>
+                                        </td>
+                                    {% endif %}
                                 {% endfor %}
                             </tr>
                             {% endfor %}
                         </tbody>
                     </table>
-                    <div style="display: flex; justify-content: space-between; align-items: center;padding: 20px;">
-                        <a href="{{ url_for('mainpage', fecha=mes_anterior.strftime('%Y-%m-%d')) }}" class="kpi-card">&lt;
-                            Mes Anterior</a>
-                        <a href="{{ url_for('mainpage', fecha=mes_siguiente.strftime('%Y-%m-%d')) }}" class="kpi-card">Mes
-                            Siguiente &gt;</a>
-                    </div>
                 </div>
-            </div>
-        </main>
+            </div> </main>
     </div>
-
+    
     <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script>
-        const ctx = document.getElementById('citasChart');
-        new Chart(ctx, { /* ... configuración del gráfico ... */ });
-    </script>
-</body>
-
+    </body>
 </html>
