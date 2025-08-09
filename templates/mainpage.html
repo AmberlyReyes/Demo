@@ -116,10 +116,12 @@
         }
 
         .kpi-cards-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-            gap: 20px;
+            display: flex;
+            gap: 30px;
             margin-bottom: 30px;
+            justify-content: stretch;
+            align-items: stretch;
+            width: 100%;
         }
 
         .kpi-card {
@@ -134,6 +136,9 @@
             transition: all 0.3s ease;
             text-decoration: none;
             color: var(--color-texto);
+            flex: 1 1 0;
+            min-width: 220px;
+            max-width: none;
         }
 
         .kpi-card:hover {
@@ -181,12 +186,13 @@
             box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
         }
 
-            .calendar-widget-header {
+        .calendar-widget-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
             margin-bottom: 15px;
         }
+
         .calendar-nav-btn {
             background: #f1f5f9;
             color: var(--color-texto);
@@ -199,21 +205,25 @@
             text-decoration: none;
             transition: all 0.3s;
         }
+
         .calendar-nav-btn:hover {
             background-color: var(--color-principal);
             color: white;
         }
+
         .calendar-widget-header h4 {
             text-transform: capitalize;
             color: var(--color-principal);
             font-size: 18px;
             margin: 0;
         }
+
         .calendar-table {
             width: 100%;
             border-collapse: collapse;
             text-align: center;
         }
+
         .calendar-table th {
             padding-bottom: 10px;
             font-size: 13px;
@@ -221,11 +231,13 @@
             color: #64748b;
             border-bottom: 1px solid var(--color-borde);
         }
+
         .calendar-table td {
             padding: 10px 0;
             font-size: 14px;
             cursor: pointer;
         }
+
         .calendar-table td a {
             text-decoration: none;
             color: inherit;
@@ -236,26 +248,174 @@
             margin: auto;
             border-radius: 50%;
         }
+
         .calendar-table td a:hover {
             background-color: #e3f8ff;
         }
+
         .calendar-table td.empty {
             background-color: transparent;
         }
+
         .calendar-table td.today a {
             background-color: var(--color-principal);
             color: white;
             font-weight: bold;
         }
+
         .calendar-table td.has-event a {
             font-weight: bold;
             color: var(--color-rojo);
             position: relative;
         }
+
         .calendar-table td.has-event a::after {
-            content: ''; display: block; width: 5px; height: 5px;
-            border-radius: 50%; background-color: var(--color-rojo);
-            position: absolute; bottom: -4px; left: 50%; transform: translateX(-50%);
+            content: '';
+            display: block;
+            width: 5px;
+            height: 5px;
+            border-radius: 50%;
+            background-color: var(--color-rojo);
+            position: absolute;
+            bottom: -4px;
+            left: 50%;
+            transform: translateX(-50%);
+        }
+
+        .quick-actions {
+            margin-top: 25px;
+        }
+
+        .quick-actions-cards {
+            display: flex;
+            gap: 20px;
+        }
+
+        .quick-action-card {
+            background-color: var(--color-blanco);
+            border-radius: 12px;
+            padding: 20px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--color-borde);
+            transition: all 0.3s ease;
+            text-decoration: none;
+            color: var(--color-texto);
+            flex: 1 1 0;
+            min-width: 120px;
+        }
+
+        .quick-action-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.08);
+            border-color: var(--color-principal);
+            color: var(--color-principal);
+        }
+
+        .quick-action-card .kpi-icon {
+            width: 40px;
+            height: 40px;
+            font-size: 18px;
+        }
+
+        .quick-action-card .kpi-info .kpi-label {
+            font-weight: 600;
+            font-size: 14px;
+        }
+
+        /* Agrega esto a tu bloque de estilos existente */
+        .agenda-diaria {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        .timeslot {
+            display: flex;
+            border-top: 1px solid var(--color-borde);
+            min-height: 50px;
+        }
+        .timeslot:first-child {
+            border-top: none;
+        }
+        .hora {
+            width: 80px;
+            padding: 10px;
+            text-align: right;
+            flex-shrink: 0;
+            background-color: #f8fafc;
+            color: #555;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .cita-info {
+            flex-grow: 1;
+            padding: 5px 10px;
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+        .cita-card {
+            background-color: #eef4ff;
+            border-left: 4px solid var(--color-principal);
+            padding: 8px 12px;
+            border-radius: 5px;
+        }
+        .cita-card strong {
+            color: var(--color-principal);
+            font-size: 14px;
+        }
+        .cita-card p {
+            margin: 3px 0 0 0;
+            color: #666;
+            font-size: 12px;
+        }
+
+        /* Estilos para mostrar las citas del día */
+        .citas-del-dia {
+            margin-top: 20px;
+            border-top: 1px solid var(--color-borde);
+            padding-top: 20px;
+        }
+
+        .citas-del-dia h5 {
+            color: var(--color-principal);
+            margin-bottom: 15px;
+            font-size: 16px;
+        }
+
+        .cita-item {
+            background: #f8fafc;
+            border: 1px solid var(--color-borde);
+            border-radius: 8px;
+            padding: 12px;
+            margin-bottom: 10px;
+        }
+
+        .cita-hora {
+            font-weight: 600;
+            color: var(--color-principal);
+            font-size: 14px;
+        }
+
+        .cita-paciente {
+            color: var(--color-texto);
+            font-size: 14px;
+            margin: 4px 0;
+        }
+
+        .cita-tratamiento {
+            color: #64748b;
+            font-size: 12px;
+        }
+
+        .no-citas {
+            color: #64748b;
+            font-style: italic;
+            text-align: center;
+            padding: 20px;
         }
     </style>
 </head>
@@ -298,6 +458,7 @@
                             current_user.is_authenticated else '@usuario' }}</strong></span></div>
             </header>
 
+            <!-- Reemplaza las tarjetas KPI actuales por estas: -->
             <div class="kpi-cards-container">
                 <div class="kpi-card">
                     <div class="kpi-icon" style="background-color: #e3f8ff; color: #018ABE;"><i
@@ -307,49 +468,59 @@
                         <div class="kpi-label">Citas para Hoy</div>
                     </div>
                 </div>
-                <div class="kpi-card">
-                    <div class="kpi-icon" style="background-color: #eafaf1; color: #27ae60;"><i
-                            class="fas fa-dollar-sign"></i></div>
-                    <div class="kpi-info">
-                        <div class="kpi-number">${{ ganancias }}</div>
-                        <div class="kpi-label">Ingresos del Mes</div>
-                    </div>
-                </div>
-                <div class="kpi-card">
-                    <div class="kpi-icon" style="background-color: #fff8e1; color: #f39c12;"><i
-                            class="fas fa-file-invoice"></i></div>
+                
+                <!-- Tarjeta de Facturas Pendientes (clickeable) -->
+                <a href="{{ url_for('listar_facturas', estado='Pendiente') }}" class="kpi-card action-card">
+                    <div class="kpi-icon" style="background-color: #fff8e1; color: #f39c12;"><i class="fas fa-file-invoice"></i></div>
                     <div class="kpi-info">
                         <div class="kpi-number">{{ facturas }}</div>
                         <div class="kpi-label">Facturas Pendientes</div>
-                        <span class="kpi-footer">Total: ${{ faturas_sum }}</span>
-                    </div>
-                </div>
-                <a href="{{ url_for('crear') }}" class="kpi-card action-card">
-                    <div class="kpi-icon" style="background-color: #e0e7ff; color: #4f46e5;"><i
-                            class="fas fa-user-plus"></i></div>
-                    <div class="kpi-info">
-                        <div class="kpi-label" style="font-weight: 600; font-size: 16px;">Agregar Paciente</div>
+                        <div class="kpi-footer">Detalle &raquo;</div>
                     </div>
                 </a>
-                <a href="{{ url_for('listar_planes_activos') }}" class="kpi-card action-card">
-                    <div class="kpi-icon" style="background-color: #e0e7ff; color: #4f46e5;"><i
-                            class="fas fa-cash-register"></i></div>
+                
+                <!-- Tarjeta de Ingresos del Mes (clickeable) -->
+                <a href="{{ url_for('reporte_ingresos') }}" class="kpi-card action-card">
+                    <div class="kpi-icon" style="background-color: #eafaf1; color: #27ae60;"><i class="fas fa-chart-line"></i></div>
                     <div class="kpi-info">
-                        <div class="kpi-label" style="font-weight: 600; font-size: 16px;">Registrar Pago</div>
+                        <div class="kpi-number">${{ "%.0f"|format(ganancias) }}</div>
+                        <div class="kpi-label">Ingresos del Mes</div>
+                        <div class="kpi-footer">Detalle &raquo;</div>
                     </div>
                 </a>
             </div>
 
             <div class="main-data-area">
                 <div class="chart-container">
-                    <!-- Aquí puedes incluir un gráfico de Chart.js u otro
-                    <h4>Actividad de Citas (Últimos 30 días)</h4>
-                    <canvas id="citasChart"></canvas> -->
                     <h4>Calendario de Citas</h4>
-                    {% include 'calendario.html' %}
+                    <!-- FUNCIONALIDAD: Mostrar citas del día seleccionado -->
+                    <div class="citas-del-dia">
+                        <h5>Citas del {{ hoy.strftime('%d/%m/%Y') }}</h5>
+                        {% if citas_del_dia %}
+                            <div class="agenda-diaria">
+                                {% for hour in range(8, 18) %}
+                                    <div class="timeslot">
+                                        <div class="hora">{{ "%02d:00"|format(hour) }}</div>
+                                        <div class="cita-info">
+                                            {% for cita in citas_del_dia %}
+                                                {% if cita.hora.hour == hour %}
+                                                    <div class="cita-card">
+                                                        <strong>{{ cita.hora.strftime('%H:%M') }} - {{ cita.paciente.nombre }}</strong>
+                                                        <p>Dr. {{ cita.doctor.nombre }}</p>
+                                                    </div>
+                                                {% endif %}
+                                            {% endfor %}
+                                        </div>
+                                    </div>
+                                {% endfor %}
+                            </div>
+                        {% else %}
+                            <div class="no-citas">No hay citas programadas para este día</div>
+                        {% endif %}
+                    </div>
                 </div>
       
-         <div class="calendar-widget-container">
+                <div class="calendar-widget-container">
                     <div class="calendar-widget-header">
                         <a href="{{ url_for('mainpage', fecha=mes_anterior.strftime('%Y-%m-%d')) }}" class="calendar-nav-btn" title="Mes Anterior">&lt;</a>
                         <h4>{{ mes_actual_nombre }} {{ ano_actual }}</h4>
@@ -379,10 +550,32 @@
                             {% endfor %}
                         </tbody>
                     </table>
+
+                    <!-- FUNCIONALIDAD RESTAURADA: Mostrar citas del día seleccionado -->
+                    
+                    <!-- Accesos rápidos debajo del calendario con el mismo diseño de KPIs -->
+                    <div class="quick-actions">
+                        <h4 style="margin-top: 25px; margin-bottom: 10px; color: var(--color-principal);">Acciones rápidas</h4>
+                        <div class="quick-actions-cards">
+                            <a href="{{ url_for('crear') }}" class="quick-action-card">
+                                <div class="kpi-icon" style="background-color: #e0e7ff; color: #4f46e5;"><i class="fas fa-user-plus"></i></div>
+                                <div class="kpi-info">
+                                    <div class="kpi-label">Agregar Paciente</div>
+                                </div>
+                            </a>
+                            <a href="{{ url_for('listar_planes_activos') }}" class="quick-action-card">
+                                <div class="kpi-icon" style="background-color: #e0e7ff; color: #4f46e5;"><i class="fas fa-cash-register"></i></div>
+                                <div class="kpi-info">
+                                    <div class="kpi-label">Registrar Pago</div>
+                                </div>
+                            </a>
+                        </div>
+                    </div>
                 </div>
-            </div> </main>
+            </div> 
+        </main>
     </div>
     
     <script src="https://kit.fontawesome.com/a076d05399.js" crossorigin="anonymous"></script>
-    </body>
+</body>
 </html>

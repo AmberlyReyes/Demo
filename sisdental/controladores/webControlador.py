@@ -29,6 +29,7 @@ from functools import wraps
 from sisdental.modelos.Paciente import Paciente
 import calendar
 import locale
+from datetime import date
 
 locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')
 
@@ -50,9 +51,16 @@ def register_routes(app):
 
         citas_del_dia_seleccionado = citaControlador.obtener_por_fecha(fecha=fecha_seleccionada).all()
 
-        citas_hoy_num = citaControlador.obtener_por_fecha(fecha=date.today()).count() # Citas para el día de hoy real
+        citas_hoy_num = citaControlador.obtener_por_fecha(fecha=date.today()).count() 
         facturas_pendientes = Factura.query.filter(Factura.estado == 'Pendiente').all()
-        ganancias = db.session.query(func.sum(Pago.monto)).scalar() or 0
+        
+        # Calcular ganancias solo del mes actual
+        hoy = date.today()
+        ganancias = db.session.query(func.sum(Pago.monto)).filter(
+            extract('month', Pago.fecha_pago) == hoy.month,
+            extract('year', Pago.fecha_pago) == hoy.year
+        ).scalar() or 0
+        
         mes_anterior = (fecha_seleccionada.replace(day=1) - timedelta(days=1))
         mes_siguiente = (fecha_seleccionada.replace(day=28) + timedelta(days=4)).replace(day=1)
 
@@ -1002,20 +1010,29 @@ def register_routes(app):
     @admin_required
     def listar_facturas():
         query = request.args.get('q', '').strip()
+        estado_filtro = request.args.get('estado', '').strip()
         page = request.args.get('page', 1, type=int)
-        PER_PAGE = 15 # Facturas por página
+        PER_PAGE = 15
+
         facturas_query = Factura.query.order_by(Factura.fecha_emision.desc())
+
+        # Filtro por estado
+        if estado_filtro:
+            facturas_query = facturas_query.filter(Factura.estado == estado_filtro)
+        
+        # Filtro por búsqueda
         if query:
             facturas_query = facturas_query.join(Factura.paciente).filter(
-                (cast(Factura.id, String).ilike(f'%{query}%')) |  # <-- aquí el cambio
+                (cast(Factura.id, String).ilike(f'%{query}%')) |
                 (Persona.nombre.ilike(f'%{query}%'))
             )
         
         facturas_paginadas = facturas_query.paginate(page=page, per_page=PER_PAGE, error_out=False)
 
         return render_template('facturas/listar_facturas.html', 
-                            facturas_paginacion=facturas_paginadas, 
-                            query=query)
+                               facturas_paginacion=facturas_paginadas, 
+                               query=query,
+                               estado_filtro=estado_filtro)
     
     @app.route('/factura/<int:factura_id>')
     @login_required
@@ -1059,3 +1076,37 @@ def register_routes(app):
     def listar_planes_activos():
         planes_activos = PlanTratamientoControlador.obtener_todos_activos()
         return render_template('planes/listar_planes_activos.html', planes=planes_activos)
+
+    
+    @app.route('/reportes/ingresos')
+    @login_required
+    @admin_required
+    def reporte_ingresos():
+            """Muestra un reporte de ingresos del mes actual con un gráfico y una tabla."""
+            hoy = date.today()
+            
+            
+            pagos_del_mes = Pago.query.filter(
+                extract('month', Pago.fecha_pago) == hoy.month,
+                extract('year', Pago.fecha_pago) == hoy.year
+            ).order_by(Pago.fecha_pago.desc()).all()
+
+            
+            chart_data = {}
+            for pago in pagos_del_mes:
+                dia = pago.fecha_pago.day
+                
+                chart_data[dia] = chart_data.get(dia, 0) + pago.monto
+            
+           
+            sorted_chart_data = sorted(chart_data.items())
+            
+            
+            chart_labels = [f"Día {dia}" for dia, monto in sorted_chart_data]
+            chart_values = [monto for dia, monto in sorted_chart_data]
+
+            return render_template('reporte_ingresos.html',
+                                pagos=pagos_del_mes,
+                                chart_labels=chart_labels,
+                                chart_values=chart_values,
+                                mes_actual=hoy.strftime('%B').capitalize())

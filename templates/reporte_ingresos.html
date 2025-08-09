@@ -1,0 +1,117 @@
+{% extends "baseAdmin.html" %}
+
+{% block title %}Reporte de Ingresos{% endblock %}
+
+{% block page_title %}
+    <i class="fas fa-chart-line"></i> Reporte de Ingresos de {{ mes_actual }}
+{% endblock %}
+
+{% block admin_content %}
+<style>
+    .report-grid {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 30px;
+    }
+    .chart-box, .table-box {
+        background-color: var(--color-blanco);
+        padding: 25px;
+        border-radius: 12px;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+    }
+    .chart-box h4, .table-box h4 {
+        color: var(--color-sidebar);
+        margin-top: 0;
+        margin-bottom: 20px;
+    }
+    .data-table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    .data-table th, .data-table td {
+        padding: 12px 15px;
+        text-align: left;
+        border-bottom: 1px solid var(--color-borde);
+    }
+    .data-table th {
+        background-color: #f8fafc;
+        font-size: 14px;
+        text-transform: uppercase;
+        color: #64748b;
+    }
+    .total-row {
+        font-weight: bold;
+        border-top: 2px solid var(--color-sidebar);
+    }
+</style>
+
+<div class="report-grid">
+    <div class="chart-box">
+        <h4>Ingresos por Día</h4>
+        <canvas id="incomeChart"></canvas>
+    </div>
+
+    <div class="table-box">
+        <h4>Listado de Pagos Realizados este Mes</h4>
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>Fecha</th>
+                    <th>Paciente</th>
+                    <th>Factura #</th>
+                    <th style="text-align: right;">Monto</th>
+                </tr>
+            </thead>
+            <tbody>
+            {% for pago in pagos %}
+                <tr>
+                    <td>{{ pago.fecha_pago.strftime('%d/%m/%Y') }}</td>
+                    <td>{{ pago.factura.paciente.nombre if pago.factura and pago.factura.paciente else 'N/A' }}</td>
+                    <td>#{{ pago.factura_id }}</td>
+                    <td style="text-align: right;">${{ "%.2f"|format(pago.monto) }}</td>
+                </tr>
+            {% else %}
+                <tr>
+                    <td colspan="4" style="text-align: center; padding: 20px;">No se han registrado pagos este mes.</td>
+                </tr>
+            {% endfor %}
+            </tbody>
+            <tfoot>
+                <tr class="total-row">
+                    <td colspan="3" style="text-align: right;">Total de Ingresos del Mes:</td>
+                    <td style="text-align: right;">${{ "%.2f"|format(pagos|sum(attribute='monto')) }}</td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script>
+    document.addEventListener('DOMContentLoaded', function() {
+        const ctx = document.getElementById('incomeChart').getContext('2d');
+        new Chart(ctx, {
+            type: 'bar',
+            data: {
+                labels: {{ chart_labels | tojson }},
+                datasets: [{
+                    label: 'Ingresos ($)',
+                    data: {{ chart_values | tojson }},
+                    backgroundColor: 'rgba(1, 138, 190, 0.6)',
+                    borderColor: 'rgba(1, 138, 190, 1)',
+                    borderWidth: 1,
+                    borderRadius: 5
+                }]
+            },
+            options: {
+                scales: {
+                    y: { beginAtZero: true }
+                },
+                plugins: {
+                    legend: { display: false }
+                }
+            }
+        });
+    });
+</script>
+{% endblock %}

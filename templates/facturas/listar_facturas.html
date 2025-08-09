@@ -20,8 +20,17 @@
 
 <div class="table-actions">
     <p>Visualiza y gestiona todas las facturas emitidas en el sistema.</p>
-    <form class="search-form" method="GET" action="{{ url_for('listar_facturas') }}">
+    <form class="search-form" method="GET" action="{{ url_for('listar_facturas') }}" style="display: flex; gap: 10px; align-items: center;">
         <input type="search" name="q" placeholder="Buscar por # Factura o Paciente..." value="{{ query or '' }}">
+        
+        <!-- Nuevo filtro de estado -->
+        <select name="estado" style="padding: 10px; border: 1px solid var(--color-borde); border-radius: 6px;">
+            <option value="">Todos los estados</option>
+            <option value="Pendiente" {% if estado_filtro == 'Pendiente' %}selected{% endif %}>Pendiente</option>
+            <option value="Pagada" {% if estado_filtro == 'Pagada' %}selected{% endif %}>Pagada</option>
+            <option value="Anulada" {% if estado_filtro == 'Anulada' %}selected{% endif %}>Anulada</option>
+        </select>
+        
         <button type="submit" class="btn btn-primary">Buscar</button>
     </form>
 </div>
