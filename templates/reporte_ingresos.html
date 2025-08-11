@@ -47,7 +47,7 @@
 
 <div class="report-grid">
     <div class="chart-box">
-        <h4>Ingresos por Día</h4>
+        <h4>Ingresos por Semana</h4>
         <canvas id="incomeChart"></canvas>
     </div>
 
@@ -91,16 +91,18 @@
     document.addEventListener('DOMContentLoaded', function() {
         const ctx = document.getElementById('incomeChart').getContext('2d');
         new Chart(ctx, {
-            type: 'bar',
+            type: 'line',
             data: {
                 labels: {{ chart_labels | tojson }},
                 datasets: [{
                     label: 'Ingresos ($)',
                     data: {{ chart_values | tojson }},
-                    backgroundColor: 'rgba(1, 138, 190, 0.6)',
+                    fill: false,
                     borderColor: 'rgba(1, 138, 190, 1)',
-                    borderWidth: 1,
-                    borderRadius: 5
+                    backgroundColor: 'rgba(1, 138, 190, 0.1)',
+                    tension: 0.3,
+                    pointRadius: 4,
+                    pointBackgroundColor: 'rgba(1, 138, 190, 1)'
                 }]
             },
             options: {
