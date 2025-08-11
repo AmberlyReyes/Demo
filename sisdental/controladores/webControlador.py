@@ -122,7 +122,7 @@ def register_routes(app):
                 if user.administrador:
                     return redirect(url_for('mainpage'))
                 elif user.doctor:
-                    return redirect(url_for('index'))
+                    return redirect(url_for('mainpage'))
                 elif user.asistente:
                     return redirect(url_for('indexCita'))
                 else:

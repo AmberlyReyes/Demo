@@ -86,11 +86,11 @@ class PlanTratamientoControlador:
     @staticmethod
     def calcular_total_pagado(plan_id):
         
-       # Suma el monto de todas las cuotas marcadas como 'Pagado' para el plan dado.
+       # Suma el monto de todas las cuotas marcadas como 'Pagada' para el plan dado.
         
         from sisdental.modelos.Cuota import Cuota
         total = db.session.query(db.func.sum(Cuota.monto)) \
-                 .filter_by(plan_id=plan_id, estado='Pagado') \
+                 .filter_by(plan_id=plan_id, estado='Pagada') \
                  .scalar()
         return float(total or 0)
     

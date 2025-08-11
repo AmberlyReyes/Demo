@@ -40,14 +40,14 @@
         
         
 
-        <div class="form-group roles-group">
-            <label>Roles</label>
-            <div>
-                <label><input type="checkbox" name="administrador" {% if usuario and usuario.administrador %}checked{% endif %}> Administrador</label>
-                <label><input type="checkbox" name="doctor" {% if usuario and usuario.doctor %}checked{% endif %}> Doctor</label>
-                <label><input type="checkbox" name="asistente" {% if usuario and usuario.asistente %}checked{% endif %}> Asistente</label>
-            </div>
-        </div>
+<div class="form-group roles-group">
+    <label for="roles">Roles</label>
+    <select name="roles" id="roles" multiple class="form-control">
+        <option value="administrador" {% if usuario and usuario.administrador %}selected{% endif %}>Administrador</option>
+        <option value="doctor" {% if usuario and usuario.doctor %}selected{% endif %}>Doctor</option>
+        <option value="asistente" {% if usuario and usuario.asistente %}selected{% endif %}>Asistente</option>
+    </select>
+</div>
         <div class="form-actions">
             <a href="{{ url_for('crear_persona') }}" class="btn btn-primary">
             <i class="fas fa-plus"></i> Crear Nueva Persona</a>
