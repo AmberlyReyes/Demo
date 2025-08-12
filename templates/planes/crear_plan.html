@@ -134,5 +134,12 @@
         });
         totalDisplay.textContent = `$${totalPlan.toFixed(2)}`;
     }
+
+    document.querySelector('form').addEventListener('submit', function(e) {
+        if (document.querySelectorAll('#tratamientos-table tbody tr').length === 0) {
+            alert('Debe agregar al menos un tratamiento al plan.');
+            e.preventDefault();
+        }
+    });
 </script>
 {% endblock %}

@@ -46,9 +46,6 @@
         <label for="plan_id">Asociar a Plan de Tratamiento (Opcional)</label>
         <select class="form-control" id="plan_id" name="plan_tratamiento_id">
             <option value="">-- Ninguno --</option>
-            {% for plan in planes_activos %}
-                <option value="{{ plan.id }}">{{ plan.nombre_plan }} ({{ plan.paciente.nombre }})</option>
-            {% endfor %}
         </select>
     </div>
     <div class="form-actions">
@@ -56,4 +53,33 @@
         <button type="submit" class="btn btn-primary">Guardar Cita</button>
     </div>
 </form>
+
+<script>
+document.getElementById('paciente_cedula').addEventListener('blur', function(){
+    const ced = this.value.trim();
+    const planSel = document.getElementById('plan_id');
+    planSel.innerHTML = '<option>-- Cargando planes --</option>';
+    if (!ced) {
+        planSel.innerHTML = '<option value="">-- Ninguno --</option>';
+        return;
+    }
+    // 1) Obtener paciente por cédula
+    fetch(`/api/paciente/por_cedula?cedula=${encodeURIComponent(ced)}`)
+      .then(r => r.ok ? r.json() : Promise.reject())
+      // 2) Obtener planes de ese paciente
+      .then(data => fetch(`/api/paciente/${data.id}/planes`))
+      .then(r => r.ok ? r.json() : Promise.reject())
+      .then(planes => {
+          let opts = '<option value="">-- Ninguno --</option>';
+          planes.forEach(p => {
+              opts += `<option value="${p.id}">${p.nombre_plan}</option>`;
+          });
+            planSel.innerHTML = opts;
+        })
+        .catch(() => {
+            planSel.innerHTML = '<option value="">-- Ninguno --</option>';
+        });
+});
+</script>
 {% endblock %}
+

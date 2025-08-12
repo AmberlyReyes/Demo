@@ -1,13 +1,22 @@
 {% extends "baseAdmin.html" %}
-{% block title %}Seleccionar Plan para Pagar{% endblock %}
-{% block page_title %}Seleccionar Plan para Registrar Pago{% endblock %}
-
+{% block title %}Planes Activos{% endblock %}
+{% block page_title %}Planes Activos{% endblock %}
 {% block admin_content %}
 <style>
-    
     .data-table { width: 100%; border-collapse: collapse; }
     .data-table th, .data-table td { padding: 12px 15px; text-align: left; border-bottom: 1px solid var(--color-borde); }
     .data-table th { background-color: #f8fafc; font-size: 14px; text-transform: uppercase; color: #64748b; }
+
+    .pagination { display:flex; gap:8px; list-style:none; padding:0; }
+    .pagination a {
+      display:inline-block; padding:6px 12px;
+      border:1px solid var(--color-borde);
+      border-radius:4px; text-decoration:none;
+      color:var(--color-texto);
+    }
+    .pagination .active a {
+      background:var(--color-principal); color:white; border-color:var(--color-principal);
+    }
 </style>
 
 <div class="table-actions">
@@ -25,19 +34,40 @@
         </tr>
     </thead>
     <tbody>
-        {% for plan in planes %}
+        {% for plan in planes_paginados.items %}
         <tr>
             <td>{{ plan.nombre_plan }}</td>
             <td>{{ plan.paciente.nombre }}</td>
             <td>{{ plan.doctor.nombre }}</td>
             <td>${{ "%.2f"|format(plan.costo_total) }}</td>
             <td>
-                <a href="{{ url_for('pagar_plan', plan_id=plan.id) }}" class="btn btn-primary">
-                    Seleccionar y Pagar
+                <a href="{{ url_for('facturar_plan', plan_id=plan.id) }}" class="btn btn-primary">
+                     Cobrar
                 </a>
             </td>
         </tr>
+        {% else %}
+        <tr><td colspan="5" style="text-align:center;">No hay planes activos.</td></tr>
         {% endfor %}
     </tbody>
 </table>
+
+<!-- Paginación -->
+<ul class="pagination">
+  {% if planes_paginados.has_prev %}
+    <li><a href="{{ url_for('listar_planes_activos', page=planes_paginados.prev_num) }}">&laquo; Anterior</a></li>
+  {% endif %}
+  {% for num in planes_paginados.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
+    {% if num %}
+      <li class="{{ 'active' if num==planes_paginados.page }}">
+        <a href="{{ url_for('listar_planes_activos', page=num) }}">{{ num }}</a>
+      </li>
+    {% else %}
+      <li><span>…</span></li>
+    {% endif %}
+  {% endfor %}
+  {% if planes_paginados.has_next %}
+    <li><a href="{{ url_for('listar_planes_activos', page=planes_paginados.next_num) }}">Siguiente &raquo;</a></li>
+  {% endif %}
+</ul>
 {% endblock %}

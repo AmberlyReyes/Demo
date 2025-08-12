@@ -37,6 +37,15 @@
             <label for="hora">Hora</label>
             <input type="time" class="form-control" name="hora" id="hora" value="{{ pacientes.hora.strftime('%H:%M') if pacientes.hora else '' }}" required>
         </div>
+        <div class="form-group">
+            <label for="estado">Estado de la Cita</label>
+            <select class="form-control" id="estado" name="estado" required>
+                <option value="Programada" {% if pacientes.estado == 'Programada' %}selected{% endif %}>Programada</option>
+                <option value="Confirmada" {% if pacientes.estado == 'Confirmada' %}selected{% endif %}>Confirmada</option>
+                <option value="Cancelada" {% if pacientes.estado == 'Cancelada' %}selected{% endif %}>Cancelada</option>
+                <option value="Realizada" {% if pacientes.estado == 'Realizada' %}selected{% endif %}>Realizada</option>
+            </select>
+        </div>
     </div>
     <div class="form-group" style="margin-top: 20px;">
         <label for="plan_tratamiento_id">Plan de Tratamiento (Opcional)</label>

@@ -287,7 +287,8 @@ def register_routes(app):
             nuevos_datos = {
                 'fecha': request.form['fecha'],
                 'hora': request.form['hora'],
-                'plan_tratamiento_id': plan_id
+                'plan_tratamiento_id': plan_id,
+                'estado': request.form['estado']  # Estado editable
             }
             citaControlador.actualizar_cita(id, nuevos_datos)
             return redirect(url_for('indexCita'))
@@ -654,12 +655,10 @@ def register_routes(app):
     @login_required
     def crear_plan_paciente(paciente_id):
         if request.method == 'POST':
-            # 1) Datos cabecera
             nombre_plan   = request.form['nombre_plan']
             doctor_id     = int(request.form['doctor_id'])
             fecha_inicio  = datetime.strptime(request.form['fecha_inicio'], '%Y-%m-%d').date()
             numero_cuotas = int(request.form['numero_cuotas'])
-            # 2) Detalles paralelos
             ids        = request.form.getlist('detalle_tratamiento_id')
             costos     = request.form.getlist('detalle_costo')
             cantidades = request.form.getlist('detalle_cantidad')
@@ -667,7 +666,12 @@ def register_routes(app):
                 {'tratamiento_id': int(tid), 'costo': float(c), 'cantidad': int(q)}
                 for tid, c, q in zip(ids, costos, cantidades)
             ]
-            # 3) Llamar al controlador
+
+            # VALIDACIÓN: Debe haber al menos un tratamiento
+            if not detalles or len(detalles) == 0:
+                flash('Debes agregar al menos un tratamiento al plan.', 'danger')
+                return redirect(request.url)
+
             data = {
                 'paciente_id': paciente_id,
                 'doctor_id': doctor_id,
@@ -680,7 +684,6 @@ def register_routes(app):
             flash('Plan creado.' if plan else 'Error al crear plan', 'success' if plan else 'danger')
             return redirect(url_for('listar_planes_paciente', paciente_id=paciente_id))
 
-        # GET: mostrar form
         paciente     = PacienteControlador.obtener_por_id(paciente_id)
         tratamientos = TratamientoControlador.obtener_todos()
         doctores     = DoctorControlador.obtener_todos()
@@ -691,24 +694,6 @@ def register_routes(app):
             doctores=doctores
         )
 
-    @app.route('/paciente/<int:paciente_id>/planes/<int:plan_id>/editar', methods=['GET','POST'])
-    @login_required
-    def editar_plan_paciente(paciente_id, plan_id):
-        plan = PlanTratamientoControlador.obtener_por_id(plan_id)
-        if request.method == 'POST':
-            datos = {
-                'nombre_plan': request.form['nombre_plan'],
-                'fecha_inicio': datetime.strptime(request.form['fecha_inicio'], '%Y-%m-%d').date(),
-                'numero_cuotas': int(request.form['numero_cuotas']),
-                # … otros campos si aplica …
-            }
-            PlanTratamientoControlador.actualizar_plan(plan_id, datos)
-            return redirect(url_for('listar_planes_paciente', paciente_id=paciente_id))
-        return render_template('planes/editar_plan.html',
-                               paciente_id=paciente_id,
-                               plan=plan,
-                               doctores=DoctorControlador.obtener_todos(),
-                               tratamientos=TratamientoControlador.obtener_todos())
 
     @app.route('/paciente/<int:paciente_id>/planes/<int:plan_id>/eliminar', methods=['POST'])
     @login_required
@@ -925,26 +910,6 @@ def register_routes(app):
         return redirect(url_for('listar_personas'))
 
 
-    @app.route('/cuota/<int:cuota_id>/facturar', methods=['GET'])
-    @login_required
-    def facturar_cuota(cuota_id):
-        cuota = db.session.get(Cuota, cuota_id)
-        if not cuota:
-            flash("Cuota no encontrada.", "danger")
-            return redirect(request.referrer or url_for('admin_dashboard'))
-
-        nueva_factura = FacturacionControlador.crear_factura_desde_cuota(cuota_id)
-
-        if nueva_factura:
-            flash(f"Factura #{nueva_factura.id} generada exitosamente para la cuota #{cuota.numero_cuota}.", "success")
-        else:
-            flash("Error al generar la factura. La cuota podría no estar pendiente.", "danger")
-        
-        
-        return redirect(url_for('ver_plan_paciente', 
-                                paciente_id=cuota.plan.paciente_id, 
-                                plan_id=cuota.plan_id))
-    
     @app.route('/factura/<int:factura_id>/registrar_pago', methods=['GET', 'POST'])
     @login_required
     def registrar_pago(factura_id):
@@ -1072,13 +1037,73 @@ def register_routes(app):
     # En webControlador.py
 
     @app.route('/planes-activos')
-    @login_required # O @asistente_required 
+    @login_required
     def listar_planes_activos():
-        planes_activos = PlanTratamientoControlador.obtener_todos_activos()
-        return render_template('planes/listar_planes_activos.html', planes=planes_activos)
+        page = request.args.get('page', 1, type=int)
+        PER_PAGE = 10
 
-    
-    @app.route('/reportes/ingresos')
+        # Query sólo activos, ordenados por creación descendente
+        from sisdental.modelos.PlanTratamiento import PlanTratamiento
+        planes_query = PlanTratamiento.query.filter(
+            PlanTratamiento.estado == 'Activo'
+        ).order_by(PlanTratamiento.id.desc())
+
+        planes_paginados = planes_query.paginate(
+            page=page, per_page=PER_PAGE, error_out=False
+        )
+
+        return render_template(
+            'planes/listar_planes_activos.html',
+            planes_paginados=planes_paginados
+        )
+
+    @app.route('/cuota/<int:cuota_id>/facturar', methods=['GET'])
+    @login_required
+    def facturar_cuota(cuota_id):
+        cuota = db.session.get(Cuota, cuota_id)
+        if not cuota:
+            flash("Cuota no encontrada.", "danger")
+            return redirect(url_for('listar_planes_activos'))
+
+        nueva_factura = FacturacionControlador.crear_factura_desde_cuota(cuota_id)
+        if not nueva_factura:
+            flash("Error al generar factura.", "danger")
+            return redirect(url_for('listar_planes_activos'))
+
+        # Si con este pago el plan queda totalmente saldado, lo marco completado
+        plan = cuota.plan
+        if all(c.estado == 'Pagada' for c in plan.cuotas):
+            plan.estado = 'Completado'
+            db.session.commit()
+
+        flash(f"Factura #{nueva_factura.id} generada.", "success")
+        return redirect(url_for('ver_factura', factura_id=nueva_factura.id))
+
+    @app.route('/paciente/<int:paciente_id>/planes/<int:plan_id>/editar', methods=['GET','POST'])
+    @login_required
+    def editar_plan_paciente(paciente_id, plan_id):
+        plan = PlanTratamientoControlador.obtener_por_id(plan_id)
+        if request.method == 'POST':
+            datos = {
+                'nombre_plan':   request.form['nombre_plan'],
+                'fecha_inicio':  datetime.strptime(request.form['fecha_inicio'], '%Y-%m-%d').date(),
+                'numero_cuotas': int(request.form['numero_cuotas']),
+                'estado':        request.form['estado']   # ahora editable
+            }
+            PlanTratamientoControlador.actualizar_plan(plan_id, datos)
+            return redirect(
+                url_for('listar_planes_paciente', paciente_id=paciente_id)
+            )
+
+        return render_template(
+            'planes/editar_plan.html',
+            paciente_id=paciente_id,
+            plan=plan,
+            doctores=DoctorControlador.obtener_todos(),
+            tratamientos=TratamientoControlador.obtener_todos()
+        )
+
+    @app.route('/admin/reportes/ingresos')
     @login_required
     @admin_required
     def reporte_ingresos():
@@ -1110,3 +1135,29 @@ def register_routes(app):
                                 chart_labels=chart_labels,
                                 chart_values=chart_values,
                                 mes_actual=hoy.strftime('%B').capitalize())
+
+    @app.route('/api/paciente/por_cedula')
+    def api_paciente_por_cedula():
+        cedula = request.args.get('cedula','').strip()
+        paciente = PacienteControlador.obtener_por_cedula(cedula)
+        if not paciente:
+            return jsonify({'error':'Paciente no encontrado'}), 404
+        return jsonify({'id': paciente.id})
+
+    @app.route('/api/paciente/<int:paciente_id>/planes', methods=['GET'])
+    @login_required
+    def api_planes_paciente(paciente_id):
+        planes = PlanTratamientoControlador.obtener_por_paciente(paciente_id)
+        return jsonify([{'id': p.id, 'nombre_plan': p.nombre_plan} for p in planes])
+    
+
+    @app.route('/plan/<int:plan_id>/facturar', methods=['GET'])
+    @login_required
+    def facturar_plan(plan_id):
+        # Obtener la primera cuota pendiente del plan
+        cuota = Cuota.query.filter_by(plan_id=plan_id).filter(Cuota.estado != 'Pagada') \
+                           .order_by(Cuota.fecha_vencimiento).first()
+        if not cuota:
+            flash('No hay cuotas pendientes para facturar.', 'warning')
+            return redirect(url_for('listar_planes_activos'))
+        return redirect(url_for('facturar_cuota', cuota_id=cuota.id))

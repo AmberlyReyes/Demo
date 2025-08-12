@@ -42,6 +42,14 @@
             <label for="numero_cuotas">Número de Cuotas de Pago</label>
             <input type="number" id="numero_cuotas" name="numero_cuotas" value="{{ plan.cuotas.count() }}" min="1" required>
         </div>
+        <div class="form-group">
+            <label for="estado">Estado del Plan</label>
+            <select id="estado" name="estado" required>
+                <option value="Activo"    {% if plan.estado=='Activo' %}selected{% endif %}>Activo</option>
+                <option value="Cancelado" {% if plan.estado=='Cancelado' %}selected{% endif %}>Cancelado</option>
+                <option value="Completado"{% if plan.estado=='Completado'%}selected{% endif %}>Completado</option>
+            </select>
+        </div>
     </div>
 
     <!-- TRATAMIENTOS PRE-CARGADOS -->
