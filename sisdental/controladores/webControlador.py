@@ -381,12 +381,11 @@ def register_routes(app):
     @login_required
     def listar_pacientes():
         query = request.args.get('q', '').strip()
-        #  Obtenemos el número de página de la URL, por defecto es la página 1
         page = request.args.get('page', 1, type=int)
-        # Definimos el número de pacientes a mostrar por página
         PER_PAGE = 6
 
-        pacientes_query = Paciente.query
+    # Asegurarnos de filtrar solo pacientes
+        pacientes_query = Paciente.query.filter(Paciente.tipo == 'paciente')
 
         if query:
             search_term_nombre = f"%{query}%"
@@ -398,12 +397,14 @@ def register_routes(app):
                     func.replace(Paciente.cedula, '-', '').ilike(search_term_cedula)
                 )
             )
+    
         pacientes_paginados = pacientes_query.order_by(Paciente.nombre).paginate(
             page=page, per_page=PER_PAGE, error_out=False
         )
+    
         return render_template('pacientes/listar_pacientes.html', 
-                            pacientes_paginados=pacientes_paginados, 
-                            search_query=query)
+                        pacientes_paginados=pacientes_paginados, 
+                        search_query=query)
 
     
     @app.route('/api/paciente/<int:paciente_id>', methods=['GET'])
