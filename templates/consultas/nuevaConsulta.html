@@ -97,7 +97,7 @@
         .then(resp => resp.json())
         .then(data => {
             if (data.success) {
-                window.location.href = `/historial?patientId=${patientId}&last_consulta_id=${data.consulta_id}`;
+                window.location.href = `/paciente/${patientId}/historial?last_consulta_id=${data.consulta_id}`;
             } else {
                 const errorDiv = document.getElementById('errorMessage');
                 errorDiv.textContent = 'Error: ' + (data.error || 'Desconocido');

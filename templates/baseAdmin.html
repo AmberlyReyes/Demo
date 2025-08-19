@@ -124,8 +124,7 @@
                 <a href="{{ url_for('mainpage') }}" class="btn btn-back">
                     <i class="fas fa-home"></i> Inicio
                 </a>
-                <a href="#" onclick="goBack()" class="btn btn-back">
-                    <i class="fas fa-arrow-left"></i> Atrás
+                <a href="#" onclick="goUpOneLevel()" class="btn btn-back">← Atrás</a>
                 </a>
             </div>
         </header>
@@ -136,6 +135,17 @@
                     window.history.back();
                 } else {
                     window.location.href = '{{ url_for("mainpage") }}';
+                }
+            }
+            function goUpOneLevel() {
+                const currentPath = window.location.pathname;
+                const segments = currentPath.split('/').filter(Boolean);
+                const lastSegment = segments[segments.length - 1];
+
+                if (lastSegment === 'editar' || lastSegment === 'factura' || !isNaN(lastSegment)) {
+                    window.history.back();
+                } else {
+                    window.location.href = '/' + segments.slice(0, -1).join('/');
                 }
             }
         </script>
