@@ -722,7 +722,11 @@ def register_routes(app):
         
         total_pagado = PlanTratamientoControlador.calcular_total_pagado(plan_id)
 
-        return render_template('planes/ver_plan.html', plan=plan, total_pagado=total_pagado)
+        return render_template('planes/ver_plan.html', 
+                            plan=plan, 
+                            total_pagado=total_pagado,
+                            paciente_id=paciente_id,
+                            plan_id=plan_id)
     
     @app.route('/admin/tratamientos/<int:id>/editar', methods=['GET', 'POST'])
     @login_required
@@ -800,8 +804,6 @@ def register_routes(app):
             personas=personas_sin_usuario,
             persona_a_vincular_id=persona_vinculada
         )
-    
-
 
     @app.route('/admin/usuarios/<int:id>/editar', methods=['GET', 'POST'])
     @login_required
@@ -919,10 +921,11 @@ def register_routes(app):
         flash('Persona eliminada.', 'info')
         return redirect(url_for('listar_personas'))
 
-
+    
     @app.route('/factura/<int:factura_id>/registrar_pago', methods=['GET', 'POST'])
+    @app.route('/admin/factura/<int:factura_id>/registrar_pago', methods=['GET', 'POST'])
     @login_required
-    def registrar_pago(factura_id):
+    def registrar_pago(factura_id, admin=False):
         factura = db.session.get(Factura, factura_id)
         if not factura:
             flash("Factura no encontrada.", "danger")
@@ -956,6 +959,42 @@ def register_routes(app):
         now = datetime.now()
         return render_template('registrar_pago.html', factura=factura, now=now)
 
+    @app.route('/paciente/<int:paciente_id>/estado-cuenta/<int:factura_id>/registrar_pago', methods=['GET', 'POST'])
+    @login_required
+    def registrar_pago_estado_cuenta(paciente_id, factura_id):
+        factura = db.session.get(Factura, factura_id)
+        if not factura:
+            flash("Factura no encontrada.", "danger")
+            return redirect(url_for('admin_dashboard'))
+
+        if request.method == 'POST':
+            monto = float(request.form['monto'])
+            fecha_pago_str = request.form['fecha_pago']
+            fecha_pago = datetime.strptime(fecha_pago_str, '%Y-%m-%d').date()
+            
+            resultado = FacturacionControlador.registrar_pago(factura_id, monto, fecha_pago)
+
+            if resultado['success']:
+                flash(f"Pago registrado para la Factura #{factura.id}.", "success")
+                # === FIX: obtener la cuota asociada y su plan ===
+                from sisdental.modelos.Cuota import Cuota
+                cuota = Cuota.query.filter_by(factura_id=factura.id).first()
+                if cuota:
+                    plan = cuota.plan
+                    return redirect(url_for(
+                        'ver_plan_paciente',
+                        paciente_id=plan.paciente_id,
+                        plan_id=plan.id
+                    ))
+                return redirect(url_for('ver_plan_paciente'))
+            else:
+                # Mostramos el error específico que nos dio el controlador.
+                flash(resultado['error'], "danger")
+                return redirect(url_for('registrar_pago', factura_id=factura_id))
+
+        now = datetime.now()
+        return render_template('registrar_pago.html', factura=factura, now=now)
+
     @app.route('/paciente/<int:paciente_id>/estado-cuenta')
     @login_required # Accesible para admin y asistente
     def estado_cuenta_paciente(paciente_id):
@@ -978,11 +1017,12 @@ def register_routes(app):
                                planes=planes,
                                total_facturado=total_facturado,
                                total_pagado=total_pagado,
-                               balance=balance)
+                               balance=balance,
+                               paciente_id=paciente_id)
     
-    @app.route('/admin/facturas')
-    @login_required
+    @app.route('/admin/factura')
     @admin_required
+    @login_required
     def listar_facturas():
         query = request.args.get('q', '').strip()
         estado_filtro = request.args.get('estado', '').strip()
@@ -1009,10 +1049,16 @@ def register_routes(app):
                                query=query,
                                estado_filtro=estado_filtro)
     
+    @app.route('/factura')
+    @login_required
+    def listar_facturas_usuario():
+        return listar_facturas()
 
     @app.route('/factura/<int:factura_id>')
+    @app.route('/admin/factura/<int:factura_id>')
+    @app.route('/paciente/<int:paciente_id>/planes/<int:plan_id>/factura/<int:factura_id>')
     @login_required
-    def ver_factura(factura_id):
+    def ver_factura(factura_id, admin=False, paciente_id=None, plan_id=None):
         factura = Factura.query.get_or_404(factura_id)
 
     
@@ -1025,6 +1071,19 @@ def register_routes(app):
                             saldo_pendiente=saldo_pendiente,
                             now=now)
 
+    @app.route('/paciente/<int:paciente_id>/estado-cuenta/factura/<int:factura_id>')
+    @login_required
+    def ver_factura_estado_cuenta(paciente_id, factura_id):
+        factura = Factura.query.get_or_404(factura_id)
+
+        total_pagado = sum(pago.monto for pago in factura.pagos)
+        saldo_pendiente = factura.total - total_pagado
+        now=datetime.now()
+        return render_template('facturas/ver_factura.html', 
+                            factura=factura,
+                            total_pagado=total_pagado,
+                            saldo_pendiente=saldo_pendiente,
+                            now=now)
     
     @app.route('/plan/<int:plan_id>/pagar', methods=['GET', 'POST'])
     @login_required
@@ -1069,8 +1128,9 @@ def register_routes(app):
         )
 
     @app.route('/cuota/<int:cuota_id>/facturar', methods=['GET'])
+    @app.route('/paciente/<int:paciente_id>/planes/<int:plan_id>/cuota/<int:cuota_id>/facturar', methods=['GET'])
     @login_required
-    def facturar_cuota(cuota_id):
+    def facturar_cuota(cuota_id, paciente_id=None, plan_id=None):
         cuota = db.session.get(Cuota, cuota_id)
         if not cuota:
             flash("Cuota no encontrada.", "danger")
@@ -1088,7 +1148,7 @@ def register_routes(app):
             db.session.commit()
 
         flash(f"Factura #{nueva_factura.id} generada.", "success")
-        return redirect(url_for('ver_factura', factura_id=nueva_factura.id))
+        return redirect(url_for('ver_factura', factura_id=nueva_factura.id, paciente_id=paciente_id, plan_id=plan_id))
 
     @app.route('/paciente/<int:paciente_id>/planes/<int:plan_id>/editar', methods=['GET','POST'])
     @login_required

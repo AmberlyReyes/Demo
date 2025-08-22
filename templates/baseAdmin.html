@@ -141,10 +141,15 @@
                 const currentPath = window.location.pathname;
                 const segments = currentPath.split('/').filter(Boolean);
                 const lastSegment = segments[segments.length - 1];
+                const penultimateSegment = segments[segments.length - 2];
 
-                if (lastSegment === 'editar' || lastSegment === 'factura' || !isNaN(lastSegment)) {
-                    window.history.back();
-                } else {
+                if (lastSegment === 'editar' || lastSegment === 'registrar_pago') {
+                    window.location.href = '/' + segments.slice(0, -2).join('/');
+                }
+                else if (penultimateSegment === 'factura' && !isNaN(lastSegment)) {
+                    window.location.href = '/' + segments.slice(0, -2).join('/');
+                }
+                else {
                     window.location.href = '/' + segments.slice(0, -1).join('/');
                 }
             }
