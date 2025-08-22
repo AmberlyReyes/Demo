@@ -170,10 +170,9 @@ def register_routes(app):
     
     # Listar Citas
     @app.route('/citas')
-    @app.route('/paciente/<int:patientId>/citas')
-    def indexCita(patientId=None):
+    def indexCita():
         fecha_str = request.args.get('fecha')
-        patient_id = patientId
+        patient_id = request.args.get('patientId')
 
         # 1 Si hay patient_id, filtra solo por ese paciente
         # 2 Si también hay fecha, filtra adicionalmente por la fecha
@@ -193,7 +192,7 @@ def register_routes(app):
             else:
                 citas = citaControlador.obtener_todos()
 
-        return render_template('citas/indexCita.html', pacientes=citas, patientId=patientId)
+        return render_template('citas/indexCita.html', pacientes=citas)
    
     # Crear nuevo paciente
     @app.route('/crear', methods=('GET', 'POST'))
@@ -232,16 +231,12 @@ def register_routes(app):
         return render_template('pacientes/crear.html', error=error)
 
     # Crear nuevo Cita
-    @app.route('/paciente/<int:patientId>/citas/crear', methods=('GET', 'POST'))
-    @app.route('/citas/crear', methods=('GET', 'POST'))
-    def crearCita(patientId=None):
+    @app.route('/crearCita', methods=('GET', 'POST'))
+    def crearCita():
         error = None
         planes_activos = PlanTratamientoControlador.obtener_todos_activos()
         doctores= DoctorControlador.obtener_todos()
-        paci = None
-        if patientId:
-            paci = PacienteControlador.obtener_por_id(patientId)
-                
+
         if request.method == 'POST':
             cedula = request.form['paciente_cedula']
             cedula_limpia = cedula.strip() 
@@ -267,21 +262,19 @@ def register_routes(app):
             }
 
             citaControlador.crear_cita(data)
-            return redirect(url_for('indexCita', patientId=Paci.id))
+            return redirect(url_for('indexCita'))
 
         # GET
         return render_template(
             'citas/crearCita.html',
             error=error,
             planes_activos=planes_activos, 
-            doctores=doctores,
-            pacientecedula=paci.cedula if paci else None,
-            patientId=patientId
+            doctores=doctores
         )
 
-    @app.route('/paciente/<int:patientId>/citas/editar/<int:id>', methods=('GET', 'POST'))
-    @app.route('/citas/<int:id>/editar', methods=('GET', 'POST'))
-    def editarCita(id, patientId=None):
+
+    @app.route('/<int:id>/editarCita', methods=('GET', 'POST'))
+    def editarCita(id):
         cita = citaControlador.obtener_por_id(id)
         if not cita:
             return "Cita no encontrada", 404
@@ -298,7 +291,7 @@ def register_routes(app):
                 'estado': request.form['estado']  # Estado editable
             }
             citaControlador.actualizar_cita(id, nuevos_datos)
-            return redirect(url_for('indexCita', patientId=patientId))
+            return redirect(url_for('indexCita'))
         
         doctores = DoctorControlador.obtener_todos()
 
@@ -307,20 +300,19 @@ def register_routes(app):
             pacientes=cita,
             planes_activos=planes_activos, 
             doctores=doctores,
-            docSelected=DoctorControlador.obtener_por_id(cita.doctor_id),
-            patientId=patientId
+            docSelected=DoctorControlador.obtener_por_id(cita.doctor_id)
         )
 
-    @app.route('/paciente/<int:patientId>')
-    def gestion_paciente(patientId):
-        #patient_id = request.args.get('patientId')
-        paciente = PacienteControlador.obtener_por_id(patientId)
+    @app.route('/gestionPaciente')
+    def gestion_paciente():
+        patient_id = request.args.get('patientId')
+        paciente = PacienteControlador.obtener_por_id(patient_id)
         if not paciente:
             return "Paciente no encontrado", 404
         return render_template('pacientes/gestionPaciente.html', paciente=paciente)
     
     # Editar pacientes
-    @app.route('/paciente/<int:id>/editar', methods=('GET', 'POST'))
+    @app.route('/<int:id>/editar', methods=('GET', 'POST'))
     def editar(id):
         paciente = PacienteControlador.obtener_por_id(id)
         if not paciente:
@@ -343,21 +335,20 @@ def register_routes(app):
         return render_template('pacientes/editar.html', pacientes=paciente)
 
     # Eliminar pacientes
-    @app.route('/paciente/<int:id>/eliminar', methods=('POST',))
+    @app.route('/<int:id>/eliminar', methods=('POST',))
     def eliminar(id):
         PacienteControlador.eliminar_paciente(id)
 
         return redirect(url_for('index'))
     
     # Eliminar cita
-    @app.route('/paciente/<int:patientId>/citas/<int:id>/eliminar', methods=('POST',))
-    @app.route('/citas/<int:id>/eliminar', methods=('POST',))
-    def eliminarCita(id, patientId=None):
+    @app.route('/<int:id>/eliminarCita', methods=('POST',))
+    def eliminarCita(id):
         citaControlador.eliminar_paciente(id)
-        return redirect(url_for('indexCita', patientId=patientId))
+        return redirect(url_for('indexCita'))
 
     # Detalle de un paciente
-    @app.route('/paciente/<identificador>/detalle')
+    @app.route('/paciente/<identificador>')
     def detalle_paciente(identificador):
         identificador = identificador.strip()
         paciente = None
@@ -377,15 +368,16 @@ def register_routes(app):
         return render_template('pacientes/detalle.html', paciente=paciente)
     
     # Detalle de Cita
-    @app.route('/paciente/<int:patientId>/citas/<int:id>')
-    @app.route('/citas/<int:id>')
-    def detalle_cita(id, patientId=None):
+    @app.route('/cita/<int:id>')
+    def detalle_cita(id):
         paciente = citaControlador.obtener_por_id(id)
         if not paciente:
             return "Cita no encontrada", 404
-        return render_template('citas/detalleCita.html', paciente=paciente, patientId=patientId)
+        return render_template('citas/detalleCita.html', paciente=paciente)
     
-    @app.route('/paciente')
+    # webControlador.py
+
+    @app.route('/pacientes')
     @login_required
     def listar_pacientes():
         query = request.args.get('q', '').strip()
@@ -414,6 +406,7 @@ def register_routes(app):
                         pacientes_paginados=pacientes_paginados, 
                         search_query=query)
 
+    
     @app.route('/api/paciente/<int:paciente_id>', methods=['GET'])
     def get_paciente_api(paciente_id):
         paciente = PacienteControlador.obtener_por_id(paciente_id)
@@ -431,27 +424,25 @@ def register_routes(app):
             "nacimiento": paciente.nacimiento
         }, 200
 
-    
-    @app.route('/paciente/<int:patientId>/consulta', methods=['GET'])
-    @app.route('/paciente/<int:patientId>/historial/consulta', methods=['GET'])
+    @app.route('/nuevaConsulta', methods=['GET'])
     @login_required
-    def nueva_consulta(patientId):
-        #patient_id = request.args.get('patientId')
-        if not patientId:
+    def nueva_consulta():
+        patient_id = request.args.get('patientId')
+        if not patient_id:
             return "Paciente no especificado", 400
 
         #  Traer paciente
-        paciente = PacienteControlador.obtener_por_id(patientId)
+        paciente = PacienteControlador.obtener_por_id(patient_id)
         if not paciente:
             flash("Paciente no encontrado", "danger")
-            return redirect(url_for('gestion_paciente', patientId=patientId))
+            return redirect(url_for('gestion_paciente', patientId=patient_id))
 
         # Traer o crear historial
-        historial = HistorialControlador.obtener_por_paciente(patientId) \
-                   or HistorialControlador.crear_historial(patientId)
+        historial = HistorialControlador.obtener_por_paciente(patient_id) \
+                   or HistorialControlador.crear_historial(patient_id)
 
         # Última consulta
-        consultas = ConsultaControlador.obtener_por_paciente(patientId)
+        consultas = ConsultaControlador.obtener_por_paciente(patient_id)
         if consultas:
             fecha_ultima = consultas[0].fecha.strftime('%Y-%m-%d')
             ultima_id    = consultas[0].id
@@ -513,16 +504,16 @@ def register_routes(app):
             return jsonify({'error': error_msg}), 500
 
    
-    @app.route('/consulta/uploads/<path:filename>')
+    @app.route('/uploads/<path:filename>')
     @login_required
     def ver_archivo(filename):
         """Sirve los archivos desde la carpeta UPLOAD_FOLDER."""
         upload_folder = current_app.config['UPLOAD_FOLDER']
         return send_from_directory(upload_folder, filename)
     
-    @app.route('/paciente/<int:patientId>/historial/<int:consulta_id>', methods=['GET'])
+
     @app.route('/consulta/<int:consulta_id>', methods=['GET'])
-    def ver_consulta(consulta_id, patientId=None):
+    def ver_consulta(consulta_id):
         consulta = ConsultaControlador.obtener_por_id(consulta_id)
         if not consulta:
             return "Consulta no encontrada", 404
@@ -609,7 +600,7 @@ def register_routes(app):
         
         return render_template('tratamientos/listarTratamiento.html', tratamientos=tratamientos)
 
-    @app.route('/tratamientos/crear', methods=['GET', 'POST'])
+    @app.route('/tratamientosCrear', methods=['GET', 'POST'])
     @login_required
     @admin_required
     def crear_tratamiento():
@@ -625,17 +616,17 @@ def register_routes(app):
         return render_template('tratamientos/crearTratamiento.html')
     
 
-    @app.route('/paciente/<int:patientId>/historial', methods=['GET'])
-    def historial(patientId):
-        #patient_id = request.args.get('patientId')
-        paciente   = PacienteControlador.obtener_por_id(patientId)
+    @app.route('/historial', methods=['GET'])
+    def historial():
+        patient_id = request.args.get('patientId')
+        paciente   = PacienteControlador.obtener_por_id(patient_id)
         if not paciente:
             return "Paciente no encontrado", 404
 
-        historial = HistorialControlador.obtener_por_paciente(patientId) \
-                or HistorialControlador.crear_historial(patientId)
+        historial = HistorialControlador.obtener_por_paciente(patient_id) \
+                or HistorialControlador.crear_historial(patient_id)
 
-        consultas = ConsultaControlador.obtener_por_paciente(patientId)
+        consultas = ConsultaControlador.obtener_por_paciente(patient_id)
         archivos = HistorialControlador.listar_archivos(historial.id)
 
         
@@ -1106,7 +1097,7 @@ def register_routes(app):
         return render_template('planes/pagar_plan.html', plan=plan, cuotas=cuotas_pendientes)
     # En webControlador.py
 
-    @app.route('/plan')
+    @app.route('/planes-activos')
     @login_required
     def listar_planes_activos():
         page = request.args.get('page', 1, type=int)
@@ -1174,7 +1165,7 @@ def register_routes(app):
             tratamientos=TratamientoControlador.obtener_todos()
         )
 
-    @app.route('/admin/ingresos')
+    @app.route('/admin/reportes/ingresos')
     @login_required
     @admin_required
     def reporte_ingresos():

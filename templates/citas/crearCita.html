@@ -22,8 +22,7 @@
     <div class="form-grid">
         <div class="form-group">
             <label for="paciente_cedula">Cédula del Paciente</label>
-            <input type="text" class="form-control" id="paciente_cedula" name="paciente_cedula" required placeholder="Ej: 402-3456197-1"
-            value= "{{ pacientecedula if pacientecedula != None else '' }}">
+            <input type="text" class="form-control" id="paciente_cedula" name="paciente_cedula" required placeholder="Ej: 402-3456197-1">
         </div>
         <div class="form-group">
             <label for="doctor_id">Doctor</label>
@@ -50,7 +49,7 @@
         </select>
     </div>
     <div class="form-actions">
-        <a href="{{ url_for('indexCita', patientId=patientId) }}" class="btn btn-back">Cancelar</a>
+        <a href="{{ url_for('indexCita') }}" class="btn btn-back">Cancelar</a>
         <button type="submit" class="btn btn-primary">Guardar Cita</button>
     </div>
 </form>

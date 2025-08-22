@@ -158,9 +158,9 @@
     </div>
 </div>
 
-<script>    
-    function nuevaConsulta() { window.location.href = `/paciente/{{ paciente.id }}/historial/consulta`; }
-    function verConsulta(id) { window.location.href = `/paciente/{{ paciente.id }}/historial/${id}`; }
+<script>
+    function nuevaConsulta() { window.location.href = `/nuevaConsulta?patientId={{ paciente.id }}`; }
+    function verConsulta(id) { window.location.href = `/consulta/${id}`; }
 
     function showTab(tabId, element) {
         document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
