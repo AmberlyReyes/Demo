@@ -601,7 +601,8 @@ def register_routes(app):
         db.session.delete(archivo); db.session.commit()
         return jsonify({'success':True})
 
-    @app.route('/tratamientos')
+    #@app.route('/tratamientos')
+    @app.route('/admin/tratamientos')
     @login_required
     @admin_required
     def listar_tratamientos():
