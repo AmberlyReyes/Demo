@@ -132,3 +132,29 @@ class FacturacionControlador:
             db.session.rollback()
             print(f"Error al registrar pago: {e}")
             return {'success': False, 'error': 'Error al registrar el pago.'}
+    
+    @staticmethod
+    def _actualizar_estado_factura(factura_id):
+        """
+        Actualiza el estado de una factura basado en los pagos realizados.
+        """
+        try:
+            factura = Factura.query.get(factura_id)
+            if not factura:
+                return False
+            
+            total_pagado = sum(p.monto for p in factura.pagos)
+            
+            if total_pagado >= factura.total:
+                factura.estado = 'Pagada'
+            elif total_pagado > 0:
+                factura.estado = 'Parcial'
+            else:
+                factura.estado = 'Pendiente'
+            
+            db.session.commit()
+            return True
+        except Exception as e:
+            db.session.rollback()
+            print(f"Error al actualizar estado de factura: {e}")
+            return False

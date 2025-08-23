@@ -173,6 +173,89 @@ class PlanTratamientoControlador:
 
     @staticmethod
     def obtener_todos_activos():
-    
         return PlanTratamiento.query.filter_by(estado='Activo').all()
+    
+    @staticmethod
+    def registrar_pago_cuota(cuota_id, monto, fecha_pago):
+        """
+        Registra un pago para una cuota específica con distribución inteligente.
+        Si el pago excede el monto de la cuota, se distribuye en cuotas restantes.
+        """
+        try:
+            from sisdental.modelos.Pago import Pago
+            from sisdental.modelos.Factura import Factura
+            
+            cuota = db.session.get(Cuota, cuota_id)
+            if not cuota:
+                return {'success': False, 'error': 'Cuota no encontrada'}
+            
+            # Obtener la factura del plan
+            factura = db.session.get(Factura, cuota.factura_id)
+            if not factura:
+                return {'success': False, 'error': 'Factura no encontrada'}
+            
+            # Registrar el pago en la factura
+            pago = Pago(
+                factura_id=factura.id,
+                monto=monto,
+                fecha_pago=fecha_pago
+            )
+            db.session.add(pago)
+            
+            # Actualizar estados de cuotas basado en pagos totales
+            PlanTratamientoControlador._actualizar_estados_cuotas(cuota.plan_id)
+            
+            # Actualizar estado de la factura
+            from sisdental.controladores.FacturacionControlador import FacturacionControlador
+            FacturacionControlador._actualizar_estado_factura(factura.id)
+            
+            db.session.commit()
+            return {'success': True}
+            
+        except Exception as e:
+            db.session.rollback()
+            print(f"Error al registrar pago de cuota: {e}")
+            return {'success': False, 'error': str(e)}
+    
+    @staticmethod
+    def _actualizar_estados_cuotas(plan_id):
+        """
+        Actualiza los estados de todas las cuotas de un plan basado en los pagos realizados.
+        """
+        try:
+            from sisdental.modelos.Pago import Pago
+            from sisdental.modelos.Factura import Factura
+            
+            # Obtener todas las cuotas del plan ordenadas por número
+            cuotas = db.session.query(Cuota).filter(
+                Cuota.plan_id == plan_id
+            ).order_by(Cuota.numero_cuota).all()
+            
+            if not cuotas:
+                return
+            
+            # Obtener total pagado en la factura del plan
+            factura = db.session.query(Factura).filter(Factura.plan_id == plan_id).first()
+            if not factura:
+                return
+                
+            total_pagado = db.session.query(
+                db.func.coalesce(db.func.sum(Pago.monto), 0)
+            ).filter(Pago.factura_id == factura.id).scalar()
+            
+            # Distribuir el total pagado entre las cuotas en orden
+            monto_restante = float(total_pagado)
+            
+            for cuota in cuotas:
+                if monto_restante <= 0:
+                    cuota.estado = 'Pendiente'
+                elif monto_restante >= cuota.monto:
+                    cuota.estado = 'Pagada'
+                    monto_restante -= cuota.monto
+                else:
+                    cuota.estado = 'Parcial'
+                    monto_restante = 0
+            
+        except Exception as e:
+            print(f"Error al actualizar estados de cuotas: {e}")
 

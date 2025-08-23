@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comprobante de Pago #{{ factura.id }}</title>
+    <style>
+        @media print {
+            .no-print { display: none !important; }
+            body { margin: 0; }
+        }
+        
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            color: #333;
+        }
+        
+        .comprobante {
+            max-width: 600px;
+            margin: 0 auto;
+            border: 2px solid #ddd;
+            padding: 30px;
+            background: white;
+        }
+        
+        .header {
+            text-align: center;
+            border-bottom: 2px solid #007bff;
+            padding-bottom: 20px;
+            margin-bottom: 30px;
+        }
+        
+        .header h1 {
+            color: #007bff;
+            margin: 0;
+            font-size: 24px;
+        }
+        
+        .header h2 {
+            color: #666;
+            margin: 5px 0 0 0;
+            font-size: 18px;
+            font-weight: normal;
+        }
+        
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 10px;
+            padding: 5px 0;
+        }
+        
+        .info-row.destacado {
+            background: #f8f9fa;
+            padding: 10px;
+            border-left: 4px solid #007bff;
+        }
+        
+        .label {
+            font-weight: bold;
+            color: #555;
+        }
+        
+        .value {
+            color: #333;
+        }
+        
+        .tratamientos {
+            margin: 30px 0;
+        }
+        
+        .tratamientos table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+        
+        .tratamientos th,
+        .tratamientos td {
+            padding: 12px;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
+        }
+        
+        .tratamientos th {
+            background: #f8f9fa;
+            font-weight: bold;
+            color: #555;
+        }
+        
+        .total-section {
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 2px solid #007bff;
+            text-align: right;
+        }
+        
+        .total-amount {
+            font-size: 20px;
+            font-weight: bold;
+            color: #007bff;
+        }
+        
+        .footer {
+            margin-top: 40px;
+            text-align: center;
+            font-size: 12px;
+            color: #666;
+            border-top: 1px solid #ddd;
+            padding-top: 20px;
+        }
+        
+        .btn-print {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            margin: 20px;
+            font-size: 16px;
+        }
+        
+        .btn-print:hover {
+            background: #0056b3;
+        }
+    </style>
+</head>
+<body>
+    <div class="no-print">
+        <button class="btn-print" onclick="window.print()">Imprimir</button>
+        <button class="btn-print" onclick="window.close()" style="background: #6c757d;">Cerrar</button>
+    </div>
+
+    <div class="comprobante">
+        <div class="header">
+            <h1>COMPROBANTE DE PAGO</h1>
+            <h2>Clínica Derecha Reyes</h2>
+        </div>
+
+        <div class="info-row">
+            <span class="label">Número de Factura:</span>
+            <span class="value">#{{ factura.id }}</span>
+        </div>
+
+        <div class="info-row">
+            <span class="label">Número de Pago:</span>
+            <span class="value">#{{ ultimo_pago.id }}</span>
+        </div>
+
+        <div class="info-row">
+            <span class="label">Fecha:</span>
+            <span class="value">{{ fecha_hoy.strftime('%d/%m/%Y') }}</span>
+        </div>
+
+        <div class="info-row">
+            <span class="label">Atendido por:</span>
+            <span class="value">{{ atendido_por }}</span>
+        </div>
+
+        <div class="info-row destacado">
+            <span class="label">Paciente:</span>
+            <span class="value">{{ factura.paciente.nombre }}</span>
+        </div>
+
+        <div class="tratamientos">
+            <h3>Servicios / Tratamientos</h3>
+            <table>
+                <thead>
+                    <tr>
+                        <th>Descripción</th>
+                        <th style="text-align: center;">Cantidad</th>
+                        <th style="text-align: right;">Precio Unit.</th>
+                        <th style="text-align: right;">Subtotal</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% if factura.plan and factura.plan.detalles %}
+                        {% for detalle in factura.plan.detalles %}
+                        <tr>
+                            <td>{{ detalle.tratamiento.nombre }}</td>
+                            <td style="text-align: center;">{{ detalle.cantidad }}</td>
+                            <td style="text-align: right;">${{ "%.2f"|format(detalle.costo) }}</td>
+                            <td style="text-align: right;">${{ "%.2f"|format(detalle.costo * detalle.cantidad) }}</td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td>Servicios Varios</td>
+                            <td style="text-align: center;">1</td>
+                            <td style="text-align: right;">${{ "%.2f"|format(factura.total) }}</td>
+                            <td style="text-align: right;">${{ "%.2f"|format(factura.total) }}</td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
+        </div>
+
+        <div class="total-section">
+            <div class="info-row">
+                <span class="label">Total de la Factura:</span>
+                <span class="value">${{ "%.2f"|format(factura.total) }}</span>
+            </div>
+            <div class="info-row">
+                <span class="label">Total Pagado Anteriormente:</span>
+                <span class="value">${{ "%.2f"|format((factura.pagos|sum(attribute='monto')) - ultimo_pago.monto) }}</span>
+            </div>
+            <div class="info-row destacado">
+                <span class="label total-amount">Monto de Este Pago:</span>
+                <span class="value total-amount">${{ "%.2f"|format(ultimo_pago.monto) }}</span>
+            </div>
+            <div class="info-row">
+                <span class="label">Saldo Restante:</span>
+                <span class="value">${{ "%.2f"|format(factura.total - (factura.pagos|sum(attribute='monto'))) }}</span>
+            </div>
+        </div>
+
+        <div class="footer">
+            <p><strong>¡Gracias por su pago!</strong></p>
+            <p>Este comprobante es válido como constancia de pago.</p>
+            <p>Generado el {{ fecha_hoy.strftime('%d/%m/%Y') }} a las {{ hora_actual }}</p>
+        </div>
+    </div>
+
+    <script>
+        // Auto-focus para impresión
+        window.addEventListener('load', function() {
+            // Si se abre en una nueva ventana, hacer foco para imprimir
+            if (window.name === 'comprobante') {
+                setTimeout(() => window.focus(), 100);
+            }
+        });
+    </script>
+</body>
+</html>

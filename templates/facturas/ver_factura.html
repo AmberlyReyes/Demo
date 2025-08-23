@@ -40,18 +40,25 @@
         </div>
 
         <table class="items-table">
-            <thead><tr><th>Descripción</th><th class="text-right">Total</th></tr></thead>
+            <thead><tr><th>Descripción</th><th class="text-right">Cantidad</th><th class="text-right">Precio Unit.</th><th class="text-right">Subtotal</th></tr></thead>
             <tbody>
-                <tr>
-                    <td>
-                        {% if factura.cuota_asociada %}
-                            Cuota #{{ factura.cuota_asociada.numero_cuota }} del plan "{{ factura.cuota_asociada.plan.nombre_plan }}"
-                        {% else %}
-                            Servicios Varios
-                        {% endif %}
-                    </td>
-                    <td class="text-right">${{ "%.2f"|format(factura.total) }}</td>
-                </tr>
+                {% if factura.plan and factura.plan.detalles %}
+                    {% for detalle in factura.plan.detalles %}
+                    <tr>
+                        <td>{{ detalle.tratamiento.nombre }}</td>
+                        <td class="text-right">{{ detalle.cantidad }}</td>
+                        <td class="text-right">${{ "%.2f"|format(detalle.costo) }}</td>
+                        <td class="text-right">${{ "%.2f"|format(detalle.costo * detalle.cantidad) }}</td>
+                    </tr>
+                    {% endfor %}
+                {% else %}
+                    <tr>
+                        <td>Servicios Varios</td>
+                        <td class="text-right">1</td>
+                        <td class="text-right">${{ "%.2f"|format(factura.total) }}</td>
+                        <td class="text-right">${{ "%.2f"|format(factura.total) }}</td>
+                    </tr>
+                {% endif %}
             </tbody>
         </table>
 
@@ -69,9 +76,21 @@
 
     <div>
         <div class="invoice-box">
-            <h4><i class="fas fa-hand-holding-usd"></i> Registrar Nuevo Pago</h4>
+            <h4><i class="fas fa-hand-holding-usd"></i> Registrar Nuevo Pago
+            {% if cuota_enfoque %} - Cuota #{{ cuota_enfoque.numero_cuota }}{% endif %}
+            </h4>
             {% if factura.estado == 'Pendiente' or factura.estado == 'Parcial' %}
+                {% if cuota_enfoque %}
+                    <p style="background: #e3f2fd; padding: 10px; border-radius: 5px; margin-bottom: 15px;">
+                        <strong>Pagando cuota #{{ cuota_enfoque.numero_cuota }}</strong><br>
+                        Monto de la cuota: ${{ "%.2f"|format(cuota_enfoque.monto) }}<br>
+                        Saldo pendiente de esta cuota: ${{ "%.2f"|format(saldo_pendiente) }}
+                    </p>
+                {% endif %}
                 <form method="POST" action="{{ url_for('registrar_pago', factura_id=factura.id) }}">
+                    {% if cuota_enfoque %}
+                        <input type="hidden" name="cuota_id" value="{{ cuota_enfoque.id }}">
+                    {% endif %}
                     <div class="form-group" style="margin-bottom: 15px;">
                         <label for="monto">Monto</label>
                         <input type="number" step="0.01" id="monto" name="monto" value="{{ '%.2f'|format(saldo_pendiente) }}" required>

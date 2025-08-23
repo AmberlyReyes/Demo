@@ -106,10 +106,18 @@
                     <td>
                         {% if cuota.estado == 'Pendiente' or cuota.estado == 'Parcial' %}
                             <a href="{{ url_for('facturar_cuota', cuota_id=cuota.id) }}" class="btn btn-primary" style="padding: 5px 10px; font-size: 12px;">Pagar</a>
-                        {% elif cuota.factura_id %}
-                            <a href="{{ url_for('ver_factura', factura_id=cuota.factura_id) }}" title="Ver Factura #{{ cuota.factura_id }}" style="color: #27ae60;">
-                                <i class="fas fa-file-invoice"></i>
-                            </a>
+                        {% endif %}
+                        
+                        {% if cuota.factura_id %}
+                            {% if cuota.estado == 'Pagada' or cuota.estado == 'Parcial' %}
+                                <a href="javascript:void(0)" 
+                                   data-url="{{ url_for('comprobante_pago', factura_id=cuota.factura_id) }}"
+                                   onclick="abrirComprobante(this.dataset.url)" 
+                                   title="Imprimir Comprobante" 
+                                   style="color: #007bff; margin-left: 5px;">
+                                    <i class="fas fa-print"></i>
+                                </a>
+                            {% endif %}
                         {% endif %}
                     </td>
                 </tr>
@@ -123,4 +131,16 @@
     <a href="{{ url_for('listar_planes_paciente', paciente_id=plan.paciente_id) }}" class="btn btn-back">Volver a la Lista</a>
     <a href="{{ url_for('editar_plan_paciente', paciente_id=plan.paciente_id, plan_id=plan.id) }}" class="btn btn-primary">Editar Plan</a>
 </div>
+
+<script>
+function abrirComprobante(url) {
+    // Abrir en nueva ventana optimizada para impresión
+    const ventana = window.open(url, 'comprobante', 'width=800,height=600,scrollbars=yes,resizable=yes');
+    
+    // Hacer foco en la nueva ventana
+    if (ventana) {
+        ventana.focus();
+    }
+}
+</script>
 {% endblock %}

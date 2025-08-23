@@ -921,7 +921,7 @@ def register_routes(app):
         return redirect(url_for('listar_personas'))
 
 
-    @app.route('/factura/<int:factura_id>/registrar_pago', methods=['GET', 'POST'])
+    @app.route('/factura/<int:factura_id>/registrar_pago', methods=['POST'])
     @login_required
     def registrar_pago(factura_id):
         factura = db.session.get(Factura, factura_id)
@@ -929,33 +929,67 @@ def register_routes(app):
             flash("Factura no encontrada.", "danger")
             return redirect(url_for('admin_dashboard'))
 
-        if request.method == 'POST':
-            monto = float(request.form['monto'])
-            fecha_pago_str = request.form['fecha_pago']
-            fecha_pago = datetime.strptime(fecha_pago_str, '%Y-%m-%d').date()
-            
-            resultado = FacturacionControlador.registrar_pago(factura_id, monto, fecha_pago)
+        monto = float(request.form['monto'])
+        fecha_pago_str = request.form['fecha_pago']
+        fecha_pago = datetime.strptime(fecha_pago_str, '%Y-%m-%d').date()
+        cuota_id = request.form.get('cuota_id', type=int)
+        
+        # Importar Cuota si no está definido
+        from sisdental.modelos.Cuota import Cuota
 
-            if resultado['success']:
-                flash(f"Pago registrado para la Factura #{factura.id}.", "success")
-                # === FIX: obtener la cuota asociada y su plan ===
-                from sisdental.modelos.Cuota import Cuota
-                cuota = Cuota.query.filter_by(factura_id=factura.id).first()
-                if cuota:
-                    plan = cuota.plan
-                    return redirect(url_for(
-                        'ver_plan_paciente',
-                        paciente_id=plan.paciente_id,
-                        plan_id=plan.id
-                    ))
-                return redirect(url_for('admin_dashboard'))
+        # Si se especifica una cuota, usar el registro de pago específico para cuotas
+        if cuota_id:
+            cuota = db.session.get(Cuota, cuota_id)
+            if cuota and cuota.factura_id == factura_id:
+                # Usar el controlador de plan para registrar el pago con distribución
+                resultado = PlanTratamientoControlador.registrar_pago_cuota(cuota_id, monto, fecha_pago)
+                
+                if resultado['success']:
+                    flash(f"Pago de ${monto:.2f} registrado exitosamente.", "success")
+                    # Regresar al plan después del pago de cuota
+                    return redirect(url_for('ver_plan_paciente', 
+                                          paciente_id=cuota.plan.paciente_id, 
+                                          plan_id=cuota.plan_id))
+                else:
+                    flash(f"Error al registrar el pago: {resultado['error']}", "danger")
+                    return redirect(url_for('ver_factura', factura_id=factura_id))
             else:
-                # Mostramos el error específico que nos dio el controlador.
-                flash(resultado['error'], "danger")
-                return redirect(url_for('registrar_pago', factura_id=factura_id))
+                flash("Cuota no válida para esta factura.", "danger")
+                return redirect(url_for('ver_factura', factura_id=factura_id))
+        else:
+            # Registro de pago normal para toda la factura
+            resultado = FacturacionControlador.registrar_pago(factura_id, monto, fecha_pago)
+            
+            if resultado['success']:
+                flash(f"Pago de ${monto:.2f} registrado exitosamente.", "success")
+            else:
+                flash(f"Error al registrar el pago: {resultado['error']}", "danger")
+        
+        # Regresar a la vista de la factura para pagos normales
+        return redirect(url_for('ver_factura', factura_id=factura_id))
 
-        now = datetime.now()
-        return render_template('registrar_pago.html', factura=factura, now=now)
+    @app.route('/factura/<int:factura_id>/comprobante')
+    @login_required
+    def comprobante_pago(factura_id):
+        factura = Factura.query.get_or_404(factura_id)
+        
+        # Obtener el último pago realizado
+        ultimo_pago = factura.pagos.order_by(Pago.fecha_pago.desc()).first()
+        if not ultimo_pago:
+            flash("No hay pagos registrados para esta factura.", "warning")
+            return redirect(url_for('ver_factura', factura_id=factura_id))
+        
+        # Obtener información del usuario que atendió
+        atendido_por = "No disponible"
+        if current_user and hasattr(current_user, 'persona'):
+            atendido_por = current_user.persona.nombre
+        
+        return render_template('facturas/comprobante_pago.html',
+                             factura=factura,
+                             ultimo_pago=ultimo_pago,
+                             atendido_por=atendido_por,
+                             fecha_hoy=datetime.now().date(),
+                             hora_actual=datetime.now().strftime('%H:%M'))
 
     @app.route('/paciente/<int:paciente_id>/estado-cuenta')
     @login_required # Accesible para admin y asistente
@@ -1015,15 +1049,53 @@ def register_routes(app):
     @login_required
     def ver_factura(factura_id):
         factura = Factura.query.get_or_404(factura_id)
-
-    
+        cuota_id = request.args.get('cuota_id', type=int)
+        
+        # Si se especifica una cuota, calcular el saldo pendiente para esa cuota específica
+        if cuota_id:
+            cuota = db.session.get(Cuota, cuota_id)
+            if cuota and cuota.factura_id == factura_id:
+                # Calcular cuánto falta por pagar de esa cuota específica
+                total_pagado_factura = sum(pago.monto for pago in factura.pagos)
+                
+                # Obtener todas las cuotas del plan ordenadas
+                cuotas_plan = db.session.query(Cuota).filter(
+                    Cuota.plan_id == cuota.plan_id
+                ).order_by(Cuota.numero_cuota).all()
+                
+                # Calcular cuánto se debe de la cuota específica
+                monto_restante = total_pagado_factura
+                saldo_pendiente = cuota.monto
+                
+                for c in cuotas_plan:
+                    if c.numero_cuota < cuota.numero_cuota:
+                        if monto_restante >= c.monto:
+                            monto_restante -= c.monto
+                        else:
+                            monto_restante = 0
+                    elif c.numero_cuota == cuota.numero_cuota:
+                        saldo_pendiente = max(0, cuota.monto - monto_restante)
+                        break
+                
+                cuota_enfoque = cuota
+            else:
+                # Si la cuota no existe o no pertenece a esta factura, usar cálculo normal
+                total_pagado = sum(pago.monto for pago in factura.pagos)
+                saldo_pendiente = factura.total - total_pagado
+                cuota_enfoque = None
+        else:
+            # Cálculo normal para toda la factura
+            total_pagado = sum(pago.monto for pago in factura.pagos)
+            saldo_pendiente = factura.total - total_pagado
+            cuota_enfoque = None
+        
         total_pagado = sum(pago.monto for pago in factura.pagos)
-        saldo_pendiente = factura.total - total_pagado
-        now=datetime.now()
+        now = datetime.now()
         return render_template('facturas/ver_factura.html', 
                             factura=factura,
                             total_pagado=total_pagado,
-                            saldo_pendiente=saldo_pendiente,
+                            saldo_pendiente=max(0, saldo_pendiente),  # No mostrar negativos
+                            cuota_enfoque=cuota_enfoque,
                             now=now)
 
     
@@ -1083,8 +1155,8 @@ def register_routes(app):
             flash("No se encontró la factura del plan.", "danger")
             return redirect(url_for('listar_planes_activos'))
 
-        flash(f"Redirigiendo a la factura del plan para registrar el pago.", "info")
-        return redirect(url_for('ver_factura', factura_id=factura.id))
+        flash(f"Redirigiendo a la factura del plan para registrar el pago de la cuota #{cuota.numero_cuota}.", "info")
+        return redirect(url_for('ver_factura', factura_id=factura.id, cuota_id=cuota_id))
 
     @app.route('/paciente/<int:paciente_id>/planes/<int:plan_id>/editar', methods=['GET','POST'])
     @login_required
