@@ -8,7 +8,7 @@ class Cita(db.Model):
     paciente_id = db.Column(db.Integer, db.ForeignKey('personas.id'), nullable=False)
     doctor_id = db.Column(db.Integer, db.ForeignKey('personas.id'), nullable=False)
     
-    plan_tratamiento_id = db.Column(db.Integer, db.ForeignKey('planes_tratamiento.id'), nullable=True)
+    plan_tratamiento_id = db.Column(db.Integer, db.ForeignKey('plan_tratamientos.id'), nullable=True)
     
     fecha = db.Column(db.Date, nullable=False)
     hora = db.Column(db.Time, nullable=False)
@@ -16,7 +16,6 @@ class Cita(db.Model):
     paciente = db.relationship('Paciente', backref='citas', foreign_keys=[paciente_id])
     # Relación con el Doctor
     doctor = db.relationship('Doctor', backref='citas', foreign_keys=[doctor_id])
-    plan = db.relationship('PlanTratamiento', backref='citas_asociadas')
+    plan = db.relationship('PlanTratamiento', back_populates='citas')
     def __repr__(self):
         return f'<Cita {self.id} del {self.fecha} a las {self.hora}>'
-    

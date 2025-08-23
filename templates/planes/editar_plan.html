@@ -74,11 +74,11 @@
                     <td>
                         {{ detalle.tratamiento.nombre }}
                         <input type="hidden" name="detalle_tratamiento_id" value="{{ detalle.tratamiento_id }}">
-                        <input type="hidden" name="detalle_costo" value="{{ detalle.costo_aplicado }}">
+                        <input type="hidden" name="detalle_costo" value="{{ detalle.costo }}">
                     </td>
                     <td><input type="number" name="detalle_cantidad" value="{{ detalle.cantidad }}" min="1" style="width: 60px;" onchange="updateSubtotal(this)"></td>
-                    <td>${{ "%.2f"|format(detalle.costo_aplicado) }}</td>
-                    <td class="subtotal">${{ "%.2f"|format(detalle.costo_aplicado * detalle.cantidad) }}</td>
+                    <td>${{ "%.2f"|format(detalle.costo) }}</td>
+                    <td class="subtotal">${{ "%.2f"|format(detalle.costo * detalle.cantidad) }}</td>
                     <td><button type="button" class="btn btn-danger" onclick="removeTratamiento(this)" style="background:var(--color-danger); color:white; border:none; padding:5px 10px; border-radius:5px;">X</button></td>
                 </tr>
                 {% endfor %}

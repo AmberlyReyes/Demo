@@ -13,9 +13,9 @@
     .data-table { width: 100%; border-collapse: collapse; }
     .data-table th, .data-table td { padding: 10px; text-align: left; border-bottom: 1px solid var(--color-borde); }
     .status-badge { padding: 5px 10px; border-radius: 20px; font-size: 12px; font-weight: bold; color: white; }
-    .status-pendiente { background-color: #f39c12; }
+    .status-parcial { background-color: #f39c12; }
     .status-pagada { background-color: #27ae60; }
-    .status-vencida { background-color: #e74c3c; }
+    .status-pendiente { background-color: #e74c3c; }
     .summary-card { text-align: center; padding: 20px; border-radius: 8px; color: white; }
     .summary-total { background: var(--color-principal); }
     .summary-pagado { background: #27ae60; }
@@ -36,7 +36,7 @@
     </div>
     <div class="summary-card summary-pendiente">
         <div class="label">Saldo Pendiente</div>
-        <div class="amount">${{ "%.2f"|format(plan.costo_total - total_pagado) }}</div>
+        <div class="amount">${{ "%.2f"|format(saldo_pendiente) }}</div>
     </div>
 </div>
 
@@ -57,10 +57,13 @@
             <h3><i class="fas fa-tasks"></i> Tratamientos Incluidos</h3>
             <table class="data-table">
                 <tbody>
+                    <!-- Tratamientos -->
                     {% for detalle in plan.detalles %}
                     <tr>
-                        <td>{{ detalle.tratamiento.nombre }} (x{{ detalle.cantidad }})</td>
-                        <td style="text-align: right;">${{ "%.2f"|format(detalle.costo_aplicado * detalle.cantidad) }}</td>
+                      <td>{{ detalle.tratamiento.nombre }} (x{{ detalle.cantidad }})</td>
+                      <td style="text-align:right;">
+                        ${{ "%.2f"|format(detalle.costo * detalle.cantidad) }}
+                      </td>
                     </tr>
                     {% endfor %}
                 </tbody>
@@ -70,10 +73,11 @@
         <div class="section-box">
             <h3><i class="fas fa-calendar-check"></i> Citas Asociadas al Plan</h3>
             <ul>
-            {% for cita in plan.citas_asociadas %}
-                <li>{{ cita.fecha.strftime('%d/%m/%Y') }} - {{ cita.estado }}</li>
+            <!-- Citas -->
+            {% for cita in plan.citas %}
+              <li>{{ cita.fecha.strftime('%d/%m/%Y') }} – {{ cita.estado }}</li>
             {% else %}
-                <li>No hay citas asociadas.</li>
+              <li>No hay citas asociadas.</li>
             {% endfor %}
             </ul>
         </div>
@@ -93,14 +97,15 @@
                     <td>
                         <span class="status-badge 
                             {% if cuota.estado == 'Pagada' %}status-pagada
-                            {% elif cuota.estado == 'Vencida' %}status-vencida
+                            {% elif cuota.estado == 'Parcial' %}status-parcial
+                            {% elif cuota.estado == 'Vencida' %}status-pendiente
                             {% else %}status-pendiente{% endif %}">
                             {{ cuota.estado }}
                         </span>
                     </td>
                     <td>
-                        {% if cuota.estado == 'Pendiente' or cuota.estado == 'Vencida' %}
-                            <a href="{{ url_for('facturar_cuota', cuota_id=cuota.id) }}" class="btn btn-primary" style="padding: 5px 10px; font-size: 12px;">Facturar</a>
+                        {% if cuota.estado == 'Pendiente' or cuota.estado == 'Parcial' %}
+                            <a href="{{ url_for('facturar_cuota', cuota_id=cuota.id) }}" class="btn btn-primary" style="padding: 5px 10px; font-size: 12px;">Pagar</a>
                         {% elif cuota.factura_id %}
                             <a href="{{ url_for('ver_factura', factura_id=cuota.factura_id) }}" title="Ver Factura #{{ cuota.factura_id }}" style="color: #27ae60;">
                                 <i class="fas fa-file-invoice"></i>

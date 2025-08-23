@@ -26,6 +26,8 @@ def load_user(user_id):
 upload_folder = os.path.join(app.root_path, 'uploads')
 app.config['UPLOAD_FOLDER'] = upload_folder
 
+
+
 with app.app_context():
     try:
         # Verificar conexión y contar pacientes
@@ -38,7 +40,32 @@ with app.app_context():
         print("Error en la conexión ", e)
         db.session.rollback()
 
-register_routes(app)
+"""
+with app.app_context():
+    try:
+        
+        db.drop_all()
+        print("Todas las tablas eliminadas.")
 
+      
+        db.create_all()
+        print("Todas las tablas creadas.")
+
+       
+        admin = Usuario(
+            username="admin",
+            administrador=True
+        )
+        admin.set_password("123")  
+
+        db.session.add(admin)
+        db.session.commit()
+        print("Usuario administrador creado ")
+
+    except Exception as e:
+        print("Error al reiniciar la base de datos: ", e)
+        db.session.rollback()
+"""
+register_routes(app)
 if __name__ == '__main__':
     app.run(debug=True)

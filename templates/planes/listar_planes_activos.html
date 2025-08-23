@@ -41,8 +41,8 @@
             <td>{{ plan.doctor.nombre }}</td>
             <td>${{ "%.2f"|format(plan.costo_total) }}</td>
             <td>
-                <a href="{{ url_for('facturar_plan', plan_id=plan.id) }}" class="btn btn-primary">
-                     Cobrar
+                <a href="{{ url_for('ver_factura', factura_id=plan.factura.id) }}" class="btn btn-primary">
+                    Cobrar
                 </a>
             </td>
         </tr>

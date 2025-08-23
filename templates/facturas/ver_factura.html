@@ -26,7 +26,10 @@
     <div class="invoice-box">
         <div class="invoice-header">
             <h3>Factura #{{ factura.id }}</h3>
-            <span><strong>Fecha:</strong> {{ factura.fecha_emision.strftime('%d/%m/%Y') }}</span>
+            <div>
+                <span><strong>Fecha:</strong> {{ factura.fecha_emision.strftime('%d/%m/%Y') }}</span><br>
+                <span><strong>Estado:</strong> {{ factura.estado }}</span>
+            </div>
         </div>
 
         <div class="info-section">
@@ -67,7 +70,7 @@
     <div>
         <div class="invoice-box">
             <h4><i class="fas fa-hand-holding-usd"></i> Registrar Nuevo Pago</h4>
-            {% if factura.estado == 'Pendiente' %}
+            {% if factura.estado == 'Pendiente' or factura.estado == 'Parcial' %}
                 <form method="POST" action="{{ url_for('registrar_pago', factura_id=factura.id) }}">
                     <div class="form-group" style="margin-bottom: 15px;">
                         <label for="monto">Monto</label>

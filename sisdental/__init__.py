@@ -4,7 +4,9 @@ from flask_login import LoginManager
 from dotenv import load_dotenv
 import os
 
+
 db = SQLAlchemy()
+
 login_manager = LoginManager()
 
 def crear_app():
@@ -25,6 +27,7 @@ def crear_app():
     app.config['UPLOAD_FOLDER'] = upload_folder
 
     db.init_app(app)
+
     login_manager.init_app(app)
     login_manager.login_view = 'login'
 
