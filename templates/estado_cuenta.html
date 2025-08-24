@@ -14,6 +14,9 @@
     /* Estilos de tabla de otros templates */
     .data-table { width: 100%; border-collapse: collapse; }
     .data-table th, .data-table td { padding: 12px 15px; text-align: left; border-bottom: 1px solid var(--color-borde); }
+    a {
+      text-decoration: none;
+    }
 </style>
 
 <div class="summary-grid">
@@ -61,16 +64,11 @@
                 <td>${{ "%.2f"|format(factura.total) }}</td>
                 <td>{{ factura.estado }}</td>
                 <td>
-                    <a href="{{ url_for('ver_factura', factura_id=factura.id) }}" title="Ver Detalle" style="margin-right: 10px;">
-                        <i class="fas fa-eye"></i>
+                    <a href="{{ url_for('ver_factura', factura_id=factura.id) }}" title="Ver Detalle">
+                        <i class="fas fa-eye" style="color: var(--color-secundario);"></i>
                     </a>
-                    {% if factura.estado == 'Pendiente' %}
-                    <a href="{{ url_for('registrar_pago', factura_id=factura.id) }}" class="btn" style="padding: 5px 10px; font-size: 12px; background-color: #eafaf1; color: #27ae60;">
-                        Registrar Pago
-                    </a>
-                    {% endif %}
-                    <a href="#" title="Ver PDF" style="margin-left: 10px;">
-                        <i class="fas fa-file-pdf"></i>
+                    <a href="#" title="Ver PDF">
+                        <i class="fas fa-file-pdf" style="color: var(--color-secundario);"></i>
                     </a>
                 </td>
             </tr>

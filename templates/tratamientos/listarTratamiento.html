@@ -9,7 +9,10 @@
     .data-table { width: 100%; border-collapse: collapse; }
     .data-table th, .data-table td { padding: 12px 15px; text-align: left; border-bottom: 1px solid var(--color-borde); }
     .data-table th { background-color: #f8fafc; font-size: 14px; text-transform: uppercase; color: #64748b; }
-    .data-table .actions a { margin-right: 10px; color: var(--color-secundario); }
+    .data-table .actions a, .data-table .actions button { margin-right: 10px; color: var(--color-secundario); background:none; border:none; cursor:pointer; padding:0; }
+     a {
+    text-decoration: none;
+        }
 </style>
 
 <div class="table-actions">
@@ -35,9 +38,7 @@
                       action="{{ url_for('eliminar_tratamiento', id=tratamiento.id) }}"
                       style="display:inline;"
                       onsubmit="return confirm('¿Estás seguro de que quieres eliminar este tratamiento?');">
-                    <button type="submit"
-                            title="Eliminar"
-                            style="background:none; border:none; color:var(--color-danger); cursor:pointer; padding:0;">
+                    <button type="submit" title="Eliminar">
                         <i class="fas fa-trash"></i>
                     </button>
                 </form>
