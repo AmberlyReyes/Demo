@@ -69,7 +69,7 @@
                 <a href="{{ url_for('ver_factura', factura_id=factura.id) }}" title="Ver Detalle">
                     <i class="fas fa-eye"></i>
                 </a>
-                <a href="#" title="Ver PDF">
+                <a href="{{ url_for('imprimir_factura', factura_id=factura.id) }}" target="_blank" title="Imprimir Factura">
                     <i class="fas fa-file-pdf"></i>
                 </a>
             </td>

@@ -68,7 +68,7 @@
                         <i class="fas fa-eye" style="color: var(--color-secundario);"></i>
                     </a>
                     &nbsp;
-                    <a href="#" title="Ver PDF">
+                    <a href="{{ url_for('imprimir_factura', factura_id=factura.id) }}" target="_blank" title="Imprimir Factura">
                         <i class="fas fa-file-pdf" style="color: var(--color-secundario);"></i>
                     </a>
                 </td>

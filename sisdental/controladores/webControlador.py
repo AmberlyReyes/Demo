@@ -991,6 +991,20 @@ def register_routes(app):
                              fecha_hoy=datetime.now().date(),
                              hora_actual=datetime.now().strftime('%H:%M'))
 
+    @app.route('/factura/<int:factura_id>/imprimir')
+    @login_required
+    def imprimir_factura(factura_id):
+        factura = Factura.query.get_or_404(factura_id)
+        
+        # Calcular total pagado
+        total_pagado = sum(pago.monto for pago in factura.pagos)
+        
+        return render_template('facturas/imprimir_factura.html',
+                             factura=factura,
+                             total_pagado=total_pagado,
+                             fecha_hoy=datetime.now().date(),
+                             hora_actual=datetime.now().strftime('%H:%M'))
+
     @app.route('/paciente/<int:paciente_id>/estado-cuenta')
     @login_required # Accesible para admin y asistente
     def estado_cuenta_paciente(paciente_id):
