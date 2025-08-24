@@ -167,8 +167,8 @@
 
 {% else %}
     <div class="no-patient-state">
-        <h3><i class="fas fa-search"></i> No hay paciente seleccionado</h3>
-        <p>Por favor, busca y selecciona un paciente para ver sus opciones.</p>
+        <h3><i class="fas fa-exclamation-circle"></i> Paciente no encontrado</h3>
+        <a href="{{ url_for('listar_pacientes') }}" class="btn btn-primary">Volver a la lista de pacientes</a>
     </div>
 {% endif %}
 

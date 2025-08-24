@@ -60,4 +60,29 @@
         {% endfor %}
     </tbody>
 </table>
+
+<!-- Paginación -->
+<div style="text-align: center; margin-top: 25px;">
+{% if citas_paginadas.pages > 1 %}
+    {% if citas_paginadas.has_prev %}
+        <a href="{{ url_for('indexCita', page=citas_paginadas.prev_num, fecha=fecha_filtro, patientId=patient_id) }}" style="margin: 0 5px; text-decoration: none; color: var(--color-principal);">&laquo; Anterior</a>
+    {% endif %}
+
+    {% for page_num in citas_paginadas.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+        {% if page_num %}
+            {% if page_num != citas_paginadas.page %}
+                <a href="{{ url_for('indexCita', page=page_num, fecha=fecha_filtro, patientId=patient_id) }}" style="margin: 0 5px; text-decoration: none;">{{ page_num }}</a>
+            {% else %}
+                <strong style="margin: 0 5px;">{{ page_num }}</strong>
+            {% endif %}
+        {% else %}
+            <span style="margin: 0 5px;">...</span>
+        {% endif %}
+    {% endfor %}
+    
+    {% if citas_paginadas.has_next %}
+        <a href="{{ url_for('indexCita', page=citas_paginadas.next_num, fecha=fecha_filtro, patientId=patient_id) }}" style="margin: 0 5px; text-decoration: none; color: var(--color-principal);">Siguiente &raquo;</a>
+    {% endif %}
+{% endif %}
+</div>
 {% endblock %}

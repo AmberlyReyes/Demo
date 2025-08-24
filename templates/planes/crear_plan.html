@@ -64,9 +64,9 @@
     <div class="tratamientos-section" style="margin-top: 30px;">
         <div class="tratamientos-header">
             <h4>Tratamientos Incluidos en el Plan</h4>
-            <div>
-                <select id="tratamiento-selector" style="padding: 8px; border-radius: 6px;">
-                    <option value="" disabled selected>-- Añadir tratamiento --</option>
+            <div style="display: flex; gap: 10px;">
+                <select id="tratamiento-selector" style="padding: 8px; border-radius: 6px; min-width: 250px;">
+                    <option value="" disabled selected>-- Seleccione un tratamiento --</option>
                     {% for t in tratamientos %}
                     <option value="{{ t.id }}" data-nombre="{{ t.nombre }}" data-costo="{{ t.costo }}">{{ t.nombre }} - ${{ "%.2f"|format(t.costo) }}</option>
                     {% endfor %}
@@ -97,6 +97,11 @@
     const totalDisplay = document.getElementById("costo-total");
     const selector = document.getElementById("tratamiento-selector");
 
+    // Generar cuotas iniciales al cargar la página
+    document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(generarCuotas, 100);
+    });
+
     function addTratamiento() {
         const selectedOption = selector.options[selector.selectedIndex];
         if (!selectedOption.value) return;
@@ -105,6 +110,12 @@
         const nombre = selectedOption.dataset.nombre;
         const costo = parseFloat(selectedOption.dataset.costo);
         const cantidad = 1;
+
+        // Verificar si ya está agregado
+        if (document.querySelector(`tr[data-id="${id}"]`)) {
+            alert('Este tratamiento ya está incluido en el plan.');
+            return;
+        }
 
         // Crear una nueva fila en la tabla
         const newRow = document.createElement("tr");
@@ -124,6 +135,9 @@
         `;
         tablaBody.appendChild(newRow);
         updateTotal();
+        
+        // Resetear selector
+        selector.selectedIndex = 0;
     }
 
     function removeTratamiento(button) {

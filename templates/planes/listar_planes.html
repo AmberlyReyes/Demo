@@ -18,6 +18,7 @@
     a {
     text-decoration: none;
  }
+    
 </style>
 
 <div class="table-actions">
@@ -83,6 +84,31 @@
     <p>Haz clic en "Crear Nuevo Plan" para empezar.</p>
 </div>
 {% endif %}
+
+<!-- Paginación -->
+<div style="text-align: center; margin-top: 25px;">
+{% if planes_paginados.pages > 1 %}
+    {% if planes_paginados.has_prev %}
+        <a href="{{ url_for('listar_planes_paciente', paciente_id=paciente.id, page=planes_paginados.prev_num) }}" style="margin: 0 5px; text-decoration: none; color: var(--color-principal);">&laquo; Anterior</a>
+    {% endif %}
+
+    {% for page_num in planes_paginados.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+        {% if page_num %}
+            {% if page_num != planes_paginados.page %}
+                <a href="{{ url_for('listar_planes_paciente', paciente_id=paciente.id, page=page_num) }}" style="margin: 0 5px; text-decoration: none;">{{ page_num }}</a>
+            {% else %}
+                <strong style="margin: 0 5px;">{{ page_num }}</strong>
+            {% endif %}
+        {% else %}
+            <span style="margin: 0 5px;">...</span>
+        {% endif %}
+    {% endfor %}
+    
+    {% if planes_paginados.has_next %}
+        <a href="{{ url_for('listar_planes_paciente', paciente_id=paciente.id, page=planes_paginados.next_num) }}" style="margin: 0 5px; text-decoration: none; color: var(--color-principal);">Siguiente &raquo;</a>
+    {% endif %}
+{% endif %}
+</div>
 
 <!-- Modal para opciones de impresión -->
 <div id="modalImpresion" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.4);">

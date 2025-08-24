@@ -36,15 +36,6 @@
 </div>
 
 <div class="section-box">
-    <h3>Planes de Tratamiento</h3>
-    {% for plan in planes %}
-        <a href="{{ url_for('ver_plan_paciente', paciente_id=paciente.id, plan_id=plan.id) }}" class="btn">{{ plan.nombre_plan }} ({{plan.estado}})</a>
-    {% else %}
-        <p>No hay planes de tratamiento activos.</p>
-    {% endfor %}
-</div>
-
-<div class="section-box">
     <h3>Historial de Facturas</h3>
     <table class="data-table">
         <thead>

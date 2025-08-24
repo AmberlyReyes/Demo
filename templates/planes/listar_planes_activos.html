@@ -6,17 +6,6 @@
     .data-table { width: 100%; border-collapse: collapse; }
     .data-table th, .data-table td { padding: 12px 15px; text-align: left; border-bottom: 1px solid var(--color-borde); }
     .data-table th { background-color: #f8fafc; font-size: 14px; text-transform: uppercase; color: #64748b; }
-
-    .pagination { display:flex; gap:8px; list-style:none; padding:0; }
-    .pagination a {
-      display:inline-block; padding:6px 12px;
-      border:1px solid var(--color-borde);
-      border-radius:4px; text-decoration:none;
-      color:var(--color-texto);
-    }
-    .pagination .active a {
-      background:var(--color-principal); color:white; border-color:var(--color-principal);
-    }
 </style>
 
 <div class="table-actions">
@@ -53,21 +42,27 @@
 </table>
 
 <!-- Paginación -->
-<ul class="pagination">
-  {% if planes_paginados.has_prev %}
-    <li><a href="{{ url_for('listar_planes_activos', page=planes_paginados.prev_num) }}">&laquo; Anterior</a></li>
-  {% endif %}
-  {% for num in planes_paginados.iter_pages(left_edge=1, right_edge=1, left_current=2, right_current=2) %}
-    {% if num %}
-      <li class="{{ 'active' if num==planes_paginados.page }}">
-        <a href="{{ url_for('listar_planes_activos', page=num) }}">{{ num }}</a>
-      </li>
-    {% else %}
-      <li><span>…</span></li>
+<div style="text-align: center; margin-top: 25px;">
+{% if planes_paginados.pages > 1 %}
+    {% if planes_paginados.has_prev %}
+        <a href="{{ url_for('listar_planes_activos', page=planes_paginados.prev_num) }}" style="margin: 0 5px; text-decoration: none; color: var(--color-principal);">&laquo; Anterior</a>
     {% endif %}
-  {% endfor %}
-  {% if planes_paginados.has_next %}
-    <li><a href="{{ url_for('listar_planes_activos', page=planes_paginados.next_num) }}">Siguiente &raquo;</a></li>
-  {% endif %}
-</ul>
+
+    {% for page_num in planes_paginados.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+        {% if page_num %}
+            {% if page_num != planes_paginados.page %}
+                <a href="{{ url_for('listar_planes_activos', page=page_num) }}" style="margin: 0 5px; text-decoration: none;">{{ page_num }}</a>
+            {% else %}
+                <strong style="margin: 0 5px;">{{ page_num }}</strong>
+            {% endif %}
+        {% else %}
+            <span style="margin: 0 5px;">...</span>
+        {% endif %}
+    {% endfor %}
+    
+    {% if planes_paginados.has_next %}
+        <a href="{{ url_for('listar_planes_activos', page=planes_paginados.next_num) }}" style="margin: 0 5px; text-decoration: none; color: var(--color-principal);">Siguiente &raquo;</a>
+    {% endif %}
+{% endif %}
+</div>
 {% endblock %}

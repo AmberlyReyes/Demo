@@ -89,4 +89,29 @@
     {% endfor %}
   </tbody>
 </table>
+
+<!-- Paginación -->
+<div style="text-align: center; margin-top: 25px;">
+{% if personas_paginadas.pages > 1 %}
+    {% if personas_paginadas.has_prev %}
+        <a href="{{ url_for('listar_personas', page=personas_paginadas.prev_num) }}" style="margin: 0 5px; text-decoration: none; color: var(--color-principal);">&laquo; Anterior</a>
+    {% endif %}
+
+    {% for page_num in personas_paginadas.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+        {% if page_num %}
+            {% if page_num != personas_paginadas.page %}
+                <a href="{{ url_for('listar_personas', page=page_num) }}" style="margin: 0 5px; text-decoration: none;">{{ page_num }}</a>
+            {% else %}
+                <strong style="margin: 0 5px;">{{ page_num }}</strong>
+            {% endif %}
+        {% else %}
+            <span style="margin: 0 5px;">...</span>
+        {% endif %}
+    {% endfor %}
+    
+    {% if personas_paginadas.has_next %}
+        <a href="{{ url_for('listar_personas', page=personas_paginadas.next_num) }}" style="margin: 0 5px; text-decoration: none; color: var(--color-principal);">Siguiente &raquo;</a>
+    {% endif %}
+{% endif %}
+</div>
 {% endblock %}
