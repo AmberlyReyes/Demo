@@ -27,7 +27,7 @@ class PacienteControlador:
     def obtener_por_id(paciente_id):
         return Paciente.query.get(paciente_id)
     
-    @staticmethod
+    
     @staticmethod
     def obtener_por_cedula(paciente_cedula):
          return Paciente.query.filter_by(cedula=paciente_cedula).first()

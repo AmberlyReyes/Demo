@@ -14,6 +14,7 @@ from sisdental.controladores.AsistenteControlador import AsistenteControlador
 from sisdental.modelos.Factura import Factura
 from sisdental.modelos.PlanTratamiento import PlanTratamiento
 from sisdental.modelos.Pago import Pago
+from sisdental.modelos.Cita import Cita
 from sisdental.modelos import Persona
 from datetime import datetime
 from sisdental.modelos.Doctor import Doctor
@@ -174,26 +175,34 @@ def register_routes(app):
     def indexCita():
         fecha_str = request.args.get('fecha')
         patient_id = request.args.get('patientId')
+        page = request.args.get('page', 1, type=int)
+        PER_PAGE = 10
 
         # 1 Si hay patient_id, filtra solo por ese paciente
         # 2 Si también hay fecha, filtra adicionalmente por la fecha
         # 3 Si no hay patient_id, muestra todas las citas
         if patient_id:
             if fecha_str:
-                citas = citaControlador.obtener_por_paciente_y_fecha(patient_id, fecha_str)
+                citas_query = citaControlador.obtener_por_paciente_y_fecha_query(patient_id, fecha_str)
             else:
-                citas = citaControlador.obtener_por_paciente(patient_id)
+                citas_query = citaControlador.obtener_por_paciente_query(patient_id)
         else:
             if fecha_str:
                 try:
-                    citas = citaControlador.obtener_por_fecha(fecha=fecha_str).all()
+                    citas_query = citaControlador.obtener_por_fecha_query(fecha=fecha_str)
                 except ValueError:
                     flash("Formato de fecha inválido. Use YYYY-MM-DD", 'error')
-                    return redirect(url_for('citas/indexCita'))
+                    return redirect(url_for('indexCita'))
             else:
-                citas = citaControlador.obtener_todos()
+                citas_query = citaControlador.obtener_todos_query()
 
-        return render_template('citas/indexCita.html', pacientes=citas)
+        citas_paginadas = citas_query.order_by(citaControlador.get_cita_model().fecha.desc()).paginate(
+            page=page, per_page=PER_PAGE, error_out=False
+        )
+
+        return render_template('citas/indexCita.html', pacientes=citas_paginadas.items, 
+                              citas_paginadas=citas_paginadas, fecha_filtro=fecha_str, 
+                              patient_id=patient_id)
    
     # Crear nuevo paciente
     @app.route('/crear', methods=('GET', 'POST'))
@@ -252,18 +261,49 @@ def register_routes(app):
                 )
 
             doctor_id = request.form['doctor_id']
-            plan_id   = request.form.get('plan_tratamiento_id') or None
+            fecha = request.form['fecha']
+            hora = request.form['hora']
+            plan_id = request.form.get('plan_tratamiento_id') or None
+
+            # Validar conflictos de horario
+            if citaControlador.check_cita_doctor(doctor_id, fecha, hora):
+                error = f"El doctor ya tiene una cita programada el {fecha} a las {hora}"
+                return render_template(
+                    'citas/crearCita.html',
+                    error=error,
+                    planes_activos=planes_activos,
+                    doctores=doctores
+                )
+            
+            if citaControlador.check_cita_paciente(Paci.id, fecha, hora):
+                error = f"El paciente ya tiene una cita programada el {fecha} a las {hora}"
+                return render_template(
+                    'citas/crearCita.html',
+                    error=error,
+                    planes_activos=planes_activos,
+                    doctores=doctores
+                )
 
             data = {
                 'paciente_id': Paci.id,
                 'doctor_id': doctor_id,
-                'fecha': request.form['fecha'],
-                'hora': request.form['hora'],
+                'fecha': fecha,
+                'hora': hora,
                 'plan_tratamiento_id': plan_id
             }
 
-            citaControlador.crear_cita(data)
-            return redirect(url_for('indexCita'))
+            try:
+                citaControlador.crear_cita(data)
+                flash("Cita creada exitosamente", "success")
+                return redirect(url_for('indexCita'))
+            except Exception as e:
+                error = f"Error al crear la cita: {str(e)}"
+                return render_template(
+                    'citas/crearCita.html',
+                    error=error,
+                    planes_activos=planes_activos,
+                    doctores=doctores
+                )
 
         # GET
         return render_template(
@@ -283,16 +323,62 @@ def register_routes(app):
         planes_activos = PlanTratamientoControlador.obtener_por_paciente(cita.paciente_id)
 
         if request.method == 'POST':
-            # validar fecha/hora…
+            fecha = request.form['fecha']
+            hora = request.form['hora']
+            doctor_id = request.form['doctor_id']
             plan_id = request.form.get('plan_tratamiento_id') or None
+            
+            # Validar conflictos de horario (excluir la cita actual)
+            conflicto_doctor = Cita.query.filter(
+                Cita.doctor_id == doctor_id,
+                Cita.fecha == fecha,
+                Cita.hora == hora,
+                Cita.id != id  # Excluir la cita actual
+            ).first()
+            
+            if conflicto_doctor:
+                flash(f"El doctor ya tiene una cita programada el {fecha} a las {hora}", "error")
+                doctores = DoctorControlador.obtener_todos()
+                return render_template(
+                    'citas/editarCita.html',
+                    pacientes=cita,
+                    planes_activos=planes_activos, 
+                    doctores=doctores,
+                    docSelected=DoctorControlador.obtener_por_id(cita.doctor_id)
+                )
+            
+            conflicto_paciente = Cita.query.filter(
+                Cita.paciente_id == cita.paciente_id,
+                Cita.fecha == fecha,
+                Cita.hora == hora,
+                Cita.id != id  # Excluir la cita actual
+            ).first()
+            
+            if conflicto_paciente:
+                flash(f"El paciente ya tiene una cita programada el {fecha} a las {hora}", "error")
+                doctores = DoctorControlador.obtener_todos()
+                return render_template(
+                    'citas/editarCita.html',
+                    pacientes=cita,
+                    planes_activos=planes_activos, 
+                    doctores=doctores,
+                    docSelected=DoctorControlador.obtener_por_id(cita.doctor_id)
+                )
+            
             nuevos_datos = {
-                'fecha': request.form['fecha'],
-                'hora': request.form['hora'],
+                'fecha': fecha,
+                'hora': hora,
+                'doctor_id': doctor_id,
                 'plan_tratamiento_id': plan_id,
-                'estado': request.form['estado']  # Estado editable
+                'estado': request.form['estado']
             }
-            citaControlador.actualizar_cita(id, nuevos_datos)
-            return redirect(url_for('indexCita'))
+            
+            try:
+                citaControlador.actualizar_cita(id, nuevos_datos)
+                flash("Cita actualizada exitosamente", "success")
+                return redirect(url_for('indexCita'))
+            except Exception as e:
+                flash(f"Error al actualizar la cita: {str(e)}", "error")
         
         doctores = DoctorControlador.obtener_todos()
 
@@ -598,9 +684,28 @@ def register_routes(app):
     @login_required
     @admin_required
     def listar_tratamientos():
-        tratamientos = TratamientoControlador.obtener_todos()
+        page = request.args.get('page', 1, type=int)
+        letra = request.args.get('letra', '').strip().upper()
+        PER_PAGE = 10
         
-        return render_template('tratamientos/listarTratamiento.html', tratamientos=tratamientos)
+        from sisdental.modelos.Tratamiento import Tratamiento
+        tratamientos_query = Tratamiento.query
+        
+        # Filtrar por letra si se especifica
+        if letra and len(letra) == 1 and letra.isalpha():
+            if letra == 'Ñ':
+                tratamientos_query = tratamientos_query.filter(Tratamiento.nombre.ilike('ñ%'))
+            else:
+                tratamientos_query = tratamientos_query.filter(Tratamiento.nombre.ilike(f'{letra}%'))
+        
+        tratamientos_paginados = tratamientos_query.order_by(Tratamiento.nombre).paginate(
+            page=page, per_page=PER_PAGE, error_out=False
+        )
+        
+        return render_template('tratamientos/listarTratamiento.html', 
+                              tratamientos=tratamientos_paginados.items,
+                              tratamientos_paginados=tratamientos_paginados,
+                              letra_seleccionada=letra)
 
     @app.route('/tratamientosCrear', methods=['GET', 'POST'])
     @login_required
@@ -650,9 +755,18 @@ def register_routes(app):
     @app.route('/paciente/<int:paciente_id>/planes')
     @login_required
     def listar_planes_paciente(paciente_id):
+        page = request.args.get('page', 1, type=int)
+        PER_PAGE = 10
+        
         paciente = PacienteControlador.obtener_por_id(paciente_id)
-        planes=PlanTratamientoControlador.obtener_por_paciente(paciente_id)
-        return render_template('planes/listar_planes.html', paciente=paciente, planes=planes)
+        from sisdental.modelos.PlanTratamiento import PlanTratamiento
+        planes_paginados = PlanTratamiento.query.filter_by(paciente_id=paciente_id).order_by(PlanTratamiento.fecha_inicio.desc()).paginate(
+            page=page, per_page=PER_PAGE, error_out=False
+        )
+        return render_template('planes/listar_planes.html', 
+                              paciente=paciente, 
+                              planes=planes_paginados.items,
+                              planes_paginados=planes_paginados)
 
     @app.route('/paciente/<int:paciente_id>/planes/crear', methods=['GET','POST'])
     @login_required
@@ -762,8 +876,15 @@ def register_routes(app):
     @login_required
     @admin_required
     def listar_usuarios():
-        usuarios = UsuarioControlador.obtener_todos()
-        return render_template('usuarios/listar_usuarios.html', usuarios=usuarios)
+        page = request.args.get('page', 1, type=int)
+        PER_PAGE = 10
+        
+        usuarios_paginados = Usuario.query.order_by(Usuario.username).paginate(
+            page=page, per_page=PER_PAGE, error_out=False
+        )
+        return render_template('usuarios/listar_usuarios.html', 
+                              usuarios=usuarios_paginados.items,
+                              usuarios_paginados=usuarios_paginados)
 
     @app.route('/admin/usuarios/crear', methods=['GET', 'POST'])
     @login_required
@@ -852,9 +973,16 @@ def register_routes(app):
     @login_required
     @admin_required
     def listar_personas():
+        page = request.args.get('page', 1, type=int)
+        PER_PAGE = 10
+        
         # Esta simple consulta obtiene todas las personas gracias a la herencia
-        todas_las_personas = Persona.query.order_by(Persona.nombre).all()
-        return render_template('personas/listar_personas.html', personas=todas_las_personas)
+        personas_paginadas = Persona.query.order_by(Persona.nombre).paginate(
+            page=page, per_page=PER_PAGE, error_out=False
+        )
+        return render_template('personas/listar_personas.html', 
+                              personas=personas_paginadas.items,
+                              personas_paginadas=personas_paginadas)
 
     @app.route('/admin/personas/crear', methods=['GET','POST'])
     @login_required
@@ -1246,6 +1374,32 @@ def register_routes(app):
         if not paciente:
             return jsonify({'error':'Paciente no encontrado'}), 404
         return jsonify({'id': paciente.id})
+
+    @app.route('/api/tratamientos/buscar')
+    def api_buscar_tratamientos():
+        """API para buscar tratamientos por letra o texto"""
+        letra = request.args.get('letra', '').strip().upper()
+        busqueda = request.args.get('q', '').strip()
+        
+        from sisdental.modelos.Tratamiento import Tratamiento
+        query = Tratamiento.query
+        
+        if letra and len(letra) == 1 and letra.isalpha():
+            if letra == 'Ñ':
+                query = query.filter(Tratamiento.nombre.ilike('ñ%'))
+            else:
+                query = query.filter(Tratamiento.nombre.ilike(f'{letra}%'))
+        elif busqueda:
+            query = query.filter(Tratamiento.nombre.ilike(f'%{busqueda}%'))
+        
+        tratamientos = query.order_by(Tratamiento.nombre).limit(20).all()
+        
+        return jsonify([{
+            'id': t.id,
+            'nombre': t.nombre,
+            'costo': float(t.costo),
+            'descripcion': t.descripcion
+        } for t in tratamientos])
 
     @app.route('/api/paciente/<int:paciente_id>/planes', methods=['GET'])
     @login_required

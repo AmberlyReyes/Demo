@@ -10,14 +10,52 @@
     .data-table th, .data-table td { padding: 12px 15px; text-align: left; border-bottom: 1px solid var(--color-borde); }
     .data-table th { background-color: #f8fafc; font-size: 14px; text-transform: uppercase; color: #64748b; }
     .data-table .actions a, .data-table .actions button { margin-right: 10px; color: var(--color-secundario); background:none; border:none; cursor:pointer; padding:0; }
-     a {
-    text-decoration: none;
-        }
+    a {
+        text-decoration: none;
+    }
+    .letra-btn {
+        font-size: 14px; /* Tamaño de fuente muy pequeño */
+        padding: 2px 4px; /* Reducir padding */
+        border: none; /* Quitar bordes */
+        border-radius: 3px;
+        text-decoration: none;
+        font-weight: bold;
+        margin: 0 1px; /* Reducir espacios entre letras */
+    }
+    .letra-btn.selected {
+        background: var(--color-principal);
+        color: white;
+    }
+    .letra-btn.unselected {
+        background: white;
+        color: var(--color-texto);
+        border: 1px solid var(--color-borde);
+    }
+    .filter-container {
+        text-align: left; /* Alinear el texto a la izquierda */
+    }
 </style>
 
 <div class="table-actions">
     <p>Aquí puedes administrar los servicios que ofrece la clínica.</p>
     <a href="{{ url_for('crear_tratamiento') }}" class="btn btn-primary"><i class="fas fa-plus"></i> Crear Nuevo Tratamiento</a>
+</div>
+
+<!-- Navegación alfabética -->
+<div class="filter-container" style="background: #f8fafc; padding: 15px; border-radius: 8px; margin-bottom: 20px;">
+    <div style="margin-bottom: 10px; font-weight: bold; color: #64748b; font-size: 14px;">FILTRAR POR LETRA:</div>
+    <div style="display: flex; flex-wrap: wrap; justify-content: center; gap: 2px;">
+        <a href="{{ url_for('listar_tratamientos') }}" 
+           class="letra-btn {% if not letra_seleccionada %}selected{% else %}unselected{% endif %}">
+            TODAS
+        </a>
+        {% for letra in 'ABCDEFGHIJKLMNÑOPQRSTUVWXYZ' %}
+            <a href="{{ url_for('listar_tratamientos', letra=letra) }}" 
+               class="letra-btn {% if letra_seleccionada == letra %}selected{% else %}unselected{% endif %}">
+                {{ letra }}
+            </a>
+        {% endfor %}
+    </div>
 </div>
 
 <table class="data-table">
@@ -47,4 +85,29 @@
         {% endfor %}
     </tbody>
 </table>
+
+<!-- Paginación -->
+<div style="text-align: center; margin-top: 25px;">
+{% if tratamientos_paginados.pages > 1 %}
+    {% if tratamientos_paginados.has_prev %}
+        <a href="{{ url_for('listar_tratamientos', page=tratamientos_paginados.prev_num, letra=letra_seleccionada) }}" style="margin: 0 5px; text-decoration: none; color: var(--color-principal);">&laquo; Anterior</a>
+    {% endif %}
+
+    {% for page_num in tratamientos_paginados.iter_pages(left_edge=1, right_edge=1, left_current=1, right_current=2) %}
+        {% if page_num %}
+            {% if page_num != tratamientos_paginados.page %}
+                <a href="{{ url_for('listar_tratamientos', page=page_num, letra=letra_seleccionada) }}" style="margin: 0 5px; text-decoration: none;">{{ page_num }}</a>
+            {% else %}
+                <strong style="margin: 0 5px;">{{ page_num }}</strong>
+            {% endif %}
+        {% else %}
+            <span style="margin: 0 5px;">...</span>
+        {% endif %}
+    {% endfor %}
+    
+    {% if tratamientos_paginados.has_next %}
+        <a href="{{ url_for('listar_tratamientos', page=tratamientos_paginados.next_num, letra=letra_seleccionada) }}" style="margin: 0 5px; text-decoration: none; color: var(--color-principal);">Siguiente &raquo;</a>
+    {% endif %}
+{% endif %}
+</div>
 {% endblock %}

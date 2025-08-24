@@ -44,20 +44,21 @@ class citaControlador:
 
     @staticmethod
     def check_cita_doctor(doctor_id, fecha, hora):
+        """Verifica si el doctor ya tiene una cita programada en esa fecha y hora"""
         return Cita.query.filter_by(
-        doctor_id=doctor_id,
-        fecha=fecha,
-        hora=hora
+            doctor_id=doctor_id,
+            fecha=fecha,
+            hora=hora
         ).first() is not None
     
-    
+    @staticmethod
     def check_cita_paciente(paciente_id, fecha, hora):
         """Verifica si el paciente ya tiene una cita programada en esa fecha y hora"""
         return Cita.query.filter_by(
-        paciente_id=paciente_id,
-        fecha=fecha,
-        hora=hora
-    ).first() is not None
+            paciente_id=paciente_id,
+            fecha=fecha,
+            hora=hora
+        ).first() is not None
     #estos 3 podrian ser algo como "obtener_por_dato" 
     #en lugar de tener el mismo codigo repetido varias veces
     #Puede ser mas confuso pero hace este codigo mas limpio
@@ -86,3 +87,24 @@ class citaControlador:
             extract('month', Cita.fecha) == mes,
             extract('year', Cita.fecha) == ano
         ).all()
+    
+    # Query methods for pagination
+    @staticmethod
+    def obtener_todos_query():
+        return Cita.query
+    
+    @staticmethod
+    def obtener_por_paciente_query(paciente_id):
+        return Cita.query.filter_by(paciente_id=paciente_id)
+    
+    @staticmethod
+    def obtener_por_fecha_query(fecha):
+        return Cita.query.filter_by(fecha=fecha)
+    
+    @staticmethod
+    def obtener_por_paciente_y_fecha_query(paciente_id, fecha):
+        return Cita.query.filter_by(paciente_id=paciente_id, fecha=fecha)
+    
+    @staticmethod
+    def get_cita_model():
+        return Cita
