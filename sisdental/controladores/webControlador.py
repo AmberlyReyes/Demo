@@ -1252,3 +1252,36 @@ def register_routes(app):
             return redirect(url_for('listar_planes_activos'))
 
         return redirect(url_for('ver_factura', factura_id=plan.factura.id))
+
+    @app.route('/plan/<int:plan_id>/imprimir/<tipo>')
+    @login_required
+    def imprimir_plan(plan_id, tipo):
+        """
+        Genera una vista de impresión del plan de tratamiento.
+        Tipos: 'completo' (con precios) o 'simple' (sin precios)
+        """
+        from datetime import datetime
+        
+        plan = PlanTratamiento.query.get_or_404(plan_id)
+        
+        # Calcular totales y balance
+        balance = PlanTratamientoControlador.calcular_balance(plan_id)
+        total_pagado = balance['total_pagado']
+        saldo_pendiente = balance['saldo_pendiente']
+        
+        # Verificar el tipo de impresión
+        if tipo not in ['completo', 'simple']:
+            flash('Tipo de impresión no válido.', 'error')
+            return redirect(url_for('ver_plan_paciente', 
+                                  paciente_id=plan.paciente_id, 
+                                  plan_id=plan_id))
+        
+        # Usar un solo template con parámetro para incluir precios
+        incluir_precios = (tipo == 'completo')
+        
+        return render_template('planes/imprimir_plan.html',
+                             plan=plan,
+                             total_pagado=total_pagado,
+                             saldo_pendiente=saldo_pendiente,
+                             fecha_actual=datetime.now(),
+                             incluir_precios=incluir_precios)

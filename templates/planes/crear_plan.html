@@ -40,7 +40,24 @@
         </div>
         <div class="form-group">
             <label for="numero_cuotas">Número de Cuotas de Pago</label>
-            <input type="number" id="numero_cuotas" name="numero_cuotas" value="1" min="1" required>
+            <input type="number" id="numero_cuotas" name="numero_cuotas" value="1" min="1" max="20" required onchange="generarCuotas()">
+        </div>
+        <div class="form-group">
+            <label for="frecuencia_pago">Frecuencia de Pago</label>
+            <select id="frecuencia_pago" name="frecuencia_pago" onchange="generarCuotas()">
+                <option value="semanal">Semanal</option>
+                <option value="quincenal">Quincenal</option>
+                <option value="mensual">Mensual</option>
+                <option value="personalizada">Personalizada</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Sección de fechas de cuotas -->
+    <div id="fechas-cuotas-section" style="display: none; margin-top: 20px; padding: 20px; border: 1px solid var(--color-borde); border-radius: 8px; background: #f8fafc;">
+        <h4>Fechas de Vencimiento de Cuotas</h4>
+        <div id="fechas-cuotas-container">
+            <!-- Las fechas se generarán dinámicamente aquí -->
         </div>
     </div>
 
@@ -140,6 +157,74 @@
             alert('Debe agregar al menos un tratamiento al plan.');
             e.preventDefault();
         }
+    });
+
+    function generarCuotas() {
+        const numeroCuotas = parseInt(document.getElementById('numero_cuotas').value);
+        const frecuencia = document.getElementById('frecuencia_pago').value;
+        const fechaInicio = document.getElementById('fecha_inicio').value;
+        
+        if (!fechaInicio || !numeroCuotas || numeroCuotas < 1) {
+            document.getElementById('fechas-cuotas-section').style.display = 'none';
+            return;
+        }
+
+        document.getElementById('fechas-cuotas-section').style.display = 'block';
+        const container = document.getElementById('fechas-cuotas-container');
+        container.innerHTML = '';
+
+        const fechaBase = new Date(fechaInicio);
+        
+        for (let i = 1; i <= numeroCuotas; i++) {
+            const fechaCuota = new Date(fechaBase);
+            
+            // Calcular fecha según frecuencia
+            switch(frecuencia) {
+                case 'semanal':
+                    fechaCuota.setDate(fechaBase.getDate() + (i * 7));
+                    break;
+                case 'quincenal':
+                    fechaCuota.setDate(fechaBase.getDate() + (i * 15));
+                    break;
+                case 'mensual':
+                    fechaCuota.setMonth(fechaBase.getMonth() + i);
+                    break;
+                case 'personalizada':
+                    // Para personalizada, usar fecha base + semanas como default
+                    fechaCuota.setDate(fechaBase.getDate() + (i * 7));
+                    break;
+            }
+
+            const fechaFormateada = fechaCuota.toISOString().split('T')[0];
+            
+            const cuotaDiv = document.createElement('div');
+            cuotaDiv.style.marginBottom = '10px';
+            cuotaDiv.style.display = 'flex';
+            cuotaDiv.style.alignItems = 'center';
+            cuotaDiv.style.gap = '10px';
+            
+            cuotaDiv.innerHTML = `
+                <label style="min-width: 80px; font-weight: bold;">Cuota ${i}:</label>
+                <input type="date" 
+                       name="fecha_cuota_${i}" 
+                       value="${fechaFormateada}" 
+                       style="padding: 8px; border: 1px solid var(--color-borde); border-radius: 4px; ${frecuencia !== 'personalizada' ? 'background-color: #f5f5f5;' : ''}"
+                       ${frecuencia !== 'personalizada' ? 'readonly' : ''}>
+                <span style="color: #666; font-size: 12px;">
+                    ${frecuencia !== 'personalizada' ? '(Automática)' : '(Editable)'}
+                </span>
+            `;
+            
+            container.appendChild(cuotaDiv);
+        }
+    }
+
+    // Generar cuotas cuando cambie la fecha de inicio
+    document.getElementById('fecha_inicio').addEventListener('change', generarCuotas);
+    
+    // Generar cuotas iniciales si ya hay valores
+    document.addEventListener('DOMContentLoaded', function() {
+        setTimeout(generarCuotas, 100);
     });
 </script>
 {% endblock %}

@@ -50,17 +50,24 @@
                 </span>
             </td>
             <td class="actions">
-                <a href="{{ url_for('ver_plan_paciente', paciente_id=paciente.id, plan_id=plan.id) }}">
+                <a href="{{ url_for('ver_plan_paciente', paciente_id=paciente.id, plan_id=plan.id) }}" title="Ver Detalles">
                   <i class="fas fa-eye"></i>
                 </a>
-                <a href="{{ url_for('editar_plan_paciente', paciente_id=paciente.id, plan_id=plan.id) }}">
+                <a href="{{ url_for('editar_plan_paciente', paciente_id=paciente.id, plan_id=plan.id) }}" title="Editar Plan">
                   <i class="fas fa-edit"></i>
+                </a>
+                <a href="javascript:void(0)" 
+                   onclick="mostrarOpcionesImpresion({{ plan.id }})" 
+                   title="Imprimir Plan"
+                   style="color: #28a745;">
+                  <i class="fas fa-print"></i>
                 </a>
                 <form action="{{ url_for('eliminar_plan_paciente', paciente_id=paciente.id, plan_id=plan.id) }}"
                       method="post" style="display:inline">
                   <button type="submit"
                           onclick="return confirm('¿Eliminar este plan?')"
-                          style="background:none; border:none; color: var(--color-danger);">
+                          style="background:none; border:none; color: var(--color-danger);"
+                          title="Eliminar Plan">
                     <i class="fas fa-trash"></i>
                   </button>
                 </form>
@@ -75,4 +82,67 @@
     <p>Haz clic en "Crear Nuevo Plan" para empezar.</p>
 </div>
 {% endif %}
+
+<!-- Modal para opciones de impresión -->
+<div id="modalImpresion" style="display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.4);">
+    <div style="background-color: #fefefe; margin: 15% auto; padding: 20px; border: none; border-radius: 10px; width: 400px; text-align: center;">
+        <h3 style="color: #333; margin-bottom: 20px;">Opciones de Impresión</h3>
+        <p style="color: #666; margin-bottom: 30px;">¿Qué tipo de plan deseas imprimir?</p>
+        
+        <div style="margin-bottom: 20px;">
+            <button onclick="imprimirPlan('completo')" 
+                    class="btn btn-primary" 
+                    style="background-color: #007bff; margin-right: 10px; padding: 10px 20px;">
+                <i class="fas fa-dollar-sign"></i> Con Precios
+            </button>
+            
+            <button onclick="imprimirPlan('simple')" 
+                    class="btn btn-primary" 
+                    style="background-color: #17a2b8; margin-left: 10px; padding: 10px 20px;">
+                <i class="fas fa-list"></i> Solo Tratamientos
+            </button>
+        </div>
+        
+        <button onclick="cerrarModal()" 
+                class="btn btn-secondary" 
+                style="background-color: #6c757d; padding: 8px 15px;">
+            Cancelar
+        </button>
+    </div>
+</div>
+
+<script>
+let planSeleccionado = null;
+
+function mostrarOpcionesImpresion(planId) {
+    planSeleccionado = planId;
+    document.getElementById('modalImpresion').style.display = 'block';
+}
+
+function cerrarModal() {
+    document.getElementById('modalImpresion').style.display = 'none';
+    planSeleccionado = null;
+}
+
+function imprimirPlan(tipo) {
+    if (planSeleccionado) {
+        const url = `/plan/${planSeleccionado}/imprimir/${tipo}`;
+        const ventana = window.open(url, 'imprimir_plan', 'width=800,height=600,scrollbars=yes,resizable=yes');
+        
+        if (ventana) {
+            ventana.focus();
+        }
+    }
+    
+    cerrarModal();
+}
+
+// Cerrar modal al hacer click fuera de él
+window.onclick = function(event) {
+    const modal = document.getElementById('modalImpresion');
+    if (event.target == modal) {
+        cerrarModal();
+    }
+}
+</script>
 {% endblock %}

@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Comprobante de Pago #{{ factura.id }}</title>
+    <title>Plan de Tratamiento - {{ plan.nombre_plan }}</title>
     <style>
         @media print {
             .no-print { display: none !important; }
@@ -17,7 +17,7 @@
         }
         
         .comprobante {
-            max-width: 600px;
+            max-width: 700px;
             margin: 0 auto;
             border: 2px solid #ddd;
             padding: 30px;
@@ -135,99 +135,82 @@
 
     <div class="comprobante">
         <div class="header">
-            <h1>COMPROBANTE DE PAGO</h1>
+            <h1>PLAN DE TRATAMIENTO</h1>
             <h2>Clínica Dr Reyes</h2>
-        </div>
-
-        <div class="info-row">
-            <span class="label">Número de Factura:</span>
-            <span class="value">#{{ factura.id }}</span>
-        </div>
-
-        <div class="info-row">
-            <span class="label">Número de Pago:</span>
-            <span class="value">#{{ ultimo_pago.id }}</span>
-        </div>
-
-        <div class="info-row">
-            <span class="label">Fecha:</span>
-            <span class="value">{{ fecha_hoy.strftime('%d/%m/%Y') }}</span>
-        </div>
-
-        <div class="info-row">
-            <span class="label">Atendido por:</span>
-            <span class="value">{{ atendido_por }}</span>
         </div>
 
         <div class="info-row destacado">
             <span class="label">Paciente:</span>
-            <span class="value">{{ factura.paciente.nombre }}</span>
+            <span class="value">{{ plan.paciente.nombre }}</span>
+        </div>
+
+        <div class="info-row">
+            <span class="label">Doctor Asignado:</span>
+            <span class="value">{{ plan.doctor.nombre }}</span>
+        </div>
+
+        <div class="info-row">
+            <span class="label">Fecha de Inicio:</span>
+            <span class="value">{{ plan.fecha_inicio.strftime('%d/%m/%Y') }}</span>
+        </div>
+
+        <div class="info-row">
+            <span class="label">Estado del Plan:</span>
+            <span class="value">{{ plan.estado }}</span>
         </div>
 
         <div class="tratamientos">
-            <h3>Servicios / Tratamientos</h3>
+            <h3>Tratamientos Incluidos</h3>
             <table>
                 <thead>
                     <tr>
-                        <th>Descripción</th>
+                        <th>Tratamiento</th>
                         <th style="text-align: center;">Cantidad</th>
+                        {% if incluir_precios %}
                         <th style="text-align: right;">Precio Unit.</th>
                         <th style="text-align: right;">Subtotal</th>
+                        {% endif %}
                     </tr>
                 </thead>
                 <tbody>
-                    {% if factura.plan and factura.plan.detalles %}
-                        {% for detalle in factura.plan.detalles %}
-                        <tr>
-                            <td>{{ detalle.tratamiento.nombre }}</td>
-                            <td style="text-align: center;">{{ detalle.cantidad }}</td>
-                            <td style="text-align: right;">${{ "%.2f"|format(detalle.costo) }}</td>
-                            <td style="text-align: right;">${{ "%.2f"|format(detalle.costo * detalle.cantidad) }}</td>
-                        </tr>
-                        {% endfor %}
-                    {% else %}
-                        <tr>
-                            <td>Servicios Varios</td>
-                            <td style="text-align: center;">1</td>
-                            <td style="text-align: right;">${{ "%.2f"|format(factura.total) }}</td>
-                            <td style="text-align: right;">${{ "%.2f"|format(factura.total) }}</td>
-                        </tr>
-                    {% endif %}
+                    {% for detalle in plan.detalles %}
+                    <tr>
+                        <td>{{ detalle.tratamiento.nombre }}</td>
+                        <td style="text-align: center;">{{ detalle.cantidad }}</td>
+                        {% if incluir_precios %}
+                        <td style="text-align: right;">${{ "%.2f"|format(detalle.costo) }}</td>
+                        <td style="text-align: right;">${{ "%.2f"|format(detalle.costo * detalle.cantidad) }}</td>
+                        {% endif %}
+                    </tr>
+                    {% endfor %}
                 </tbody>
             </table>
         </div>
 
+        {% if incluir_precios %}
         <div class="total-section">
-            <div class="info-row">
-                <span class="label">Total de la Factura:</span>
-                <span class="value">${{ "%.2f"|format(factura.total) }}</span>
-            </div>
-            <div class="info-row">
-                <span class="label">Total Pagado Anteriormente:</span>
-                <span class="value">${{ "%.2f"|format((factura.pagos|sum(attribute='monto')) - ultimo_pago.monto) }}</span>
-            </div>
             <div class="info-row destacado">
-                <span class="label total-amount">Monto de Este Pago:</span>
-                <span class="value total-amount">${{ "%.2f"|format(ultimo_pago.monto) }}</span>
-            </div>
-            <div class="info-row">
-                <span class="label">Saldo Restante:</span>
-                <span class="value">${{ "%.2f"|format(factura.total - (factura.pagos|sum(attribute='monto'))) }}</span>
+                <span class="label total-amount">Total del Plan:</span>
+                <span class="value total-amount">${{ "%.2f"|format(plan.costo_total) }}</span>
             </div>
         </div>
+        {% endif %}
 
         <div class="footer">
-            <p><strong>¡Gracias por su pago!</strong></p>
-            <p>Este comprobante es válido como constancia de pago.</p>
-            <p>Generado el {{ fecha_hoy.strftime('%d/%m/%Y') }} a las {{ hora_actual }}</p>
+            <p><strong>Clínica Dr Reyes</strong></p>
+            {% if incluir_precios %}
+            <p>Plan de tratamiento con precios</p>
+            {% else %}
+            <p>Plan de tratamiento - Solo servicios</p>
+            {% endif %}
+            <p>Generado el {{ fecha_actual.strftime('%d/%m/%Y') }}</p>
         </div>
     </div>
 
     <script>
         // Auto-focus para impresión
         window.addEventListener('load', function() {
-            // Si se abre en una nueva ventana, hacer foco para imprimir
-            if (window.name === 'comprobante') {
+            if (window.name === 'imprimir_plan') {
                 setTimeout(() => window.focus(), 100);
             }
         });

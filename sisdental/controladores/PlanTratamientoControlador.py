@@ -46,12 +46,20 @@ class PlanTratamientoControlador:
             db.session.flush()  # Para obtener el ID de la factura
 
             for i in range(1, plan.numero_cuotas+1):
+                # Usar fechas personalizadas si están disponibles, sino calcular semanalmente
+                if 'fechas_cuotas' in data and len(data['fechas_cuotas']) >= i:
+                    fecha_vencimiento = data['fechas_cuotas'][i-1]
+                else:
+                    # Por defecto, usar frecuencia semanal en lugar de mensual
+                    from datetime import timedelta
+                    fecha_vencimiento = plan.fecha_inicio + timedelta(weeks=i)
+                
                 cuota = Cuota(
                     plan_id        = plan.id,
                     factura_id     = factura.id,  # Todas las cuotas apuntan a la misma factura
                     numero_cuota   = i,
                     monto          = round(plan.costo_total/plan.numero_cuotas, 2),
-                    fecha_vencimiento = plan.fecha_inicio + relativedelta(months=i)
+                    fecha_vencimiento = fecha_vencimiento
                 )
                 db.session.add(cuota)
 
