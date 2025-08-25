@@ -1,3 +1,3 @@
-from sisdental import create_app
+from sisdental import crear_app
 
-app = create_app()
+app = crear_app()
