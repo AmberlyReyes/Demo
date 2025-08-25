@@ -33,7 +33,16 @@ import calendar
 import locale
 from datetime import date
 
-locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')
+try:
+    locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')
+except locale.Error:
+    # Fallback to a more common locale or skip setting it
+    try:
+        locale.setlocale(locale.LC_TIME, 'es_ES')
+    except locale.Error:
+        # If that also fails, just use the system default
+        print("Spanish locale not available, using system default")
+        pass
 
 # Decoradores para control de acceso basado en roles
 def admin_required(f):
@@ -133,7 +142,6 @@ def register_routes(app):
     @app.route('/')
     @login_required
     def mainpage():
-        
         fecha_str = request.args.get('fecha', date.today().strftime('%Y-%m-%d'))
         try:
             fecha_seleccionada = datetime.strptime(fecha_str, '%Y-%m-%d').date()
