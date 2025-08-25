@@ -26,8 +26,6 @@ def load_user(user_id):
 upload_folder = os.path.join(app.root_path, 'uploads')
 app.config['UPLOAD_FOLDER'] = upload_folder
 
-#postgresql://sysdental_user:zGZvJeFrlnqH42zy8tpWEj03vgKjJQML@dpg-d2mb97er433s73foqn40-a.oregon-postgres.render.com/sysdental
-
 with app.app_context():
     try:
         # Verificar conexión y contar pacientes
