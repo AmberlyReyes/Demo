@@ -22,14 +22,19 @@
     <div class="form-grid">
         <div class="form-group">
             <label for="paciente_cedula">Cédula del Paciente</label>
-            <input type="text" class="form-control" id="paciente_cedula" name="paciente_cedula" required placeholder="Ej: 402-3456197-1">
+            <input type="text" class="form-control" id="paciente_cedula" name="paciente_cedula" required 
+                   placeholder="Ej: 402-3456197-1"
+                   {% if paciente_prellenado %}value="{{ paciente_prellenado.cedula }}" readonly{% endif %}>
         </div>
         <div class="form-group">
             <label for="doctor_id">Doctor</label>
             <select class="form-control" id="doctor_id" name="doctor_id" required>
-                <option value="" disabled selected>-- Seleccione un doctor --</option>
+                <option value="" disabled {% if not plan_prellenado %}selected{% endif %}>-- Seleccione un doctor --</option>
                 {% for persona in doctores %}
-                    <option value="{{ persona.id }}">{{ persona.nombre }}</option>
+                    <option value="{{ persona.id }}" 
+                            {% if plan_prellenado and persona.id == plan_prellenado.doctor_id %}selected{% endif %}>
+                        {{ persona.nombre }}
+                    </option>
                 {% endfor %}
             </select>
         </div>
@@ -46,10 +51,19 @@
         <label for="plan_id">Asociar a Plan de Tratamiento (Opcional)</label>
         <select class="form-control" id="plan_id" name="plan_tratamiento_id">
             <option value="">-- Ninguno --</option>
+            {% if plan_prellenado %}
+                <option value="{{ plan_prellenado.id }}" selected>{{ plan_prellenado.nombre_plan }}</option>
+            {% endif %}
         </select>
     </div>
     <div class="form-actions">
-        <a href="{{ url_for('indexCita') }}" class="btn btn-back">Cancelar</a>
+        {% if plan_prellenado %}
+            <a href="{{ url_for('ver_plan_paciente', paciente_id=paciente_prellenado.id, plan_id=plan_prellenado.id) }}" class="btn btn-back">Cancelar</a>
+        {% elif back_url %}
+            <a href="{{ back_url }}" class="btn btn-back">Cancelar</a>
+        {% else %}
+            <a href="{{ url_for('indexCita') }}" class="btn btn-back">Cancelar</a>
+        {% endif %}
         <button type="submit" class="btn btn-primary">Guardar Cita</button>
     </div>
 </form>
@@ -58,6 +72,12 @@
 document.getElementById('paciente_cedula').addEventListener('blur', function(){
     const ced = this.value.trim();
     const planSel = document.getElementById('plan_id');
+    
+    // Si ya tenemos un plan prellenado, no hacer nada
+    {% if plan_prellenado %}
+        return;
+    {% endif %}
+    
     planSel.innerHTML = '<option>-- Cargando planes --</option>';
     if (!ced) {
         planSel.innerHTML = '<option value="">-- Ninguno --</option>';

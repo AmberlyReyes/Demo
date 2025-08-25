@@ -35,6 +35,99 @@ from datetime import date
 
 locale.setlocale(locale.LC_TIME, 'es_ES.UTF-8')
 
+# Decoradores para control de acceso basado en roles
+def admin_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not current_user.is_authenticated:
+            flash('Debe iniciar sesión para acceder a esta página.', 'warning')
+            return redirect(url_for('login'))
+        if not current_user.administrador:
+            flash('No tiene permisos para acceder a esta funcionalidad.', 'error')
+            return redirect(request.referrer or url_for('mainpage'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+# Función auxiliar para generar URLs de retorno dinámicas
+def get_dynamic_back_url(current_route, **kwargs):
+    """
+    Genera la URL de retorno apropiada según el contexto y las reglas de navegación.
+    
+    Args:
+        current_route (str): La ruta actual donde se encuentra el usuario
+        **kwargs: Parámetros adicionales como patient_id, plan_id, etc.
+    
+    Returns:
+        str: URL de retorno apropiada
+    """
+    patient_id = kwargs.get('patient_id')
+    from_context = kwargs.get('from_context', '')
+    
+    # Módulo de Gestión de Pacientes
+    if current_route == 'ver_plan':
+        return url_for('listar_planes_paciente', paciente_id=patient_id)
+    
+    elif current_route in ['nueva_consulta', 'editar_paciente', 'historial_paciente', 'estado_cuenta']:
+        return url_for('gestion_paciente', patientId=patient_id)
+    
+    elif current_route == 'ver_factura':
+        # Si el usuario es solo administrador (no doctor ni asistente), volver a admin dashboard
+        if current_user.is_authenticated and current_user.administrador and not current_user.doctor and not current_user.asistente:
+            return url_for('admin_dashboard')
+        else:
+            # Para doctores y asistentes, volver a gestión del paciente
+            return url_for('gestion_paciente', patientId=patient_id)
+    
+    # Módulo de Administración
+    elif current_route in ['listar_personas', 'listar_usuarios', 'listar_tratamientos', 'listar_facturas']:
+        return url_for('admin_dashboard')
+    
+    # Módulo de Gestión de Citas
+    elif current_route in ['crear_cita', 'editar_cita']:
+        if from_context == 'patient_citas' and patient_id:
+            return url_for('listar_citas_paciente', patientId=patient_id)
+        else:
+            return url_for('indexCita')
+    
+    # Por defecto, usar referrer o página principal
+    return request.referrer or url_for('mainpage')
+
+def doctor_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not current_user.is_authenticated:
+            flash('Debe iniciar sesión para acceder a esta página.', 'warning')
+            return redirect(url_for('login'))
+        if not current_user.doctor:
+            flash('No tiene permisos para acceder a esta funcionalidad.', 'error')
+            return redirect(request.referrer or url_for('mainpage'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+def doctor_or_assistant_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not current_user.is_authenticated:
+            flash('Debe iniciar sesión para acceder a esta página.', 'warning')
+            return redirect(url_for('login'))
+        if not (current_user.doctor or current_user.asistente):
+            flash('No tiene permisos para acceder a esta funcionalidad.', 'error')
+            return redirect(request.referrer or url_for('mainpage'))
+        return f(*args, **kwargs)
+    return decorated_function
+
+def doctor_or_admin_required(f):
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not current_user.is_authenticated:
+            flash('Debe iniciar sesión para acceder a esta página.', 'warning')
+            return redirect(url_for('login'))
+        if not (current_user.doctor or current_user.administrador):
+            flash('No tiene permisos para acceder a esta funcionalidad.', 'error')
+            return redirect(request.referrer or url_for('mainpage'))
+        return f(*args, **kwargs)
+    return decorated_function
+
 def register_routes(app):
 
     @app.route('/')
@@ -84,15 +177,6 @@ def register_routes(app):
 
 
         
-    def admin_required(f):
-        @wraps(f)
-        def decorated_function(*args, **kwargs):
-            if not current_user.is_authenticated or not current_user.administrador:
-                flash('Acceso denegado. Se requieren privilegios de administrador.', 'danger')
-                return redirect(url_for('mainpage'))
-            return f(*args, **kwargs)
-        return decorated_function
-    
     @app.route('/admin')
     @login_required
     @admin_required
@@ -107,31 +191,19 @@ def register_routes(app):
         user = None
 
         if request.method == 'POST':
-            username = request.form.get('username')
-            password = request.form.get('password')
-        
-            user = Usuario.query.filter_by(username=username).first()
+            username = request.form.get('username', '').strip()
+            password = request.form.get('password', '').strip()
 
-            if user is None:
-                flash('Usuario no encontrado', 'danger')
-                return render_template('login.html')
+            # Realizar búsqueda insensible a mayúsculas/minúsculas
+            user = Usuario.query.filter(func.lower(Usuario.username) == func.lower(username)).first()
 
-            # Verificación usando el método check_password
             if user and user.check_password(password):
                 login_user(user)
-                
-                # Redirección según rol
-                if user.administrador:
-                    return redirect(url_for('mainpage'))
-                elif user.doctor:
-                    return redirect(url_for('mainpage'))
-                elif user.asistente:
-                    return redirect(url_for('indexCita'))
-                else:
-                    return redirect(url_for('mainpage'))  
+               
+                return redirect(url_for('mainpage'))
             else:
-                flash('Usuario o contraseña incorrectos', 'danger')
-    
+                flash('Credenciales inválidas. Por favor, inténtalo de nuevo.', 'error')
+
         return render_template('login.html')
 
     @app.route('/logout')
@@ -162,16 +234,17 @@ def register_routes(app):
             nuevo.set_password(pwd)
             db.session.add(nuevo)
             db.session.commit()
-            flash('Registro exitoso','success')
             return redirect(url_for('login'))
 
         return render_template('register.html')
 
 
-    # Listar todos los pacientes
+    
     
     # Listar Citas
     @app.route('/citas')
+    @login_required
+    @doctor_or_assistant_required
     def indexCita():
         fecha_str = request.args.get('fecha')
         patient_id = request.args.get('patientId')
@@ -242,10 +315,23 @@ def register_routes(app):
 
     # Crear nuevo Cita
     @app.route('/crearCita', methods=('GET', 'POST'))
+    @login_required
+    @doctor_or_assistant_required
     def crearCita():
         error = None
         planes_activos = PlanTratamientoControlador.obtener_todos_activos()
         doctores= DoctorControlador.obtener_todos()
+        
+        # Obtener parámetros para pre-llenar formulario (desde ver_plan)
+        plan_id_param = request.args.get('plan_id', type=int)
+        paciente_id_param = request.args.get('paciente_id', type=int)
+        paciente_prellenado = None
+        plan_prellenado = None
+        
+        if paciente_id_param:
+            paciente_prellenado = PacienteControlador.obtener_por_id(paciente_id_param)
+        if plan_id_param:
+            plan_prellenado = PlanTratamientoControlador.obtener_por_id(plan_id_param)
 
         if request.method == 'POST':
             cedula = request.form['paciente_cedula']
@@ -254,10 +340,15 @@ def register_routes(app):
             Paci = PacienteControlador.obtener_por_cedula(cedula_limpia)
             if not Paci:
                 error = f"No existe paciente con cédula {cedula}"
+                back_url = None if plan_id_param else get_dynamic_back_url('crear_cita', patient_id=paciente_id_param)
                 return render_template(
                     'citas/crearCita.html',
                     error=error,
-                    planes_activos=planes_activos
+                    planes_activos=planes_activos,
+                    doctores=doctores,
+                    paciente_prellenado=paciente_prellenado,
+                    plan_prellenado=plan_prellenado,
+                    back_url=back_url
                 )
 
             doctor_id = request.form['doctor_id']
@@ -268,20 +359,28 @@ def register_routes(app):
             # Validar conflictos de horario
             if citaControlador.check_cita_doctor(doctor_id, fecha, hora):
                 error = f"El doctor ya tiene una cita programada el {fecha} a las {hora}"
+                back_url = None if plan_id_param else get_dynamic_back_url('crear_cita', patient_id=paciente_id_param)
                 return render_template(
                     'citas/crearCita.html',
                     error=error,
                     planes_activos=planes_activos,
-                    doctores=doctores
+                    doctores=doctores,
+                    paciente_prellenado=paciente_prellenado,
+                    plan_prellenado=plan_prellenado,
+                    back_url=back_url
                 )
             
             if citaControlador.check_cita_paciente(Paci.id, fecha, hora):
                 error = f"El paciente ya tiene una cita programada el {fecha} a las {hora}"
+                back_url = None if plan_id_param else get_dynamic_back_url('crear_cita', patient_id=paciente_id_param)
                 return render_template(
                     'citas/crearCita.html',
                     error=error,
                     planes_activos=planes_activos,
-                    doctores=doctores
+                    doctores=doctores,
+                    paciente_prellenado=paciente_prellenado,
+                    plan_prellenado=plan_prellenado,
+                    back_url=back_url
                 )
 
             data = {
@@ -294,27 +393,44 @@ def register_routes(app):
 
             try:
                 citaControlador.crear_cita(data)
-                flash("Cita creada exitosamente", "success")
-                return redirect(url_for('indexCita'))
+                # Si venimos desde ver_plan, regresar allí
+                if plan_id_param and paciente_id_param:
+                    return redirect(url_for('ver_plan_paciente', paciente_id=paciente_id_param, plan_id=plan_id_param))
+                else:
+                    return redirect(url_for('indexCita'))
             except Exception as e:
                 error = f"Error al crear la cita: {str(e)}"
+                back_url = None if plan_id_param else get_dynamic_back_url('crear_cita', patient_id=paciente_id_param)
                 return render_template(
                     'citas/crearCita.html',
                     error=error,
                     planes_activos=planes_activos,
-                    doctores=doctores
+                    doctores=doctores,
+                    paciente_prellenado=paciente_prellenado,
+                    plan_prellenado=plan_prellenado,
+                    back_url=back_url
                 )
 
         # GET
+        # Generar back_url dinámico
+        back_url = None
+        if not plan_id_param:  # Solo para citas generales, no desde planes
+            back_url = get_dynamic_back_url('crear_cita', patient_id=paciente_id_param)
+        
         return render_template(
             'citas/crearCita.html',
             error=error,
             planes_activos=planes_activos, 
-            doctores=doctores
+            doctores=doctores,
+            paciente_prellenado=paciente_prellenado,
+            plan_prellenado=plan_prellenado,
+            back_url=back_url
         )
 
 
     @app.route('/<int:id>/editarCita', methods=('GET', 'POST'))
+    @login_required
+    @doctor_or_assistant_required
     def editarCita(id):
         cita = citaControlador.obtener_por_id(id)
         if not cita:
@@ -375,7 +491,6 @@ def register_routes(app):
             
             try:
                 citaControlador.actualizar_cita(id, nuevos_datos)
-                flash("Cita actualizada exitosamente", "success")
                 return redirect(url_for('indexCita'))
             except Exception as e:
                 flash(f"Error al actualizar la cita: {str(e)}", "error")
@@ -391,6 +506,8 @@ def register_routes(app):
         )
 
     @app.route('/gestionPaciente')
+    @login_required
+    @doctor_or_assistant_required
     def gestion_paciente():
         patient_id = request.args.get('patientId')
         paciente = PacienteControlador.obtener_por_id(patient_id)
@@ -400,6 +517,8 @@ def register_routes(app):
     
     # Editar pacientes
     @app.route('/<int:id>/editar', methods=('GET', 'POST'))
+    @login_required
+    @doctor_or_assistant_required
     def editar(id):
         paciente = PacienteControlador.obtener_por_id(id)
         if not paciente:
@@ -513,6 +632,7 @@ def register_routes(app):
 
     @app.route('/nuevaConsulta', methods=['GET'])
     @login_required
+    @doctor_required
     def nueva_consulta():
         patient_id = request.args.get('patientId')
         if not patient_id:
@@ -543,7 +663,8 @@ def register_routes(app):
             paciente=paciente,
             historial=historial,
             ultima_consulta=fecha_ultima,
-            ultima_consulta_id=ultima_id
+            ultima_consulta_id=ultima_id,
+            back_url=get_dynamic_back_url('nueva_consulta', patient_id=patient_id)
         )
 
     @app.route('/api/consulta', methods=['POST'])
@@ -705,7 +826,8 @@ def register_routes(app):
         return render_template('tratamientos/listarTratamiento.html', 
                               tratamientos=tratamientos_paginados.items,
                               tratamientos_paginados=tratamientos_paginados,
-                              letra_seleccionada=letra)
+                              letra_seleccionada=letra,
+                              back_url=get_dynamic_back_url('listar_tratamientos'))
 
     @app.route('/tratamientosCrear', methods=['GET', 'POST'])
     @login_required
@@ -718,12 +840,13 @@ def register_routes(app):
                 'costo': float(request.form['costo'])
             }
             TratamientoControlador.crear(data)
-            flash('Tratamiento creado con éxito.', 'success')
             return redirect(url_for('listar_tratamientos'))
         return render_template('tratamientos/crearTratamiento.html')
     
 
     @app.route('/historial', methods=['GET'])
+    @login_required
+    @doctor_required
     def historial():
         patient_id = request.args.get('patientId')
         paciente   = PacienteControlador.obtener_por_id(patient_id)
@@ -748,12 +871,14 @@ def register_routes(app):
             consultas=consultas,
             archivos=archivos,
             # Pasamos el ID a la plantilla.
-            last_consulta_id=last_consulta_id
+            last_consulta_id=last_consulta_id,
+            back_url=get_dynamic_back_url('historial_paciente', patient_id=patient_id)
         )
         
 
     @app.route('/paciente/<int:paciente_id>/planes')
     @login_required
+    @doctor_or_assistant_required
     def listar_planes_paciente(paciente_id):
         page = request.args.get('page', 1, type=int)
         PER_PAGE = 10
@@ -763,13 +888,19 @@ def register_routes(app):
         planes_paginados = PlanTratamiento.query.filter_by(paciente_id=paciente_id).order_by(PlanTratamiento.fecha_inicio.desc()).paginate(
             page=page, per_page=PER_PAGE, error_out=False
         )
+        
+        # Configurar el back_url para ir a gestionPaciente
+        back_url = url_for('gestion_paciente', patientId=paciente_id)
+        
         return render_template('planes/listar_planes.html', 
                               paciente=paciente, 
                               planes=planes_paginados.items,
-                              planes_paginados=planes_paginados)
+                              planes_paginados=planes_paginados,
+                              back_url=back_url)
 
     @app.route('/paciente/<int:paciente_id>/planes/crear', methods=['GET','POST'])
     @login_required
+    @doctor_or_assistant_required
     def crear_plan_paciente(paciente_id):
         if request.method == 'POST':
             nombre_plan   = request.form['nombre_plan']
@@ -798,7 +929,8 @@ def register_routes(app):
                 'detalles': detalles
             }
             plan = PlanTratamientoControlador.crear_plan_completo(data)
-            flash('Plan creado.' if plan else 'Error al crear plan', 'success' if plan else 'danger')
+            if not plan:
+                flash('Error al crear plan', 'danger')
             return redirect(url_for('listar_planes_paciente', paciente_id=paciente_id))
 
         paciente     = PacienteControlador.obtener_por_id(paciente_id)
@@ -815,9 +947,7 @@ def register_routes(app):
     @app.route('/paciente/<int:paciente_id>/planes/<int:plan_id>/eliminar', methods=['POST'])
     @login_required
     def eliminar_plan_paciente(paciente_id, plan_id):
-        if PlanTratamientoControlador.eliminar_plan(plan_id):
-            flash('Plan de tratamiento eliminado correctamente.', 'success')
-        else:
+        if not PlanTratamientoControlador.eliminar_plan(plan_id):
             flash('Error al eliminar el plan de tratamiento.', 'danger')
         return redirect(url_for('listar_planes_paciente', paciente_id=paciente_id))
     
@@ -836,7 +966,8 @@ def register_routes(app):
             'planes/ver_plan.html',
             plan=plan,
             total_pagado=total_pagado,
-            saldo_pendiente=saldo_pendiente
+            saldo_pendiente=saldo_pendiente,
+            back_url=get_dynamic_back_url('ver_plan', patient_id=paciente_id)
         )
     
     @app.route('/admin/tratamientos/<int:id>/editar', methods=['GET', 'POST'])
@@ -856,7 +987,6 @@ def register_routes(app):
                 'costo': float(request.form['costo'])
             }
             TratamientoControlador.actualizar(id, data)
-            flash('Tratamiento actualizado con éxito.', 'success')
             return redirect(url_for('listar_tratamientos'))
 
         return render_template('tratamientos/editarTratamiento.html', tratamiento=tratamiento)
@@ -867,7 +997,7 @@ def register_routes(app):
     def eliminar_tratamiento(id):
         
         if TratamientoControlador.eliminar(id):
-            flash('Tratamiento eliminado correctamente.', 'success')
+            pass
         else:
             flash('Error al eliminar el tratamiento.', 'danger')
         return redirect(url_for('listar_tratamientos'))
@@ -884,7 +1014,8 @@ def register_routes(app):
         )
         return render_template('usuarios/listar_usuarios.html', 
                               usuarios=usuarios_paginados.items,
-                              usuarios_paginados=usuarios_paginados)
+                              usuarios_paginados=usuarios_paginados,
+                              back_url=get_dynamic_back_url('listar_usuarios'))
 
     @app.route('/admin/usuarios/crear', methods=['GET', 'POST'])
     @login_required
@@ -904,7 +1035,6 @@ def register_routes(app):
             nuevo_usuario.set_password(request.form['password'])
             db.session.add(nuevo_usuario)
             db.session.commit()
-            flash('Usuario creado con éxito.', 'success')
             return redirect(url_for('listar_usuarios'))
 
         # GET: obtenemos el ID de la persona si viene por query param
@@ -947,7 +1077,6 @@ def register_routes(app):
                 usuario.set_password(request.form['password'])
             
             db.session.commit()
-            flash('Usuario actualizado con éxito.', 'success')
             return redirect(url_for('listar_usuarios'))
 
         personas_sin_usuario = Persona.query.filter(Persona.usuario == None).all()
@@ -966,7 +1095,6 @@ def register_routes(app):
 
         
         UsuarioControlador.eliminar_usuario(id)
-        flash('Usuario eliminado con éxito.', 'info')
         return redirect(url_for('listar_usuarios'))
     
     @app.route('/admin/personas')
@@ -982,7 +1110,8 @@ def register_routes(app):
         )
         return render_template('personas/listar_personas.html', 
                               personas=personas_paginadas.items,
-                              personas_paginadas=personas_paginadas)
+                              personas_paginadas=personas_paginadas,
+                              back_url=get_dynamic_back_url('listar_personas'))
 
     @app.route('/admin/personas/crear', methods=['GET','POST'])
     @login_required
@@ -1007,8 +1136,6 @@ def register_routes(app):
             elif tipo == 'asistente':
                 AsistenteControlador.crear(data)
 
-            flash('Persona creada.', 'success')
-
             return redirect(url_for('listar_personas'))
         return render_template('personas/crear_persona.html')
 
@@ -1030,7 +1157,6 @@ def register_routes(app):
                 'tipo':     request.form['tipo']
             }
             PersonaControlador.actualizar_persona(id, datos)
-            flash('Persona actualizada.', 'success')
             return redirect(url_for('listar_personas'))
         return render_template('personas/editar_persona.html', persona=persona)
 
@@ -1045,12 +1171,12 @@ def register_routes(app):
             flash('No puedes eliminar un paciente directamente. Usa el módulo de pacientes.', 'danger')
         
         PersonaControlador.eliminar_persona(id)
-        flash('Persona eliminada.', 'info')
         return redirect(url_for('listar_personas'))
 
 
     @app.route('/factura/<int:factura_id>/registrar_pago', methods=['POST'])
     @login_required
+    @doctor_or_assistant_required
     def registrar_pago(factura_id):
         factura = db.session.get(Factura, factura_id)
         if not factura:
@@ -1073,7 +1199,6 @@ def register_routes(app):
                 resultado = PlanTratamientoControlador.registrar_pago_cuota(cuota_id, monto, fecha_pago)
                 
                 if resultado['success']:
-                    flash(f"Pago de ${monto:.2f} registrado exitosamente.", "success")
                     # Regresar al plan después del pago de cuota
                     return redirect(url_for('ver_plan_paciente', 
                                           paciente_id=cuota.plan.paciente_id, 
@@ -1088,9 +1213,7 @@ def register_routes(app):
             # Registro de pago normal para toda la factura
             resultado = FacturacionControlador.registrar_pago(factura_id, monto, fecha_pago)
             
-            if resultado['success']:
-                flash(f"Pago de ${monto:.2f} registrado exitosamente.", "success")
-            else:
+            if not resultado['success']:
                 flash(f"Error al registrar el pago: {resultado['error']}", "danger")
         
         # Regresar a la vista de la factura para pagos normales
@@ -1134,7 +1257,8 @@ def register_routes(app):
                              hora_actual=datetime.now().strftime('%H:%M'))
 
     @app.route('/paciente/<int:paciente_id>/estado-cuenta')
-    @login_required # Accesible para admin y asistente
+    @login_required
+    @doctor_or_assistant_required
     def estado_cuenta_paciente(paciente_id):
         paciente = PacienteControlador.obtener_por_id(paciente_id)
         if not paciente:
@@ -1155,7 +1279,8 @@ def register_routes(app):
                                planes=planes,
                                total_facturado=total_facturado,
                                total_pagado=total_pagado,
-                               balance=balance)
+                               balance=balance,
+                               back_url=get_dynamic_back_url('estado_cuenta', patient_id=paciente_id))
     
     @app.route('/admin/facturas')
     @login_required
@@ -1184,7 +1309,8 @@ def register_routes(app):
         return render_template('facturas/listar_facturas.html', 
                                facturas_paginacion=facturas_paginadas, 
                                query=query,
-                               estado_filtro=estado_filtro)
+                               estado_filtro=estado_filtro,
+                               back_url=get_dynamic_back_url('listar_facturas'))
     
 
     @app.route('/factura/<int:factura_id>')
@@ -1238,7 +1364,8 @@ def register_routes(app):
                             total_pagado=total_pagado,
                             saldo_pendiente=max(0, saldo_pendiente),  # No mostrar negativos
                             cuota_enfoque=cuota_enfoque,
-                            now=now)
+                            now=now,
+                            back_url=get_dynamic_back_url('ver_factura', patient_id=factura.paciente_id))
 
     
     @app.route('/plan/<int:plan_id>/pagar', methods=['GET', 'POST'])
@@ -1302,6 +1429,7 @@ def register_routes(app):
 
     @app.route('/paciente/<int:paciente_id>/planes/<int:plan_id>/editar', methods=['GET','POST'])
     @login_required
+    @doctor_or_assistant_required
     def editar_plan_paciente(paciente_id, plan_id):
         plan = PlanTratamientoControlador.obtener_por_id(plan_id)
         if not plan:

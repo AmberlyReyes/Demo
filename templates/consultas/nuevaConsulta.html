@@ -9,19 +9,6 @@
 {% block admin_content %}
 <style>
     /* Estilos específicos para esta página */
-    .patient-info-panel {
-        background-color: #f8fafc;
-        border: 1px solid var(--color-borde);
-        border-radius: 8px;
-        padding: 20px;
-        margin-bottom: 20px;
-    }
-    .patient-summary {
-        display: flex; flex-wrap: wrap; gap: 20px;
-        color: var(--color-texto); font-size: 14px;
-    }
-    .patient-summary span { display: flex; align-items: center; gap: 5px; }
-
     .form-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
@@ -38,14 +25,6 @@
     .message { padding: 15px; border-radius: 8px; margin-bottom: 20px; display: none; }
     .message.error { background: #f8d7da; color: #721c24; }
 </style>
-
-<div class="patient-info-panel">
-    <div class="patient-summary" id="patientSummary">
-        <span><strong>Paciente:</strong> {{ paciente.nombre }}</span>
-        <span><strong>Cédula:</strong> {{ paciente.cedula }}</span>
-        <span><strong>Teléfono:</strong> {{ paciente.telefono }}</span>
-    </div>
-</div>
 
 <div class="message error" id="errorMessage"></div>
 
@@ -70,8 +49,10 @@
     </div>
 
     <input type="hidden" name="historial_clinico_id" value="{{ historial.id }}">
-    <input type="hidden" name="doctor_id" value="{{ current_user.persona_id if current_user and current_user.persona_id else 1 }}"> <div class="form-actions">
-        <button type="button" class="btn btn-back" onclick="window.history.back()">Cancelar</button>
+    <input type="hidden" name="doctor_id" value="{{ current_user.persona_id if current_user and current_user.persona_id else 1 }}">
+    
+    <div class="form-actions">
+        <button type="button" class="btn btn-back" onclick="window.location.href='{{ back_url }}'">Atrás</button>
         <button type="submit" class="btn btn-primary">Guardar Consulta</button>
     </div>
 </form>

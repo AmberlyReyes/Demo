@@ -441,13 +441,18 @@
                     <li><a href="{{ url_for('admin_dashboard') }}"><i class="fas fa-shield-alt"></i>
                             <span>Administración</span></a></li>
                     {% endif %}
+                    {# Mover enlace de sesión aquí para que quede más arriba en la barra lateral #}
+                    {% if current_user.is_authenticated %}
+                    <li><a href="{{ url_for('logout') }}"><i class="fas fa-sign-out-alt"></i> <span>Cerrar Sesión</span></a></li>
+                    {% else %}
+                    <li><a href="{{ url_for('login') }}"><i class="fas fa-sign-in-alt"></i> <span>Iniciar Sesión</span></a></li>
+                    {% endif %}
                 </ul>
             </nav>
             <div class="sidebar-footer">
-                {% if current_user.is_authenticated %}<a href="{{ url_for('logout') }}"><i
-                        class="fas fa-sign-out-alt"></i> <span>Cerrar Sesión</span></a>
-                {% else %}<a href="{{ url_for('login') }}"><i class="fas fa-sign-in-alt"></i> <span>Iniciar
-                        Sesión</span></a>{% endif %}
+                <div style="padding: 15px 20px; color: var(--color-texto-sidebar); font-size: 12px;">
+                    &copy; Dr. Reyes
+                </div>
             </div>
         </aside>
 
@@ -495,7 +500,6 @@
                     <h4>Calendario de Citas</h4>
                     <!-- FUNCIONALIDAD: Mostrar citas del día seleccionado -->
                     <div class="citas-del-dia">
-                        <h5>Citas del {{ hoy.strftime('%d/%m/%Y') }}</h5>
                         {% if citas_del_dia %}
                             <div class="agenda-diaria">
                                 {% for hour in range(8, 18) %}
