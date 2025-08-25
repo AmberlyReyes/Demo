@@ -17,9 +17,12 @@ def crear_app():
         template_folder=os.path.join(os.path.dirname(__file__), '..', 'templates'),
         static_folder=os.path.join(os.path.dirname(__file__), '..', 'static')
     )
-    app.config['SQLALCHEMY_DATABASE_URI'] = f"postgresql://{os.getenv('DB_USER')}:{os.getenv('DB_PASSWORD')}@{os.getenv('DB_HOST')}:{os.getenv('DB_PORT')}/{os.getenv('DB_NAME')}"
+    #app.config['SQLALCHEMY_DATABASE_URI'] = f"postgresql://{os.getenv('DB_USER')}:{os.getenv('DB_PASSWORD')}@{os.getenv('DB_HOST')}:{os.getenv('DB_PORT')}/{os.getenv('DB_NAME')}"
     app.config['SECRET_KEY'] = os.getenv('SECRET_KEY', 'a_default_secret_key')
     app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+
+    app.config['SQLALCHEMY_DATABASE_URI'] = f"postgresql://sysdental_user:zGZvJeFrlnqH42zy8tpWEj03vgKjJQML@dpg-d2mb97er433s73foqn40-a.oregon-postgres.render.com/sysdental"
+
 
     # Carpeta de subida DENTRO de static/
     upload_folder = os.path.join(app.root_path, '..', 'static', 'uploads')
