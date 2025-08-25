@@ -4,3 +4,4 @@ Flask-SQLAlchemy
 python-dateutil
 psycopg2-binary
 gunicorn
+python-dotenv
